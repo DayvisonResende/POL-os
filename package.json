@@ -1,0 +1,11 @@
+{
+  "name": "sisp-pol-os",
+  "private": true,
+  "description": "SISP: Terminal de Inteligência Policial. O jogo roda abrindo o index.html; o npm só é usado para os testes.",
+  "scripts": {
+    "test": "node --test tests/*.test.js"
+  },
+  "devDependencies": {
+    "sql.js": "1.8.0"
+  }
+}

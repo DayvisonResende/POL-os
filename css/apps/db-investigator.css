@@ -1,0 +1,42 @@
+/* ---------- DB-Investigator ---------- */
+.dbwrap{flex:1;min-height:0;display:flex}
+.dbmain{flex:1;min-width:0;display:flex;flex-direction:column}
+.ed{position:relative;flex:none;height:150px;background:var(--code-bg);border-bottom:1px solid #000;resize:vertical;overflow:hidden;min-height:80px}
+.ed pre,.ed textarea{position:absolute;inset:0;margin:0;padding:10px 12px;font-family:var(--f-code);font-size:14px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere;tab-size:2;border:0;overflow:auto}
+.ed pre{color:var(--code-ink);pointer-events:none}
+.ed textarea{background:transparent;color:transparent;caret-color:#fff;resize:none;outline:none}
+.ed textarea::selection{background:var(--code-sel);color:transparent}
+.ed textarea::placeholder{color:var(--code-com)}
+.k{color:var(--code-kw);font-weight:600}.s{color:var(--code-str)}.n{color:var(--code-num)}.c{color:var(--code-com);font-style:italic}
+.status{flex:none;display:flex;gap:12px;align-items:center;padding:4px 10px;font-size:12.5px;color:var(--ink-2);background:var(--win);border-bottom:1px solid var(--rule);font-variant-numeric:tabular-nums;min-height:26px}
+.err{flex:none;margin:8px;padding:10px 12px;background:var(--danger-soft);border:1px solid #d9a19c;border-left:4px solid var(--danger);font-size:14px;line-height:1.45}
+.err .raw{display:block;margin-top:6px;font-family:var(--f-code);font-size:11.5px;color:#7d3a35}
+.hint0{flex:none;margin:8px;padding:9px 12px;background:var(--accent-soft);border-left:4px solid var(--accent);font-size:14px;line-height:1.45}
+.grid{flex:1;min-height:0;overflow:auto;background:var(--pane)}
+.grid table{border-collapse:collapse;font-family:var(--f-code);font-size:12.5px;min-width:100%}
+.grid th{position:sticky;top:0;background:#d5dcda;text-align:left;padding:5px 10px;border-bottom:1px solid var(--edge);border-right:1px solid var(--rule);font-weight:600;white-space:nowrap;text-transform:uppercase;font-size:11.5px;letter-spacing:.04em}
+.grid td{padding:4px 10px;border-bottom:1px solid #e1e6e4;border-right:1px solid #e9edec;white-space:nowrap;font-variant-numeric:tabular-nums}
+.grid tr:nth-child(even) td{background:#eef1f0}
+.grid td.null{color:var(--ink-3);font-style:italic}
+.grid td a{color:#1d5b8f;cursor:pointer;text-decoration:underline}
+.grid .rn{color:var(--ink-3);text-align:right;background:#e6eae9!important}
+.empty{padding:22px;color:var(--ink-3);font-size:14px;line-height:1.5;max-width:52ch}
+.dict{flex:none;width:220px;border-left:1px solid var(--rule);background:var(--pane);overflow:auto;font-size:13px}
+.dict h4{margin:0;padding:8px 10px;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);border-bottom:1px solid var(--rule)}
+.dict details{border-bottom:1px solid var(--rule)}
+.dict summary{padding:7px 10px;font-family:var(--f-code);font-weight:600;cursor:pointer}
+.dict ul{list-style:none;margin:0;padding:0 0 6px}
+.dict li button{display:flex;width:100%;gap:6px;align-items:baseline;padding:3px 10px 3px 18px;background:none;border:0;text-align:left;font-family:var(--f-code);font-size:12px}
+.dict li button:hover{background:var(--accent-soft)}
+.dict .ty{color:var(--ink-3);font-size:10.5px;margin-left:auto}
+.dict .key{font-size:10px;font-weight:600;color:var(--title);border:1px solid var(--title);padding:0 3px}
+.dict .note{padding:0 10px 4px 18px;font-size:11.5px;color:var(--ink-3);line-height:1.35}
+
+.ed.locked::after{content:"somente leitura";position:absolute;right:8px;bottom:6px;font-family:var(--f-code);font-size:10.5px;color:var(--code-com);pointer-events:none}
+.explain{flex:none;margin:8px;border:1px solid #b6cdd3;background:#f2f8f9;max-height:45%;overflow:auto}
+.explain .exh{display:flex;align-items:center;gap:8px;padding:6px 10px;background:#dbe9ee;font-size:12px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:var(--title);position:sticky;top:0}
+.explain .exh button{margin-left:auto;border:0;background:none;color:var(--title);font-size:13px;text-decoration:underline;text-transform:none;letter-spacing:0}
+.explain table{border-collapse:collapse;width:100%}
+.explain td{padding:7px 10px;border-top:1px solid #d3e3e7;vertical-align:top;font-size:14.5px;line-height:1.45}
+.explain td.cd{width:40%;font-family:var(--f-code);font-size:12.5px;background:var(--code-bg);color:var(--code-ink);overflow-wrap:anywhere}
+.explain .exn{padding:6px 10px;font-size:13px;color:var(--ink-2)}

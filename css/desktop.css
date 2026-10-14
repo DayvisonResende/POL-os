@@ -1,0 +1,92 @@
+/* Boot, área de trabalho, janelas, barra de tarefas, menu iniciar, toasts, overlays e seta do tutorial. */
+#app{position:fixed;inset:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px) 0}
+
+/* ---------- boot ---------- */
+#boot{position:absolute;inset:0;z-index:9000;display:grid;place-items:center;padding:16px;
+  background:radial-gradient(120% 90% at 30% 20%,#25454f 0%,var(--wall-2) 70%);color:var(--wall-ink)}
+.boot-card{width:min(420px,100%);display:grid;gap:18px}
+.crest{display:flex;align-items:center;gap:14px}
+.crest svg{flex:none}
+.brand{font-family:var(--f-display);font-weight:700;font-size:44px;letter-spacing:.04em;line-height:.9;color:#eef3f1}
+.brand small{display:block;font-size:15px;letter-spacing:.18em;color:#9fb6b3;font-weight:600;margin-top:6px}
+.boot-form{background:rgba(8,20,24,.55);border:1px solid #3c5a62;padding:18px;display:grid;gap:12px}
+.boot-form label{display:grid;gap:4px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#93aaa7}
+.boot-form input{background:#0b1619;border:1px solid #3c5a62;color:#e6efed;padding:9px 10px;font-family:var(--f-code);font-size:14px}
+.btn-primary{background:var(--accent);color:#1d1406;border:0;padding:10px 14px;font-weight:600;letter-spacing:.04em}
+.btn-primary:disabled{opacity:.5;cursor:wait}
+.boot-note{font-size:12.5px;color:#88a09d;line-height:1.5}
+#bootStatus{font-family:var(--f-code);font-size:12px;color:#a6bcb9}
+
+/* ---------- desktop ---------- */
+#desk{position:absolute;inset:0 0 var(--tbh) 0;overflow:hidden;
+  background:
+    radial-gradient(90% 70% at 70% 30%,rgba(255,255,255,.05),transparent 60%),
+    repeating-linear-gradient(0deg,rgba(255,255,255,.018) 0 1px,transparent 1px 3px),
+    var(--wall)}
+.wallmark{position:absolute;right:28px;bottom:22px;text-align:right;color:rgba(207,220,217,.22);font-family:var(--f-display);font-weight:700;font-size:64px;letter-spacing:.05em;line-height:.85;pointer-events:none;user-select:none}
+.wallmark small{display:block;font-size:14px;letter-spacing:.3em}
+#icons{position:absolute;top:14px;left:12px;display:grid;grid-auto-flow:row;gap:6px}
+.dicon{width:88px;display:grid;justify-items:center;gap:4px;padding:6px 4px;background:none;border:1px solid transparent;color:#eaf1ef;font-size:13px;line-height:1.15;text-align:center;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+.dicon:hover,.dicon:focus-visible{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18)}
+.dicon .ico{width:40px;height:40px;display:grid;place-items:center;position:relative}
+.badge{position:absolute;top:-4px;right:-6px;background:var(--danger);color:#fff;font-size:11px;font-weight:600;min-width:18px;height:18px;border-radius:9px;display:grid;place-items:center;padding:0 4px;text-shadow:none}
+
+/* ---------- windows ---------- */
+.win{position:absolute;background:var(--win);border:1px solid #5d6f73;box-shadow:0 12px 34px rgba(0,0,0,.42),0 0 0 1px rgba(255,255,255,.25) inset;display:flex;flex-direction:column;resize:both;overflow:hidden;min-width:320px;min-height:220px}
+.win.min{display:none}
+.wtb{flex:none;height:30px;display:flex;align-items:center;gap:8px;padding:0 4px 0 10px;background:var(--title-off);color:var(--title-ink);cursor:move;user-select:none;touch-action:none}
+.win.active .wtb{background:var(--title)}
+.wtb .wt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;font-size:14px;letter-spacing:.02em}
+.wtb button{width:26px;height:22px;border:0;background:rgba(255,255,255,.1);color:var(--title-ink);display:grid;place-items:center;font-size:13px;line-height:1}
+.wtb button:hover{background:rgba(255,255,255,.22)}
+.wtb button.x:hover{background:var(--danger)}
+.wbody{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+
+/* ---------- taskbar ---------- */
+#taskbar{position:absolute;left:0;right:0;bottom:0;height:var(--tbh);background:var(--task);color:var(--task-ink);display:flex;align-items:center;gap:8px;padding:0 8px;border-top:1px solid #2b4148;z-index:8000}
+#startBtn{flex:none;height:32px;display:flex;align-items:center;gap:6px;padding:0 10px;background:#1c3138;border:1px solid #33505a;color:#eaf1ef;font-family:var(--f-display);font-weight:700;letter-spacing:.08em;font-size:16px}
+#tasks{flex:1;min-width:0;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+#tasks::-webkit-scrollbar{display:none}
+.tbtn{flex:none;max-width:170px;height:32px;padding:0 10px;background:#18292f;border:1px solid #2b434a;color:#c9d8d5;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tbtn.on{background:#2a4952;color:#fff;border-color:#4d727c}
+.tray{flex:none;display:flex;align-items:center;gap:12px;font-size:12px}
+.meter{display:grid;gap:3px;min-width:96px}
+.meter .ml{display:flex;justify-content:space-between;gap:6px;letter-spacing:.08em;text-transform:uppercase;font-size:10.5px;color:#9db3b0;font-variant-numeric:tabular-nums}
+.meter .bar{height:6px;background:#22363c;position:relative;overflow:hidden}
+.meter .fill{position:absolute;inset:0 auto 0 0;transition:width .5s}
+#mMetas .fill{background:#4fae76}
+#mCorr .fill{background:#d24a3f}
+#clock{text-align:right;font-variant-numeric:tabular-nums;line-height:1.15;color:#e3ece9}
+#clock small{display:block;color:#86a09c;font-size:10.5px}
+#startMenu{position:absolute;left:8px;bottom:calc(var(--tbh) + 6px);width:250px;background:#132328;border:1px solid #33505a;box-shadow:0 10px 30px rgba(0,0,0,.5);z-index:8500;color:#dfe9e6;padding:6px}
+#startMenu .smh{font-family:var(--f-display);font-weight:700;letter-spacing:.1em;padding:8px 8px 10px;color:#9fb6b3;font-size:13px;border-bottom:1px solid #2b434a;margin-bottom:4px}
+#startMenu button{display:flex;width:100%;align-items:center;gap:10px;padding:8px;background:none;border:0;text-align:left;color:inherit}
+#startMenu button:hover{background:#21393f}
+#startMenu hr{border:0;border-top:1px solid #2b434a;margin:4px 0}
+
+/* ---------- toasts ---------- */
+#toasts{position:absolute;right:12px;bottom:calc(var(--tbh) + 12px);display:grid;gap:8px;z-index:8600;width:min(320px,calc(100% - 24px))}
+.toast{background:#f7f9f8;color:var(--ink);border:1px solid var(--edge);border-left:4px solid var(--title);padding:10px 12px;box-shadow:0 8px 24px rgba(0,0,0,.35);font-size:14px;line-height:1.35;cursor:pointer;animation:tin .25s ease-out}
+.toast b{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);margin-bottom:2px}
+.toast.ok{border-left-color:var(--ok)} .toast.bad{border-left-color:var(--danger)} .toast.warn{border-left-color:var(--accent)}
+@keyframes tin{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
+
+/* ---------- overlays ---------- */
+.overlay{position:absolute;inset:0;z-index:9500;display:grid;place-items:center;padding:16px;background:rgba(5,12,14,.72)}
+.report{width:min(560px,100%);max-height:100%;overflow:auto;background:#fbfcfb;border:1px solid var(--edge);box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.report header{background:var(--title);color:#fff;padding:14px 18px}
+.report header h2{margin:0;font-family:var(--f-display);font-weight:700;letter-spacing:.06em;font-size:24px}
+.report header p{margin:2px 0 0;font-size:13px;color:#b8cdd2}
+.report .rb{padding:16px 18px;display:grid;gap:14px}
+.report table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.report td{padding:6px 0;border-bottom:1px solid var(--rule)}
+.report td:last-child{text-align:right;font-family:var(--f-code)}
+.report p{margin:0;line-height:1.55;font-size:14.5px}
+.fired{background:repeating-linear-gradient(135deg,rgba(176,48,42,.92) 0 18px,rgba(150,36,31,.92) 18px 36px)}
+.fired .report header{background:var(--danger)}
+
+#ptr{position:absolute;z-index:8800;pointer-events:none;background:var(--accent);color:#1d1406;font-weight:600;font-size:14px;padding:5px 11px;white-space:nowrap;box-shadow:0 6px 16px rgba(0,0,0,.35);animation:bob 1s ease-in-out infinite;--ax:50%}
+#ptr::before{content:"";position:absolute;left:var(--ax);top:-9px;transform:translateX(-50%);border:9px solid transparent;border-top:0;border-bottom-color:var(--accent)}
+#ptr.down::before{top:auto;bottom:-9px;border-bottom:0;border-top:9px solid var(--accent)}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+#ptr.down{animation-name:bobd}@keyframes bobd{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}

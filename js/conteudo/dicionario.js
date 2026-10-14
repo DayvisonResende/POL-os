@@ -1,0 +1,2 @@
+/* Notas extras do Dicionário de Dados, por tabela.coluna. */
+var COLNOTES={'veiculos.cor':'em minúsculas: preto, prata, branco…','veiculos.placa':'sem traço, ex.: ABC1D23','veiculos.cpf_proprietario':'aponta para pessoas.cpf','leituras_radar.data_hora':'AAAA-MM-DD HH:MM:SS','leituras_radar.placa':'aponta para veiculos.placa','leituras_radar.foto_radar_url':'clique no resultado para abrir','catraca_acessos.data':'AAAA-MM-DD'};

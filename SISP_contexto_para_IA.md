@@ -1,6 +1,6 @@
-# SISP — Documento de Continuidade para IA (v3.0)
+# SISP — Documento de Continuidade para IA (v3.1)
 
-> **Para a IA que vai continuar este projeto:** leia este arquivo inteiro antes de mexer no código. Ele descreve o que o jogo é, por que ele é assim, o que já existe no arquivo `sisp.html`, como o código está organizado, quais decisões já foram tomadas (e por quê) e o que falta fazer. A autora do projeto é a May, que fala português, é detalhista e quer **entender** as decisões, não só recebê-las. Dê opinião honesta quando ela pedir, mesmo discordando.
+> **Para a IA que vai continuar este projeto:** leia este arquivo inteiro antes de mexer no código. Ele descreve o que o jogo é, por que ele é assim, o que já existe no código (`index.html` + pastas `css/` e `js/`), como ele está organizado, quais decisões já foram tomadas (e por quê) e o que falta fazer. A autora do projeto é a May, que fala português, é detalhista e quer **entender** as decisões, não só recebê-las. Dê opinião honesta quando ela pedir, mesmo discordando.
 
 ---
 
@@ -31,14 +31,14 @@ Hypnospace Outlaw, Hacknet, Her Story, Papers, Please, SQL Murder Mystery.
 5. **Andaime que diminui aos poucos (scaffolding).** Cada conceito novo passa por uma escada: ver → prever → trocar uma peça → montar com blocos → completar um molde → escrever do zero. O apoio diminui conforme o jogador avança.
 6. **O jogador sempre sabe qual é a próxima ação**, mesmo quando ainda não sabe a resposta.
 7. **Foco em DQL e DML.** Sem `CREATE TABLE` nem teoria de normalização. O jogador é analista, não arquiteto de banco.
-8. **Arquivo único, 100% no navegador.** HTML + CSS + JS num só arquivo, banco SQLite em memória via `sql.js`. Custo de infraestrutura zero.
+8. **100% no navegador, sem build.** HTML + CSS + JS em arquivos separados por responsabilidade, carregados por tags `<link>`/`<script>` comuns. Abrir o `index.html` direto no navegador já roda o jogo. Banco SQLite em memória via `sql.js`. Custo de infraestrutura zero.
 9. **Tom:** repartição pública brasileira, burocrática e sarcástica, com colegas estressados e medo constante da Corregedoria.
 
 ---
 
 ## 3. Estado atual (o que já está pronto)
 
-Arquivo: **`sisp.html`** (anexado junto deste documento). Também publicado como artifact no Claude.
+Ponto de entrada: **`index.html`** (o resto está em `css/` e `js/`, ver seção 4). Também publicado como artifact no Claude.
 
 ### Fluxo completo jogável hoje
 1. **Login** no Pol-OS (tela de boot; o banco carrega enquanto isso).
@@ -67,7 +67,7 @@ Arquivo: **`sisp.html`** (anexado junto deste documento). Também publicado como
 
 ---
 
-## 4. Arquitetura do código (`sisp.html`)
+## 4. Arquitetura do código
 
 ### 4.1 Dependências externas
 - `sql.js` **1.8.0, build `sql-asm.js`** via cdnjs: `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-asm.js`
@@ -75,15 +75,59 @@ Arquivo: **`sisp.html`** (anexado junto deste documento). Também publicado como
   - SQLite dessa versão suporta window functions (`ROW_NUMBER`, `LAG`, `LEAD`), CTEs e transações. Os Módulos 3 a 6 funcionam sem trocar a biblioteca.
 - Google Fonts: Barlow Condensed (títulos), Barlow Semi Condensed (interface), JetBrains Mono (código). Há fontes de fallback declaradas.
 
-### 4.2 Estrutura do arquivo (de cima para baixo)
-1. `<style>`: tokens de cor e fonte no `:root` (tema único, escolhido de propósito: é a tela de um PC de repartição), depois os estilos de boot, desktop, janelas, barra de tarefas, apps, guia do tutorial, ACADEPOL e regras de mobile.
-2. HTML: `#boot` (login), `#desk` (ícones, janelas, toasts), `#taskbar`, `#startMenu`, `#ptr` (seta do tutorial).
-3. `<script>` do sql.js.
-4. `<script>` principal, dividido em duas zonas:
-   - **`/*CORE-START*/ … /*CORE-END*/`:** lógica **pura, sem DOM**. Pode ser extraída e testada no Node. Contém geração do banco, fatos, casos, tradução de erros, dicas de resultado vazio, checagem de somente leitura e o explicador de SQL.
-   - **UI:** tudo que mexe na tela.
+### 4.2 Estrutura de pastas
+
+O jogo foi desmembrado do antigo arquivo único (v3.0) para crescer sem virar um monólito. **Não há build**: são scripts clássicos (não ES modules, porque módulos não carregam de `file://`). Todos compartilham o escopo global, então **a ordem das tags `<script>` no `index.html` é a ordem de dependência**.
+
+```
+index.html                  só a marcação (boot, desktop, barra de tarefas) e a lista de CSS/JS, em ordem
+css/
+  base.css                  tokens do :root (tema único), reset, peças compartilhadas
+  desktop.css               boot, área de trabalho, janelas, barra de tarefas, toasts, overlays, seta
+  apps/<app>.css            um arquivo por aplicativo
+  mobile.css                regras ≤760px e ≤460px (sempre por último)
+js/
+  core/                     LÓGICA PURA, sem DOM. Roda no navegador e no Node.
+    util.js                 mulberry32, sq, escH, toR, has, hasAll, normPlaca, normTxt, esc, rcols, shuffle
+    registro.js             CASES, PROVAS, registrarCaso, registrarProva, indiceCaso
+    banco/seed.js           buildSeedSQL (dados do jogo)
+    banco/fatos.js          F e computeFacts
+    sql/lexico.js           KEYWORDS, lev, closest, kwTypo, stripSql, tokSQL, joinToks
+    sql/erros.js            translateError, zeroRowHint
+    sql/permissao.js        isReadOnly
+    sql/explicador.js       explainSQL e textos COLDESC/TABDESC
+  conteudo/                 CONTEÚDO DO JOGO, sem DOM. É aqui que o jogo mais cresce.
+    casos/<id>.js           um arquivo por BO: registrarCaso({...})
+    treinamento/moduloN.js  passos do treinamento guiado (TUT)
+    provas/moduloN.js       uma prova da ACADEPOL por módulo: registrarProva(N, {...})
+    patentes.js             RANKS (com aoPromover)
+    arquivos.js             FILES (snippets e evidências)
+    personagens.js          PEOPLE (contatos do PolíciaZap)
+    dicionario.js           COLNOTES (notas do Dicionário de Dados)
+  ui/                       base do Pol-OS (mexe no DOM)
+    dom.js, icones.js       $, h, ICONS
+    estado.js               S, SAVE_KEY, freshState, save, load, rankT, resetAll
+    banco.js                SQL, db, SCHEMA, TABELAS, iniciarBanco
+    janelas.js              gerenciador de janelas e barra de tarefas
+    notificacoes.js         toast, meters, addCorr, addMetas
+    destaque.js             spot e seta "clica aqui"
+    desktop.js              ícones, menu iniciar, unlockApp
+  apps/                     um arquivo por aplicativo do Pol-OS
+    db-investigator.js, ocorrencias.js, policiazap.js, arquivos.js, radar.js,
+    treinamento.js (motor do TUT), acadepol.js, relatorio.js
+  historia/                 side quests e eventos de enredo (hoje: beto.js)
+  main.js                   boot (sempre o último script)
+tests/                      testes no Node (npm test)
+```
+
+**Regras da divisão:**
+- `core/` e `conteudo/` **nunca** usam `document` ou `window` no momento em que são carregados. Funções de conteúdo podem *chamar* funções de UI (`say`, `unlockApp`…) dentro de callbacks como `aoEncerrar`, porque elas só rodam no navegador; os testes do Node nunca as disparam.
+- Arquivo novo = uma tag `<script>` nova no `index.html`, no grupo certo. Os testes leem essa lista, então não há uma segunda lista para manter.
+- Regras de progressão **ficam no conteúdo, não na UI**: patente mínima, tempo gasto e reação da história ficam no próprio caso; o efeito de cada promoção fica na patente; o requisito de cada prova fica na prova. A UI não deve ter `if (i === 1)` nem índices fixos de caso.
 
 ### 4.3 Funções e objetos principais
+
+"core" = `js/core/` ou `js/conteudo/` (sem DOM); "UI" = `js/ui/`, `js/apps/` ou `js/historia/`. Para achar onde algo está: `grep -rn "function nome" js/`.
 
 | Nome | Zona | O que faz |
 |---|---|---|
@@ -122,19 +166,22 @@ tutFb, tutMiss, tutErr, tutBlk, apps[], rank, prova{mod,qs,ord,ans,sql,graded}, 
 
 ### 4.5 Formato de um caso (`CASES`)
 ```js
-{
+registrarCaso({                     // em js/conteudo/casos/1002.js
   id:'1002', titulo:'…', modulo:2, natureza:'…', quando:'12/10/2026 19:20', local:'…', solicitante:'…',
   relato:'HTML com o BO e os depoimentos',
   steps:[ { t:'texto da tarefa (HTML)', h:['dica conceitual','dica quase-resposta'], ok:function(R){ return … } } ],
   final:{ tipo:'mandado'|'resposta', titulo:'…', campos:[{id:'placa',label:'…'}],
           check:function(v){ return {ok:true,msg:'…'} ou {ok:false,pen:20,msg:'motivo do indeferimento'} } },
-  manual:'HTML do Manual do Recruta deste caso'
-}
+  manual:'HTML do Manual do Recruta deste caso',
+  rankMin:1,                       // opcional: patente mínima para o caso abrir (índice em RANKS)
+  tempo:150,                       // opcional: minutos que o relógio avança ao fechar (padrão 60)
+  aoEncerrar:function(){ … }       // opcional: reação da história (mensagens da Célia, liberar app, side quest)
+});
 ```
 - **`steps[].ok(R)`** valida pelo resultado, nunca pelo texto.
 - **`final.check`** precisa explicar o motivo de cada resposta errada plausível, especialmente os falsos positivos planejados ("Corolla é sedã, as testemunhas viram uma caminhonete").
-- Desbloqueio: `caseUnlocked(i)` (caso anterior fechado + patente mínima).
-- Arquivos de cada caso: `FILES[]` com `from: índice do caso` em que o arquivo aparece.
+- Desbloqueio: `caseUnlocked(i)` (caso anterior fechado + `rankMin`). Os casos são ordenados pelo `id` no registro.
+- Arquivos de cada caso: `FILES[]` com `caso: 'id do BO'` a partir do qual o arquivo aparece.
 
 ---
 
@@ -221,12 +268,13 @@ O BO 1001 é um tutorial de 14 passos. Cada passo é um objeto com `type`:
 **Princípio:** a recompensa da promoção é **acesso no sistema**, não pontos. O momento mais forte é quando o Perito Forense finalmente pode escrever no banco, depois de cinco módulos ouvindo "acesso negado".
 
 ### Prova (app ACADEPOL)
-- `PROVAS[mod] = {para: índiceDaPatente, titulo, mcq:[…], write:[…]}`.
+- Cada prova fica em `js/conteudo/provas/moduloN.js`: `registrarProva(N, {requer: 'id do BO', para: índiceDaPatente, titulo, mcq:[…], write:[…]})`.
 - Cada prova sorteia **3 de múltipla escolha + 2 de escrever consulta**. Aprovação com **4 de 5**.
 - Múltipla escolha: `{id, q, code?, opts[3], ok: índice, exp}`. As alternativas são embaralhadas.
 - Escrever: `{id, q, check(R), model}`. Corrigida **pelo resultado** (`runSafe` + `check`). O jogador pode testar antes de entregar.
 - Prova **com consulta** (terminal, Dicionário e Explique liberados). Reprovar **não pune**: mostra a correção e permite refazer com outro sorteio.
-- `provaMod()` decide qual prova está disponível.
+- `provaMod()` decide qual prova está disponível: a que promove para a patente seguinte, desde que o BO em `requer` esteja encerrado.
+- O que a promoção libera fica em `RANKS[n].aoPromover` (`js/conteudo/patentes.js`).
 - **Regra de conteúdo:** nada de decoreba ("defina SELECT"). As questões devem ser de prever resultado, achar erro, escolher a consulta certa ou escrever uma consulta.
 - **Toda questão de escrever deve ter `model` testado**: a resposta-modelo precisa passar no próprio `check`.
 
@@ -330,8 +378,8 @@ Limpeza de dados sujos (`TRIM`, `UPPER`, `REPLACE` em placas com traço e nomes 
 
 ## 12. Regras técnicas para quem for mexer
 
-1. **Manter tudo num arquivo só** (HTML + CSS + JS), sem build e sem servidor.
-2. **Lógica pura vai na zona CORE** (sem `document`), para poder ser testada no Node.
+1. **Sem build e sem servidor.** Scripts clássicos carregados pelo `index.html`; abrir o arquivo no navegador tem que funcionar. Um assunto por arquivo; se um arquivo passar de ~300 linhas, provavelmente é hora de dividir.
+2. **Lógica pura vai em `js/core/`, conteúdo em `js/conteudo/`** (sem `document` no carregamento), para poder ser testado no Node. Regras de progressão moram no conteúdo, nunca como `if` por índice na UI.
 3. **Toda validação usa `F` ou consulta o banco.** Nunca escrever números fixos nas checagens.
 4. **Nunca validar o texto da query.** Única exceção aceita: o degrau `blocks` do tutorial, que compara a ordem das peças.
 5. **Erros e dicas em português simples**, dizendo o que fazer, sem jargão.
@@ -339,28 +387,19 @@ Limpeza de dados sujos (`TRIM`, `UPPER`, `REPLACE` em placas com traço e nomes 
 7. **Cores só por tokens** do `:root`.
 8. Elementos com o atributo `hidden` precisam da regra `[hidden]{display:none!important}` (já existe). Sem ela, a tela de login invisível bloqueava os cliques.
 9. Ao mudar o formato do estado de forma incompatível, **trocar `SAVE_KEY`**.
-10. Se publicar como artifact do Claude: só scripts de cdnjs, jsDelivr ou unpkg; nada de `fetch` externo, `alert()`, `confirm()` ou `window.print()`.
+10. Se publicar como artifact do Claude: só scripts externos de cdnjs, jsDelivr ou unpkg; nada de `fetch` externo, `alert()`, `confirm()` ou `window.print()`. Publicar o `index.html` como página e todos os arquivos de `css/` e `js/` como arquivos de apoio (parâmetro `files`), mantendo os mesmos caminhos.
 
 ---
 
 ## 13. Como testar
 
-### Lógica (Node)
+### Lógica e conteúdo (Node)
 ```bash
-npm i sql.js@1.8.0
+npm install     # só instala o sql.js 1.8.0 para os testes
+npm test
 ```
-```js
-const fs = require('fs');
-const html = fs.readFileSync('sisp.html', 'utf8');
-const core = html.split('/*CORE-START*/')[1].split('/*CORE-END*/')[0];
-const initSqlJs = require('./node_modules/sql.js/dist/sql-asm.js');
-eval(core + ';global.T={buildSeedSQL,computeFacts,CASES,toR,translateError,explainSQL,F}');
-initSqlJs().then(SQL => {
-  const db = new SQL.Database(); db.run(T.buildSeedSQL()); T.computeFacts(db);
-  const run = q => { const r = db.exec(q); return T.toR(r.length ? r[r.length - 1] : null) };
-  console.log(T.CASES[1].steps[2].ok(run("SELECT * FROM veiculos WHERE cor='prata' AND placa LIKE 'FTR%'")));
-});
-```
+`tests/carregar.js` lê a lista de `<script>` do `index.html`, carrega no Node só o que está em `js/core/` e `js/conteudo/`, gera o banco e devolve `{T, db, run}`. Os testes ficam em `tests/*.test.js` e já cobrem: arquivos do index existem, registro consistente (FILES e provas apontam para casos existentes), banco determinístico, soluções e falsos positivos dos BOs, consultas prontas do treinamento, respostas-modelo da ACADEPOL e as funções de SQL.
+
 Para cada caso novo, teste: (a) a solução esperada passa; (b) consultas "quase certas" e trapaças (`SELECT *` sem filtro) **não** passam; (c) cada falso positivo gera a explicação certa no mandado.
 
 ### Interface (Playwright)
@@ -377,8 +416,10 @@ Abra o arquivo local e redirecione o pedido do cdnjs para o `sql-asm.js` local (
 - [ ] `steps` com `ok(R)` pelo resultado e 2 dicas cada (conceito → quase-resposta).
 - [ ] `final.check` com explicação para cada erro plausível e penalidade.
 - [ ] Manual do Recruta com exemplos usando **outras** tabelas (não entregar a resposta).
-- [ ] Falas da Célia no tom certo; evidências em `FILES` com `from` correto.
-- [ ] Testes no Node e no navegador.
+- [ ] Arquivo `js/conteudo/casos/<id>.js` com `registrarCaso`, e a tag `<script>` no `index.html`.
+- [ ] `rankMin`, `tempo` e `aoEncerrar` definidos no próprio caso (nada de `if` por índice na UI).
+- [ ] Falas da Célia no tom certo; evidências em `FILES` com `caso` correto.
+- [ ] Testes em `tests/` (solução passa, trapaça não passa, falsos positivos explicados) e no navegador.
 
 ---
 

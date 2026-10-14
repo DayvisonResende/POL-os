@@ -1,0 +1,12 @@
+/* Ícones em SVG inline. */
+/* ---------- icons (inline svg) ---------- */
+var ICONS={
+ ocorr:'<svg width="38" height="38" viewBox="0 0 38 38"><rect x="7" y="4" width="24" height="30" fill="#f4f1e6" stroke="#22404c" stroke-width="1.5"/><rect x="13" y="2" width="12" height="5" fill="#22404c"/><path d="M11 14h16M11 19h16M11 24h10" stroke="#7d9197" stroke-width="1.6"/><circle cx="27" cy="28" r="5" fill="#d6951c"/></svg>',
+ db:'<svg width="38" height="38" viewBox="0 0 38 38"><rect x="3" y="6" width="32" height="24" fill="#0f191c" stroke="#9aa7a6"/><path d="M8 13l4 3-4 3" stroke="#e8b04a" stroke-width="2" fill="none"/><path d="M15 19h9" stroke="#93d39f" stroke-width="2"/><rect x="13" y="30" width="12" height="3" fill="#9aa7a6"/></svg>',
+ zap:'<svg width="38" height="38" viewBox="0 0 38 38"><path d="M5 7h28v19H17l-7 6v-6H5z" fill="#e3e7e5" stroke="#22404c" stroke-width="1.5"/><circle cx="13" cy="16.5" r="2" fill="#22404c"/><circle cx="19" cy="16.5" r="2" fill="#22404c"/><circle cx="25" cy="16.5" r="2" fill="#22404c"/></svg>',
+ files:'<svg width="38" height="38" viewBox="0 0 38 38"><path d="M3 9h12l3 3h17v20H3z" fill="#d6951c"/><path d="M3 14h32v18H3z" fill="#e8b04a"/></svg>',
+ prova:'<svg width="38" height="38" viewBox="0 0 38 38"><rect x="6" y="4" width="26" height="30" fill="#f4f1e6" stroke="#22404c" stroke-width="1.5"/><path d="M11 12h16M11 17h16M11 22h9" stroke="#7d9197" stroke-width="1.6"/><circle cx="26" cy="27" r="6" fill="#d6951c"/><path d="M23 33l3-3 3 3v4l-3-2-3 2z" fill="#b0302a"/></svg>',
+ sql:'<svg width="34" height="40" viewBox="0 0 34 40"><path d="M4 2h18l8 8v28H4z" fill="#fff" stroke="#4a5a5e"/><rect x="4" y="22" width="26" height="10" fill="#22404c"/><text x="17" y="30" font-size="8" font-family="monospace" fill="#fff" text-anchor="middle">SQL</text></svg>',
+ txt:'<svg width="34" height="40" viewBox="0 0 34 40"><path d="M4 2h18l8 8v28H4z" fill="#fffef6" stroke="#4a5a5e"/><path d="M9 16h16M9 21h16M9 26h12" stroke="#9aa7a6" stroke-width="1.5"/></svg>',
+ jpg:'<svg width="34" height="40" viewBox="0 0 34 40"><path d="M4 2h18l8 8v28H4z" fill="#fff" stroke="#4a5a5e"/><rect x="8" y="14" width="18" height="14" fill="#14262b"/><path d="M8 28l6-7 4 4 3-3 5 6z" fill="#7d9197"/><circle cx="21" cy="18" r="2" fill="#e8b04a"/></svg>'
+};

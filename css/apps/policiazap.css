@@ -1,0 +1,21 @@
+/* ---------- Chat ---------- */
+.zap{flex:1;min-height:0;display:flex}
+.contacts{flex:none;width:190px;border-right:1px solid var(--rule);background:var(--pane);overflow:auto}
+.contact{display:flex;gap:10px;align-items:center;width:100%;padding:10px;border:0;border-bottom:1px solid var(--rule);background:none;text-align:left}
+.contact.sel{background:#fff;box-shadow:inset 3px 0 0 var(--title)}
+.av{flex:none;width:34px;height:34px;display:grid;place-items:center;font-weight:600;font-size:13px;color:#fff;background:var(--title)}
+.av.beto{background:#7a5a2a}
+.contact .cn{font-weight:600;font-size:14px;line-height:1.15}
+.contact .cr{font-size:12px;color:var(--ink-3)}
+.contact .badge{position:static;margin-left:auto}
+.thread{flex:1;min-width:0;display:flex;flex-direction:column}
+.msgs{flex:1;min-height:0;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:8px;background:#eef2f0}
+.msg{max-width:80%;padding:8px 11px;font-size:14.5px;line-height:1.42;background:#fff;border:1px solid var(--rule);align-self:flex-start}
+.msg.me{align-self:flex-end;background:#d9e7ea;border-color:#b6cdd3}
+.msg.sys{align-self:center;background:none;border:0;color:var(--ink-3);font-size:12.5px;text-align:center}
+.msg .who{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-bottom:2px}
+.reply{flex:none;border-top:1px solid var(--rule);padding:8px;display:flex;flex-wrap:wrap;gap:6px;background:var(--win)}
+.reply input{flex:1 1 140px;min-width:0;padding:7px 9px;border:1px solid var(--edge);background:#fff;font-family:var(--f-code)}
+.reply .opt{padding:7px 10px;border:1px solid var(--edge);background:var(--pane);text-align:left;font-size:14px}
+.reply .opt:hover{background:#fff}
+.reply .muted{font-size:13px;padding:4px}

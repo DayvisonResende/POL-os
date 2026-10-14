@@ -1,0 +1,26 @@
+/* Regras de tela pequena. Em ≤760px as janelas ocupam a tela inteira. */
+/* ---------- mobile ---------- */
+@media (max-width:760px){
+  .win{left:0!important;top:0!important;width:100%!important;height:100%!important;resize:none;min-width:0;min-height:0;border:0}
+  .wtb{height:36px}
+  .wtb button.mx{display:none}
+  #icons{grid-template-columns:repeat(3,88px)}
+  .wallmark{font-size:40px}
+  .meter{min-width:64px}
+  .meter .ml span:first-child{max-width:52px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #clock small{display:none}
+  .oc,.zap,.files{flex-direction:column}
+  .oclist{width:auto;max-height:34%;border-right:0;border-bottom:1px solid var(--rule)}
+  .contacts{width:auto;display:flex;border-right:0;border-bottom:1px solid var(--rule)}
+  .contact{border-bottom:0;border-right:1px solid var(--rule)}
+  .tree{width:auto;display:flex;padding:0;border-right:0;border-bottom:1px solid var(--rule)}
+  .dict{position:absolute;right:0;top:0;bottom:0;width:min(260px,85%);box-shadow:-8px 0 20px rgba(0,0,0,.2);z-index:5}
+  .dbwrap{position:relative}
+  .dbwrap.tut{flex-direction:column}
+  .guide{width:auto;max-height:50%;border-right:0;border-bottom:1px solid var(--rule)}
+  .explain td.cd{width:45%}
+}
+@media (max-width:460px){
+  .tbtn{max-width:96px;padding:0 6px}
+  #startBtn span{display:none}
+}

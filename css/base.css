@@ -1,0 +1,35 @@
+/* Tokens de cor e fonte, reset e peças compartilhadas. Cores só por tokens do :root. */
+/* Layout: estação de trabalho de repartição — papel de parede petróleo, janelas cinza-frio com barra de título azul-marinho, âmbar só para alerta e seleção. Tema único (é a tela de um PC). */
+:root{
+  color-scheme: light;
+  --wall:#1d3640; --wall-2:#142a32; --wall-ink:#cfdcd9;
+  --win:#e3e7e5; --pane:#f4f6f5; --edge:#9aa7a6; --rule:#c9d1cf;
+  --ink:#172226; --ink-2:#4a5a5e; --ink-3:#6f7f82;
+  --title:#22404c; --title-off:#7d9197; --title-ink:#f1f5f4;
+  --accent:#d6951c; --accent-soft:#f6e3b8;
+  --danger:#b0302a; --danger-soft:#f3d6d3; --ok:#2c7a4c; --ok-soft:#d4eadb;
+  --code-bg:#0f191c; --code-ink:#cfe2dc; --code-kw:#e8b04a; --code-str:#93d39f; --code-num:#8db7ea; --code-com:#5f7a77; --code-sel:#2b4a52;
+  --task:#0e1d22; --task-ink:#d5e2df;
+  --f-display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --f-ui:"Barlow Semi Condensed","Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --f-code:"JetBrains Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+  --tbh:44px;
+}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--wall-2);color:var(--ink);font-family:var(--f-ui);font-size:15px;overflow:hidden}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+code{font-family:var(--f-code);font-size:.86em;background:var(--accent-soft);color:var(--ink);padding:0 .3em;border-radius:2px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- shared bits ---------- */
+.toolbar{flex:none;display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:6px 8px;background:var(--win);border-bottom:1px solid var(--rule)}
+.tb-btn{height:28px;padding:0 10px;background:var(--pane);border:1px solid var(--edge);display:inline-flex;align-items:center;gap:6px;font-size:13.5px}
+.tb-btn:hover{background:#fff}
+.tb-btn.run{background:var(--title);color:#fff;border-color:var(--title);font-weight:600}
+.tb-btn.run:hover{background:#2d5260}
+.kbd{font-family:var(--f-code);font-size:11px;opacity:.75}
+.muted{color:var(--ink-3)}
+.eyebrow{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
