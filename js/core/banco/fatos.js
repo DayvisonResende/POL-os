@@ -1,6 +1,7 @@
 /* Fatos calculados do banco. As validações usam F, nunca números fixos. */
 var F={};
 function computeFacts(db){
+  F._db=db;F._cache={};
   var col=function(q){var r=db.exec(q);return r.length?r[0].values.map(function(x){return x[0]}):[]};
   F.nVeic=col('SELECT COUNT(*) FROM veiculos')[0];
   F.placas=col('SELECT placa FROM veiculos');
@@ -22,3 +23,12 @@ function computeFacts(db){
   F.l1003dono=rows("SELECT * FROM pessoas WHERE cpf='318.442.907-15'");
   return F;
 }
+
+// Linhas que uma consulta de referência devolve (objetos coluna→valor), calculadas uma vez e guardadas.
+// Usado pelos passos de treinamento: bate(R, "SELECT * FROM … WHERE …") = o jogador trouxe exatamente essas linhas.
+function linhasDe(q){
+  if(!F._cache[q]){var r=F._db.exec(q);var cs=r.length?r[0].columns.map(function(c){return c.toLowerCase()}):[];
+    F._cache[q]=r.length?r[0].values.map(function(v){var o={};cs.forEach(function(c,i){o[c]=v[i]});return o}):[]}
+  return F._cache[q];
+}
+function bate(R,q){return mesmasLinhas(R,linhasDe(q))}

@@ -6,7 +6,7 @@ var TELE=(function(){try{var t=JSON.parse(localStorage.getItem(TELE_KEY)||'null'
 function teleModo(){return /[?&]teste\b/.test(location.search)}
 function teleSalvar(){try{localStorage.setItem(TELE_KEY,JSON.stringify(TELE))}catch(e){}}
 function teleOnde(){
-  if(tutActive())return 'Treino '+String(S.tut+1).padStart(2,'0')+' · '+tutStep().type;
+  if(tutActive())return 'Treino '+(S.treino==='m1'?'':S.treino+' ')+String(S.tut+1).padStart(2,'0')+' · '+tutStep().type;
   var i=caseActive();return i<0?'Sem chamado aberto':'BO '+CASES[i].id;
 }
 function tele(tipo,dados){

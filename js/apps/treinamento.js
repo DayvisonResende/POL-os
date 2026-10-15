@@ -1,7 +1,24 @@
 /* ---------- motor do treinamento guiado (passos em js/conteudo/treinamento/) ---------- */
-function fill(t){return String(t).replace(/\{n\}/g,F.nVeic).replace(/\{cores\}/g,F.cores.length)}
-function tutActive(){return S.tut<TUT.length}
-function tutStep(){return TUT[S.tut]}
+// {n} = total de veículos, {cores} = cores distintas, {chave} = F.chave (lista vira o tamanho dela)
+function fill(t){return String(t).replace(/\{(\w+)\}/g,function(m,k){var v=k==='n'?F.nVeic:k==='cores'?F.cores.length:F[k];return v==null?m:Array.isArray(v)?v.length:v})}
+function treinoAtual(){return S.treino?TREINOS[S.treino]||null:null}
+function tutPassos(){var t=treinoAtual();return t?t.passos:[]}
+function tutActive(){return S.tut<tutPassos().length}
+function tutStep(){return tutPassos()[S.tut]}
+function treinoFeito(id){return S.treinosFeitos.indexOf(id)>=0}
+/* Cada caso pode declarar o treinamento que vem antes dele (caso.treino). Quando o caso vira o ativo
+   e o treinamento ainda não foi feito, ele começa: no jogo novo, depois de promoção, depois de fechar
+   o caso anterior e também em saves antigos que já estavam no meio do caso. */
+function verificarTreinos(){
+  if(tutActive())return false;var i=caseActive();if(i<0)return false;
+  var id=CASES[i].treino;if(!id||treinoFeito(id)||!TREINOS[id])return false;
+  iniciarTreino(id);return true;
+}
+function iniciarTreino(id){
+  S.treino=id;S.tut=0;S.tutPhase='doing';save();tele('treino_inicio',{treino:id});
+  if(WINS.db){WINS.db.el.remove();delete WINS.db;renderTasks()}   // reabre grande e com o painel da Célia
+  openDb();tutEnter();
+}
 function setEditor(sql,ro){var ta=$('#sqlEd');if(!ta)return;if(sql!=null){ta.value=sql;S.editor=sql;syncHl()}ta.readOnly=!!ro;$('.ed').classList.toggle('locked',!!ro)}
 function tutApplyEditor(){var st=tutStep();if(!st)return setEditor(null,false);setEditor(null,!(st.type==='mold'||st.type==='free'));if(tutMoldeVazio())setEditor(st.template,false)}
 /* O molde nunca pode se perder (playtest no celular: o jogador apagou tudo e ficou sem saída).
@@ -17,7 +34,7 @@ function tutEnter(){
   else if(st.type==='blocks'||st.type==='free')setEditor('',st.type==='blocks');
   else setEditor(null,true);
   $('#dbExpl')&&($('#dbExpl').innerHTML='');$('#dbMsg')&&($('#dbMsg').innerHTML='');
-  tele('treino_passo',{passo:S.tut+1,degrau:st.type});
+  S.tutEntrou=S.treino+':'+S.tut;tele('treino_passo',{passo:S.tut+1,degrau:st.type});
   save();renderGuide();
   if(st.type==='mold'||st.type==='free'){var ta=$('#sqlEd');if(ta&&window.innerWidth>760)ta.focus()}
 }
@@ -29,15 +46,13 @@ function tutMarcarLacuna(){
   var ta=$('#sqlEd');if(!ta||ta.readOnly||ta.selectionStart!==ta.selectionEnd)return;
   var i=ta.value.indexOf(LACUNA);if(i>=0)ta.setSelectionRange(i,i+LACUNA.length);
 }
-function tutNext(){S.tut++;if(S.tut>=TUT.length){tutFinish();return}tutEnter()}
+function tutNext(){S.tut++;if(S.tut>=tutPassos().length){tutFinish();return}tutEnter()}
 function tutComplete(){var st=tutStep();tele('treino_ok',{passo:S.tut+1});S.tutFb=null;if(st.after){S.tutPhase='after';save();renderGuide()}else tutNext()}
 function tutFinish(){
-  S.tut=TUT.length;spot(null,null);setEditor(null,false);
+  var T=treinoAtual();S.treinosFeitos.push(T.id);S.treino=null;S.tut=0;tele('treino_fim',{treino:T.id});
+  spot(null,null);setEditor(null,false);
   var g=$('#guide');if(g){g.remove();$('.dbwrap').classList.remove('tut')}
-  S.apps.indexOf('ocorr')<0&&S.apps.push('ocorr');S.apps.indexOf('zap')<0&&S.apps.push('zap');save();renderIcons();buildStart();
-  toast('Programas liberados','SISP Ocorrências e PolíciaZap estão na sua área de trabalho.','warn');
-  say('celia','Treinamento acabou. Tô aqui no PolíciaZap se precisar, mas não me chama pra besteira. Agora me entrega o relatório no SISP Ocorrências.');
-  openOcorr();
+  save();if(T.aoConcluir)T.aoConcluir();
 }
 function tutFeedback(kind,html){if(kind!=='ok')tele('tropeco',{msg:semTags(html).slice(0,200)});S.tutFb={k:kind,h:html};save();renderGuide()}
 function tutBeforeRun(){
@@ -56,8 +71,8 @@ function tutOnError(tr){if(!tutActive()||S.tutPhase!=='doing')return;var st=tutS
 function tutOnExplain(){if(tutActive()&&S.tutPhase==='doing'&&tutStep().type==='explain')tutComplete()}
 function renderGuide(){
   var g=$('#guide');if(!g)return;var st=tutStep();if(!st)return;
-  var i=S.tut,N=TUT.length,after=S.tutPhase==='after';
-  var html='<div class="gh"><span class="av">CM</span><div><b>Célia Moura</b><small>Treinamento · passo '+(i+1)+' de '+N+'</small></div></div><div class="gprog"><i style="width:'+Math.round((i+(after?1:0))/N*100)+'%"></i></div>';
+  var i=S.tut,N=tutPassos().length,after=S.tutPhase==='after';
+  var html='<div class="gh"><span class="av">CM</span><div><b>Célia Moura</b><small>'+escH(treinoAtual().titulo)+' · passo '+(i+1)+' de '+N+'</small></div></div><div class="gprog"><i style="width:'+Math.round((i+(after?1:0))/N*100)+'%"></i></div>';
   if(after){html+='<div class="gbub after">'+fill(st.after)+'</div><div class="gact"><button class="btn-primary" id="gNext">Continuar</button></div>';g.innerHTML=html;$('#gNext').onclick=tutNext;spot('#gNext');return}
   html+='<div class="gbub">'+fill(st.text)+(st.extra||'')+(st.text2||'')+'</div>';
   g.innerHTML=html;var sp=st.spot||null,pl=st.point||null;

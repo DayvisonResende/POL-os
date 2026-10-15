@@ -1,6 +1,6 @@
 /* BO 1001 · Módulo 1 · treinamento */
 registrarCaso({id:'1001',titulo:'Primeiro acesso ao cadastro',modulo:1,natureza:'Chamado interno (treinamento)',quando:'13/10/2026 08:00',local:'DTI · Baia 04',solicitante:'Célia Moura, Supervisora DTI',
-  tempo:100,
+  treino:'m1',tempo:100,
   aoEncerrar:function(){setTimeout(function(){unlockApp('prova','ACADEPOL');say('celia','Relatório aceito. Mas calma: ocorrência de verdade só depois da prova da ACADEPOL. Cinco questões, com consulta liberada. Abre o programa da Academia na tua área de trabalho. E não cola do Beto, que ele reprovou três vezes.')},1200)},
   relato:'<q>Recruta, antes de encostar em ocorrência de verdade, você vai aprender a ler o cadastro do Detran comigo, no DB-Investigator. Do meu jeito. No fim, quero saber quantas cores diferentes de veículo existem no cadastro. Relatório até as 10h, e o café é por sua conta.</q>',
   steps:[

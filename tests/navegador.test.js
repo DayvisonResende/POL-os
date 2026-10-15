@@ -81,6 +81,28 @@ async function treinamento(page) {
   await next();                                                 // final: abre Ocorrências
 }
 
+// Joga o treinamento ativo pela interface, respondendo certo em cada passo (respostas vêm do próprio conteúdo).
+async function jogarTreino(page) {
+  await page.waitForFunction(() => tutActive());
+  const id = await page.evaluate(() => S.treino);
+  for (let i = 0; i < 60; i++) {
+    const st = await page.evaluate(() => {
+      if (!tutActive()) return null; const s = tutStep();
+      return { type: s.type, after: S.tutPhase === 'after', sol: s.solucao, okOpt: s.opts ? s.opts.findIndex(o => o.ok) : -1,
+               chip: s.chips ? s.chips.find(c => c.certo).t : null, answer: s.answer };
+    });
+    if (!st) return id;
+    if (st.after || st.type === 'msg' || st.type === 'final') { await page.click('#gNext'); continue; }
+    if (st.type === 'explain') { await page.click('#explBtn'); continue; }
+    if (st.type === 'predict') await page.click(`.gopt >> nth=${st.okOpt}`);
+    if (st.type === 'slot') await page.click(`.chips .chip:text-is("${st.chip}")`);
+    if (st.type === 'blocks') for (const t of st.answer) await page.click(`.chips .chip:text-is("${t}")`);
+    if (st.type === 'mold' || st.type === 'free') await page.fill('#sqlEd', st.sol);
+    await page.click('#runBtn');
+  }
+  throw new Error('o treinamento ' + id + ' não terminou');
+}
+
 async function entregar(page, campos) {
   for (const [id, v] of Object.entries(campos)) await page.fill('#' + id, v);
   await page.click('.final button[type=submit]');
@@ -114,6 +136,9 @@ for (const alvo of ALVOS) for (const largura of [1366, 400]) {
       await page.waitForFunction(() => S.apps.indexOf('prova') >= 0);
       await prova(page);
       assert.strictEqual(await page.evaluate(() => S.rank), 1);
+      assert.strictEqual(await jogarTreino(page), 'm2-filtros', 'treinamento de filtros começa depois da promoção');
+      assert.ok(await page.isVisible('.win .oc'), 'Ocorrências abre no fim do treinamento');
+      assert.strictEqual(await page.evaluate(() => CASES[S.caseSel].id), '1002');
 
       // BO 1002: a jogada do playtest recebe os três problemas de uma vez; a escada de dicas tem 3 degraus
       await page.evaluate(() => openOcorr());   // dicas antes de qualquer consulta: tarefa concluída não mostra dica
@@ -144,6 +169,7 @@ for (const alvo of ALVOS) for (const largura of [1366, 400]) {
       await entregar(page, { f_1002_placa: 'FTR2C41' });
       assert.match(await page.textContent('.verdict.bad'), /branco/);
       await entregar(page, { f_1002_placa: 'FTR7A93' });
+      assert.strictEqual(await jogarTreino(page), 'm2-intervalos', 'treinamento de intervalos começa depois do BO 1002');
 
       await page.evaluate(() => { openFiles(); filesDir = 'Evidências'; renderFiles(); });
       const evid = await page.$$eval('.flist .file span', e => e.map(x => x.textContent));
@@ -158,6 +184,7 @@ for (const alvo of ALVOS) for (const largura of [1366, 400]) {
 
       const S = await page.evaluate(() => JSON.parse(JSON.stringify(S)));
       assert.deepStrictEqual(S.closed, ['1001', '1002', '1003']);
+      assert.deepStrictEqual(S.treinosFeitos, ['m1', 'm2-filtros', 'm2-intervalos']);
       assert.strictEqual(S.rank, 2);
       assert.strictEqual(S.done, true);
       assert.strictEqual(S.corr, 25);   // relatório errado (+5) + mandado errado (+20)
@@ -185,6 +212,40 @@ for (const alvo of ALVOS) for (const largura of [1366, 400]) {
         assert.match((await dl).suggestedFilename(), /^sisp-telemetria-.*\.json$/);
       }
       assert.deepStrictEqual(erros, [], 'sem erros no console');
+    } finally { await browser.close(); }
+  });
+}
+
+// Saves no formato de antes do Sprint 2 (sem S.treino): ninguém perde progresso nem refaz treinamento.
+const SAVE_ANTIGO = extra => JSON.stringify(Object.assign({ chat: { celia: [], beto: [] }, unread: { celia: 0, beto: 0 }, apps: ['db'], tut: 0, tutPhase: 'doing' }, extra));
+const CASOS_SAVE = [
+  { nome: 'no meio do treinamento do Módulo 1', save: { tut: 5 },
+    espera: { treino: 'm1', tut: 5, feitos: [] } },
+  { nome: 'promovido, ainda no BO 1002', save: { tut: 14, rank: 1, closed: ['1001'], caseSel: 1, apps: ['db', 'ocorr', 'zap', 'prova', 'files'] },
+    espera: { treino: 'm2-filtros', tut: 0, feitos: ['m1'] } },
+  { nome: 'jogo já terminado', save: { tut: 14, rank: 2, done: true, closed: ['1001', '1002', '1003'], caseSel: 2, apps: ['db', 'ocorr', 'zap', 'prova', 'files'] },
+    espera: { treino: null, tut: 0, feitos: ['m1'] } },
+];
+for (const c of CASOS_SAVE) {
+  test(`save antigo · ${c.nome}`, { skip: !CHROME && 'Chrome não encontrado (defina CHROME)', timeout: 60000 }, async () => {
+    const { chromium } = require('playwright-core');
+    const browser = await chromium.launch({ executablePath: CHROME, headless: true });
+    try {
+      const page = await browser.newPage({ viewport: { width: 1366, height: 800 } });
+      const erros = []; page.on('pageerror', e => erros.push(e.message));
+      await page.route('**/*', r => { const u = r.request().url(); if (u.includes('sql-asm.js')) return r.fulfill({ body: fs.readFileSync(ASM), contentType: 'application/javascript' }); return u.startsWith('file:') ? r.continue() : r.abort(); });
+      await page.addInitScript(s => { if (!sessionStorage.getItem('ok')) { localStorage.setItem('sisp-proto-v2', s); sessionStorage.setItem('ok', '1'); } }, SAVE_ANTIGO(c.save));
+      await page.goto('file://' + path.join(RAIZ, 'index.html'));
+      await page.waitForFunction(() => !document.querySelector('#lgBtn').disabled);
+      await page.click('#lgBtn');
+      await page.waitForTimeout(300);
+      const S = await page.evaluate(() => ({ treino: S.treino, tut: S.tut, feitos: S.treinosFeitos, guia: !!document.querySelector('#guide'), passo: (document.querySelector('.gh small') || {}).textContent }));
+      assert.strictEqual(S.treino, c.espera.treino);
+      assert.strictEqual(S.tut, c.espera.tut);
+      assert.deepStrictEqual(S.feitos, c.espera.feitos);
+      assert.strictEqual(S.guia, !!c.espera.treino, 'painel da Célia aparece só se houver treinamento');
+      if (c.espera.treino === 'm1') assert.match(S.passo, /passo 6 de 14/);
+      assert.deepStrictEqual(erros, []);
     } finally { await browser.close(); }
   });
 }

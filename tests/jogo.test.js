@@ -53,8 +53,38 @@ test('BO 1001: relatório aceita o número de cores', () => {
   assert.ok(!c.final.check({ resp: '99' }).ok);
 });
 
-test('treinamento: as consultas prontas passam no próprio passo', () => {
-  for (const st of J.T.TUT) if (st.sql && st.ok) assert.ok(st.ok(J.run(st.sql)), st.sql);
+// A resposta esperada de cada passo: consulta pronta, peça certa no molde, blocos na ordem ou `solucao`.
+function respostaDoPasso(T, st) {
+  if (st.type === 'slot') return st.template.replace('___', st.chips.find(c => c.certo).t);
+  if (st.type === 'blocks') return T.joinToks(st.answer);
+  return st.solucao || st.sql;
+}
+
+test('treinamentos: todo passo que executa aceita a resposta esperada', () => {
+  const { T } = J;
+  assert.deepStrictEqual(Object.keys(T.TREINOS).sort(), ['m1', 'm2-filtros', 'm2-intervalos']);
+  for (const id in T.TREINOS) for (const [k, st] of T.TREINOS[id].passos.entries()) {
+    if (!st.ok) continue;
+    if (st.type === 'slot') assert.strictEqual(st.chips.filter(c => c.certo).length, 1, `${id} passo ${k + 1}: marque a peça certa com certo:true`);
+    const q = respostaDoPasso(T, st);
+    assert.ok(q, `${id} passo ${k + 1} (${st.type}) sem resposta esperada`);
+    assert.ok(st.ok(J.run(q)), `${id} passo ${k + 1}: ${q}`);
+    if (st.type === 'mold') {   // o molde sem preencher não pode passar (dar erro também conta como não passar)
+      let passou = false; try { passou = st.ok(J.run(st.template)); } catch (e) { /* erro de sintaxe */ }
+      assert.ok(!passou, `${id} passo ${k + 1}: o molde sem preencher não pode passar`);
+    }
+  }
+});
+
+test('treinamentos: casos apontam para treinos que existem; os do Módulo 2 não entregam respostas', () => {
+  const { T } = J;
+  for (const c of T.CASES) if (c.treino) assert.ok(T.TREINOS[c.treino], c.id + ' → ' + c.treino);
+  // respostas dos BOs 1002/1003 e da prova do Módulo 2
+  const proibido = [/FTR/, /'prata'/, /Km 18/, /KZX/, /Valdemar/, /Hilux/, /22:45/, /23:15/, /Dom Aguirre/, /'Itu'/, /'Salto'/, /BETWEEN 2018 AND 2020/];
+  for (const id of ['m2-filtros', 'm2-intervalos']) {
+    const texto = JSON.stringify(T.TREINOS[id].passos) + T.TREINOS[id].passos.map(p => String(p.ok) + String(p.miss || '')).join('');
+    for (const re of proibido) assert.doesNotMatch(texto, re, `${id} contém ${re}`);
+  }
 });
 
 test('ACADEPOL: toda resposta-modelo passa no próprio check', () => {

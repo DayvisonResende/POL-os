@@ -1,7 +1,9 @@
-/* Treinamento guiado do BO 1001 (motor em js/apps/treinamento.js). */
+/* Treinamento guiado do Módulo 1, antes do BO 1001 (motor em js/apps/treinamento.js).
+   Passos mold/free têm `solucao` e a peça certa dos passos slot tem `certo:true`: respostas esperadas, usadas nos testes. */
 var MINITAB='<table class="minitab"><tr><th>placa</th><th class="hc">modelo</th><th>cor</th></tr><tr><td>QAB1C23</td><td class="hc">Gol</td><td>branco</td></tr><tr class="hr"><td>RTD4E56</td><td class="hc">Strada</td><td>prata</td></tr><tr><td>MCV7F89</td><td class="hc">Onix</td><td>preto</td></tr></table><div class="legend"><span class="lr">uma linha = um carro</span><span class="lc">uma coluna = uma informação</span></div>';
 var ANAT='<div class="anat"><div><code>SELECT</code><span>mostre</span></div><div><code>*</code><span>todas as colunas</span></div><div><code>FROM</code><span>da tabela</span></div><div><code>veiculos</code><span>nome da tabela</span></div><div><code>;</code><span>fim da consulta</span></div></div>';
-var TUT=[
+registrarTreino({id:'m1',titulo:'Treinamento',
+ passos:[
  {type:'msg',btn:'Tô ouvindo',text:'<p>Mais um recruta. O último durou três semanas.</p><p>Eu sou a Célia, vinte e dois anos de DTI, e hoje sou sua babá. Vou te ensinar <b>SQL</b>, que é o jeito de fazer pergunta pro banco de dados da polícia. Não precisa saber programar. Precisa prestar atenção, que eu não gosto de repetir.</p>'},
  {type:'msg',btn:'Entendi',text:'<p>Banco de dados é um arquivo de aço cheio de gavetas. Cada gaveta é uma <b>tabela</b>. E tabela é igual planilha de Excel, que até minha mãe usa:</p>',extra:MINITAB,text2:'<p>Cada <b>linha</b> é um registro: um carro. Cada <b>coluna</b> é um tipo de informação: placa, modelo, cor. Decorou? Vai cair na prova.</p>'},
  {type:'run',sql:'SELECT * FROM veiculos;',text:'<p>Deixei uma consulta pronta ali no editor, a tela preta. Ela pede pro banco: <i>me mostra tudo da gaveta de veículos</i>.</p><p>Tá vendo o botão azul-escuro lá em cima, escrito <b>Executar</b>? Clica nele. Sem medo, que esse aqui não morde.</p>',spot:'#runBtn',point:'clica aqui',
@@ -17,7 +19,7 @@ var TUT=[
   ok:function(R){return R.cols.length===1&&R.cols[0]==='placa'&&R.n===F.nVeic},
   after:'<p>Exatamente. Uma coluna só, com as {n} placas. Viu como pensar antes ajuda? Quem chuta aqui dentro acaba assinando mandado errado.</p>'},
  {type:'slot',template:'SELECT placa, ___ FROM veiculos;',text:'<p>Agora é você que escolhe. O investigador Jairo quer a <b>placa e o modelo</b> de cada carro, e o Jairo não tem paciência.</p><p>Clica na peça que vai no lugar do <code>___</code>.</p>',
-  chips:[{t:'cor'},{t:'modelo'},{t:'veiculos',bad:'Ô, criatura. <code>veiculos</code> é a gaveta, não o papel dentro dela. A tabela já tá ali depois do FROM. Escolhe uma <b>coluna</b>.'},{t:'ano'}],
+  chips:[{t:'cor'},{t:'modelo',certo:true},{t:'veiculos',bad:'Ô, criatura. <code>veiculos</code> é a gaveta, não o papel dentro dela. A tabela já tá ali depois do FROM. Escolhe uma <b>coluna</b>.'},{t:'ano'}],
   ok:function(R){return R.cols.length===2&&R.cols.indexOf('placa')>=0&&R.cols.indexOf('modelo')>=0&&R.n===F.nVeic},
   miss:function(R,k){return esc(k,['Rodou, mas não é isso que o Jairo pediu. Ele quer placa e <b>modelo</b>. Troca a peça.','De novo? Lê o pedido com calma: placa e <b>modelo</b>. A peça certa tá escrita igualzinho.'])},
   after:'<p>Agora sim. Repara na vírgula entre <code>placa</code> e <code>modelo</code>: coluna se separa com vírgula, e a última não leva. Esse errinho derruba muito recruta metido.</p>'},
@@ -27,15 +29,15 @@ var TUT=[
   ok:function(R){return R.cols.length===1&&R.n===F.cores.length&&hasAll(R,F.cores)},
   after:'<p>São <b>{cores} cores diferentes</b> no cadastro. Anota esse número, que ele vai pro meu relatório.</p>'},
  {type:'msg',text:'<p>Mais duas e eu te largo.</p><p><b>AS</b> ("como") dá apelido pra coluna no resultado. <code>modelo AS Veiculo</code> mostra a coluna modelo com o título Veiculo. No banco nada muda, é só maquiagem.</p><p><b>LIMIT</b> ("limite") corta o resultado. <code>LIMIT 5</code> traz só as 5 primeiras linhas. Vai sempre no finalzinho da consulta.</p>'},
- {type:'mold',template:'SELECT placa, modelo AS ___ FROM veiculos;',text:'<p>Agora quem digita é você. Clica nos tracinhos <code>___</code> lá no editor: eles ficam marcados. Aí é só digitar <code>Veiculo</code>, que eles somem. Depois executa.</p>',spot:'#sqlEd',
+ {type:'mold',template:'SELECT placa, modelo AS ___ FROM veiculos;',solucao:'SELECT placa, modelo AS Veiculo FROM veiculos;',text:'<p>Agora quem digita é você. Clica nos tracinhos <code>___</code> lá no editor: eles ficam marcados. Aí é só digitar <code>Veiculo</code>, que eles somem. Depois executa.</p>',spot:'#sqlEd',
   ok:function(R){return R.cols.indexOf('veiculo')>=0&&R.n===F.nVeic},
   miss:function(R,k){return R.cols.indexOf('___')>=0?esc(k,['O resultado ainda tem uma coluna chamada ___. Clica nos três tracinhos no editor e digita Veiculo no lugar deles.','Os tracinhos continuam lá, recruta. Clica em cima deles, que eles ficam marcados, e digita Veiculo. Se sobrar algum tracinho, apaga com o Backspace.']):'Rodou, mas o modelo não ganhou o apelido Veiculo. Olha o que vem depois do AS.'},
   after:'<p>Olha o título da segunda coluna: agora é <b>Veiculo</b>. Maquiagem feita.</p>'},
- {type:'mold',template:'SELECT placa, modelo AS Veiculo FROM veiculos ___;',text:'<p>Agora troca o <code>___</code> por <code>LIMIT 5</code>: clica nos tracinhos e digita. Eu quero ver cinco carros, não o pátio inteiro.</p>',spot:'#sqlEd',
+ {type:'mold',template:'SELECT placa, modelo AS Veiculo FROM veiculos ___;',solucao:'SELECT placa, modelo AS Veiculo FROM veiculos LIMIT 5;',text:'<p>Agora troca o <code>___</code> por <code>LIMIT 5</code>: clica nos tracinhos e digita. Eu quero ver cinco carros, não o pátio inteiro.</p>',spot:'#sqlEd',
   ok:function(R){return R.n===5&&R.cols.indexOf('veiculo')>=0},
   miss:function(R,k){return R.n>5?esc(k,['Veio o pátio inteiro de novo. Troca o ___ por LIMIT 5.','Recruta, cadê o LIMIT? O ___ ainda tá lá no fim. Clica nele e digita LIMIT 5.']):'Rodou, mas não deu 5 linhas com a coluna Veiculo. Confere a consulta.'},
   after:'<p>Cinco. Nem um a mais. Gosto assim.</p>'},
- {type:'free',text:'<p>Acabou a moleza. Apaguei o editor.</p><p>Escreve do zero uma consulta que mostre só as colunas <code>modelo</code> e <code>cor</code> dos <b>3 primeiros</b> veículos. Eu tô olhando.</p>',spot:'#sqlEd',
+ {type:'free',solucao:'SELECT modelo, cor FROM veiculos LIMIT 3;',text:'<p>Acabou a moleza. Apaguei o editor.</p><p>Escreve do zero uma consulta que mostre só as colunas <code>modelo</code> e <code>cor</code> dos <b>3 primeiros</b> veículos. Eu tô olhando.</p>',spot:'#sqlEd',
   hints:['Tá bom, tá bom. O esqueleto é: <code>SELECT</code> colunas <code>FROM</code> tabela <code>LIMIT</code> número <code>;</code>','Vou te dar de mão beijada, mas só dessa vez: <code>SELECT modelo, cor FROM veiculos LIMIT 3;</code>'],
   hintBtns:['Pedir ajuda pra Célia','Ainda travado? Implorar a resposta'],
   ok:function(R){return R.cols.length===2&&R.cols.indexOf('modelo')>=0&&R.cols.indexOf('cor')>=0&&R.n===3},
@@ -45,4 +47,11 @@ var TUT=[
     return esc(k,['Rodou, mas não é isso. Confere as colunas e o LIMIT.','Ainda não. Se travou, clica em Explique esta consulta e lê o que você escreveu em português.'])},
   after:'<p>Hm. Funcionou.</p><p>Não vou fazer festa, mas também não vou reclamar. Você escreveu sua primeira consulta sozinho.</p>'},
  {type:'final',btn:'Abrir SISP Ocorrências',text:'<p>Você aprendeu o Módulo 1 inteiro: <code>SELECT</code>, <code>FROM</code>, <code>*</code>, <code>DISTINCT</code>, <code>AS</code> e <code>LIMIT</code>. Não fez mais que a obrigação, mas fez.</p><p>Agora o relatório. Liberei o <b>SISP Ocorrências</b> e o <b>PolíciaZap</b> na sua área de trabalho. Me diz lá quantas cores diferentes tem no cadastro. E sem chutar.</p>'}
-];
+ ],
+ aoConcluir:function(){
+  S.apps.indexOf('ocorr')<0&&S.apps.push('ocorr');S.apps.indexOf('zap')<0&&S.apps.push('zap');save();renderIcons();buildStart();
+  toast('Programas liberados','SISP Ocorrências e PolíciaZap estão na sua área de trabalho.','warn');
+  say('celia','Treinamento acabou. Tô aqui no PolíciaZap se precisar, mas não me chama pra besteira. Agora me entrega o relatório no SISP Ocorrências.');
+  openOcorr();
+ }
+});

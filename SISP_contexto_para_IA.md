@@ -1,4 +1,4 @@
-# SISP — Documento de Continuidade para IA (v3.2)
+# SISP — Documento de Continuidade para IA (v3.3)
 
 > **Para a IA que vai continuar este projeto:** leia este arquivo inteiro antes de mexer no código. Ele descreve o que o jogo é, por que ele é assim, o que já existe no código (`index.html` + pastas `css/` e `js/`), como ele está organizado, quais decisões já foram tomadas (e por quê) e o que falta fazer. A autora do projeto é a May, que fala português, é detalhista e quer **entender** as decisões, não só recebê-las. Dê opinião honesta quando ela pedir, mesmo discordando.
 
@@ -100,7 +100,7 @@ js/
     sql/explicador.js       explainSQL e textos COLDESC/TABDESC
   conteudo/                 CONTEÚDO DO JOGO, sem DOM. É aqui que o jogo mais cresce.
     casos/<id>.js           um arquivo por BO: registrarCaso({...})
-    treinamento/moduloN.js  passos do treinamento guiado (TUT)
+    treinamento/*.js        treinamentos guiados: registrarTreino({id, titulo, passos, aoConcluir}) (ver seção 6)
     provas/moduloN.js       uma prova da ACADEPOL por módulo: registrarProva(N, {...})
     patentes.js             RANKS (com aoPromover)
     arquivos.js             FILES (snippets e evidências)
@@ -164,7 +164,8 @@ docs/playtest.md            roteiro para conduzir sessões de playtest
 caseSel, steps{caseId:[índices]}, closed[ids], metas, corr, clock (minutos),
 chat{celia[], beto[]}, unread{}, beto ('none'|'asked'|'wrong'|'favor'|'done'),
 writeWarned, queries, errors, editor, hintsSeen{}, fired, done, verdict{},
-tut, tutPhase ('doing'|'after'), tutPick, tutPred, tutWrong[], tutBlocks[], tutHint,
+treino (id do treinamento ativo ou null), treinosFeitos[ids], tutEntrou ('treino:passo' já iniciado),
+tut (passo dentro do treino ativo), tutPhase ('doing'|'after'), tutPick, tutPred, tutWrong[], tutBlocks[], tutHint,
 tutFb, tutMiss, tutErr, tutBlk, apps[], rank, prova{mod,qs,ord,ans,sql,graded}, provaTries{}
 ```
 `load()` mescla o estado salvo com `freshState()`, então **campos novos ganham valor padrão sozinhos**. Se uma mudança **quebrar** a compatibilidade (mudar o significado de um campo), troque a chave `SAVE_KEY` (ex.: `sisp-proto-v3`).
@@ -240,9 +241,26 @@ CREATE TABLE catraca_acessos (id INTEGER PRIMARY KEY AUTOINCREMENT, funcionario 
 
 ---
 
-## 6. O treinamento guiado (`TUT`)
+## 6. Os treinamentos guiados
 
-O BO 1001 é um tutorial de 14 passos. Cada passo é um objeto com `type`:
+Cada conceito novo passa por um treinamento com a Célia no painel do DB-Investigator, **antes** do caso que o cobra. Hoje existem três:
+
+| id | Arquivo | Antes do | Passos | Ensina |
+|---|---|---|---|---|
+| `m1` | `treinamento/modulo1.js` | BO 1001 | 14 | SELECT, FROM, *, DISTINCT, AS, LIMIT |
+| `m2-filtros` | `treinamento/modulo2-filtros.js` | BO 1002 | 12 | WHERE, aspas simples, ordem das partes, coluna que identifica, Explique, LIKE e %, AND, conferir pista letra por letra |
+| `m2-intervalos` | `treinamento/modulo2-intervalos.js` | BO 1003 | 8 | > < >= <=, BETWEEN (número e data/hora), ORDER BY, IN |
+
+**Como funciona:**
+- `registrarTreino({id, titulo, passos, aoConcluir})`; o caso declara `treino: 'id'`.
+- **Regra única (`verificarTreinos`)**: quando um caso vira o caso ativo e o treinamento dele não está em `S.treinosFeitos`, o treinamento começa. Ela roda ao entrar no jogo, depois de promoção e depois de fechar um caso. Assim um save antigo que já está no meio do BO 1002 também recebe o treinamento.
+- `aoConcluir` diz o que acontece no fim (liberar apps, abrir o BO, fala da Célia).
+- Migração: saves de antes do Sprint 2 (sem `S.treino`) são convertidos em `load()` por `migrarTreino()`: no meio do `m1` continua do mesmo passo; quem já terminou ganha `treinosFeitos: ['m1']`. A chave `SAVE_KEY` não mudou.
+- **Regra de conteúdo:** treinamento ensina com **outros dados**. Nunca usar os valores que resolvem o BO seguinte nem as respostas da prova (há teste que proíbe `FTR`, `'prata'`, `Km 18`, `Itu`/`Salto`, `Dom Aguirre` etc. nos treinos do Módulo 2).
+- Validação dos passos: `bate(R, "SELECT * FROM … WHERE …")` (o jogador trouxe exatamente essas linhas, com qualquer subconjunto de colunas), `falta(R, 'coluna')`, `ordenado(R, 'coluna', desc)`. Nunca contagem de linhas sozinha.
+- Testes: todo passo precisa da resposta esperada. Passos `mold`/`free` têm `solucao`; a peça certa do `slot` tem `certo: true`. O teste do Node confere que cada resposta passa no `ok` e que o molde sem preencher não passa; o de navegador joga todos os treinamentos pela interface (`jogarTreino`).
+
+Cada passo é um objeto com `type`:
 
 | type | Comportamento | Campos |
 |---|---|---|
@@ -250,16 +268,16 @@ O BO 1001 é um tutorial de 14 passos. Cada passo é um objeto com `type`:
 | `run` | Consulta pronta e travada; o jogador só executa. | `sql`, `spot`, `point`, `ok(R)`, `after` |
 | `explain` | O jogador precisa clicar em "Explique esta consulta". | `spot`, `point`, `after` |
 | `predict` | Múltipla escolha **antes** de executar; Executar fica bloqueado até acertar. | `sql`, `q`, `opts[{t,ok,fb}]`, `ok(R)`, `after` |
-| `slot` | Molde com `___` e peças clicáveis (algumas erradas de propósito). | `template`, `chips[{t,bad}]`, `ok`, `miss(R,k)`, `after` |
+| `slot` | Molde com `___` e peças clicáveis (algumas erradas de propósito). | `template`, `chips[{t,bad,certo}]`, `ok`, `miss(R,k)`, `after` |
 | `blocks` | Peças embaralhadas para clicar na ordem certa. | `pool`, `answer`, `wrong[]`, `ok`, `after` |
-| `mold` | Molde editável; o jogador digita só uma parte. | `template`, `ok`, `miss(R,k)`, `after` |
-| `free` | Editor vazio, escrever do zero, com 2 dicas opcionais. | `hints[]`, `hintBtns[]`, `ok`, `miss(R,k)`, `after` |
-| `final` | Encerra e libera Ocorrências e PolíciaZap. | `text`, `btn` |
+| `mold` | Molde editável; o jogador digita só uma parte (a lacuna `___` fica selecionada ao clicar; botão Voltar o molde). | `template`, `solucao`, `ok`, `miss(R,k)`, `after` |
+| `free` | Editor vazio, escrever do zero, com 2 dicas opcionais. | `solucao`, `hints[]`, `hintBtns[]`, `ok`, `miss(R,k)`, `after` |
+| `final` | Último passo: resumo e botão que chama `aoConcluir`. | `text`, `btn` |
 
-- `after`: texto de reforço mostrado ao acertar, com botão Continuar. Aceita `{n}` (total de veículos) e `{cores}` (cores distintas).
+- `after`: texto de reforço mostrado ao acertar, com botão Continuar. Aceita `{n}` (total de veículos), `{cores}` (cores distintas) e `{chave}` (valor de `F.chave`; lista vira o tamanho dela).
 - `miss(R, k)` e `wrong[]`: o `k` é quantas vezes o jogador já errou naquele passo. Use `esc(k, [msg1, msg2])` para **escalonar**: a bronca fica mais firme e a ajuda fica mais concreta.
 - `spot` + `point`: a seta amarela aponta para o elemento (`#runBtn`, `#explBtn`).
-- **Para aplicar a escada nos próximos módulos**, reutilize esse motor. Hoje ele está ligado só ao BO 1001 (`tutActive()` = `S.tut < TUT.length`). O próximo passo natural é generalizar para "um tutorial por conceito novo", com menos degraus a cada módulo.
+- **Para um módulo novo**, crie `treinamento/moduloN-assunto.js`, declare `treino` no caso e acrescente a tag no `index.html`. A cada módulo, menos degraus: começar no `predict` ou no `slot`, e ter sempre um `free` no fim.
 
 ---
 
@@ -336,7 +354,7 @@ Jairo Teixeira (investigador impaciente), Marina Okada (perita), Paulo Henrique 
 |---|---|---|
 | — | Refatoração: arquivo único → `css/` + `js/` | ✅ concluído (14/10/2026) |
 | 1 | Consolidar e testar com gente real (Prioridade 1) | ✅ concluído (15/10/2026) |
-| 2 | Escada guiada no Módulo 2 (Prioridade 2) | ⏭️ próximo |
+| 2 | Escada guiada no Módulo 2 (Prioridade 2) | 🟡 implementado (15/10/2026); falta playtest |
 | 3 | Infraestrutura do Módulo 3 | — |
 | 4 | Conteúdo do Módulo 3 | — |
 | 5 | Módulo 4 (JOIN) | — |
@@ -371,8 +389,8 @@ Colocar **2 ou 3 pessoas que nunca programaram** para jogar, sem ajudar, e anota
 5. O **LIKE** entra no lugar do `=`, entre a coluna e o padrão, e precisa do **%** para "começa com".
 6. Conferir o **valor da pista letra por letra** (FTR × FRT custou 12 min).
 7. Lembrar do **Explique** quando travar: não foi usado nenhuma vez fora do tutorial.
-- O motor do treinamento hoje só serve ao BO 1001 (`tutActive()` = `S.tut < TUT.length`). Generalizar para vários treinamentos (um por conceito novo) sem quebrar saves antigos.
-- Ao terminar, rodar os playtests pendentes da Prioridade 1 e comparar o tempo no BO 1002 com os ~49 min da sessão de referência.
+- ✅ Motor generalizado (seção 6), treinamentos `m2-filtros` (cobre os 7 requisitos acima + AND) e `m2-intervalos` criados, saves antigos migrados.
+- ⏳ **Falta:** playtest com 2 ou 3 pessoas que nunca viram o jogo, comparando o tempo no BO 1002 com os ~49 min da sessão de referência (`docs/playtest/sessoes/2026-10-15-dayvison`). Meta: menos de 20 min no BO 1002 sem ver a consulta pronta.
 
 ### Prioridade 3 — Módulo 3 (COUNT, SUM, AVG, MIN, MAX, aritmética, GROUP BY, HAVING)
 - Patente ao final: **Inspetor Analítico**.

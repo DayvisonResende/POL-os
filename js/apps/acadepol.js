@@ -70,5 +70,6 @@ function promote(to){
   $('#app').appendChild(ov);
   $('#prOk',ov).onclick=function(){ov.remove();say('celia',R.celia);
     if(R.aoPromover)R.aoPromover();
+    setTimeout(verificarTreinos,1200);
     if(WINS.prova)renderProva();if(WINS.db)$('#dbStatus').textContent='Perfil: '+rankT()+' (somente leitura).'};
 }

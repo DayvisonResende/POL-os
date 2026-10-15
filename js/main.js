@@ -4,7 +4,8 @@ function startDesktop(resumed){
   $('#boot').hidden=true;renderIcons();buildStart();meters();
   $('#startBtn').onclick=function(e){e.stopPropagation();toggleStart()};
   document.addEventListener('click',function(e){if(!e.target.closest('#startMenu'))toggleStart(false)});
-  if(tutActive()){var fresh=S.tut===0&&S.tutPhase==='doing'&&!S.editor;openDb();if(fresh)tutEnter()}
+  if(verificarTreinos()){}
+  else if(tutActive()){openDb();if(S.tutEntrou!==S.treino+':'+S.tut)tutEnter()}
   else{openOcorr();if(S.closed.indexOf('1002')>=0&&S.beto==='none')setTimeout(startBeto,15000)}
   if(provaMod()&&S.apps.indexOf('prova')<0){S.apps.push('prova');save();renderIcons();buildStart()}
 }

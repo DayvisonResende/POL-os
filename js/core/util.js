@@ -16,6 +16,8 @@ function mesmasLinhas(R,linhas){
     var a=R.rows.map(function(r){return String(r[i])}).sort(),b=linhas.map(function(l){return String(l[c])}).sort();return a.join('\u0001')===b.join('\u0001')});
 }
 function falta(R,col){return R.cols.indexOf(col)<0}
+// A coluna está em ordem (decrescente se desc)?
+function ordenado(R,col,desc){var i=R.cols.indexOf(col);if(i<0)return false;for(var k=1;k<R.rows.length;k++){var a=R.rows[k-1][i],b=R.rows[k][i];if(desc?b>a:b<a)return false}return true}
 function normPlaca(s){return String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
 function normTxt(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim()}
 function esc(k,arr){return arr[Math.min(k,arr.length-1)]}

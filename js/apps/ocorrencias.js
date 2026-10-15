@@ -49,6 +49,7 @@ function closeCase(i,msg){
   S.closed.push(c.id);S.verdict[c.id]=msg;S.clock+=c.tempo||60;addMetas(30);
   toast('Chamado encerrado','BO 2026/'+c.id+': '+escH(c.titulo),'ok');
   if(c.aoEncerrar)c.aoEncerrar();
+  setTimeout(verificarTreinos,2500);   // o próximo caso pode ter treinamento
   if(i<CASES.length-1&&caseUnlocked(i+1))S.caseSel=i+1;
   save();renderOcorr();renderFiles();
 }

@@ -1,7 +1,7 @@
 /* BO 1002 · Módulo 2 · WHERE, AND, LIKE */
 registrarCaso({id:'1002',titulo:'Furto no estacionamento do shopping',modulo:2,natureza:'Furto qualificado (art. 155 §4º)',quando:'12/10/2026 19:20',local:'Shopping Parque das Águas, Sorocaba',solicitante:'Investigador Jairo Teixeira',
-  rankMin:1,tempo:150,
-  aoEncerrar:function(){unlockToast();setTimeout(function(){say('celia','O delegado gostou, e ele não gosta de ninguém. Agora é pesado: assalto na Castelo Branco, BO 2026/1003. A escuta tá em Arquivos › Evidências. Prioridade máxima, e nada de mandado no chute.')},1500);setTimeout(startBeto,22000)},
+  treino:'m2-filtros',rankMin:1,tempo:150,
+  aoEncerrar:function(){unlockToast();setTimeout(function(){say('celia','O delegado gostou, e ele não gosta de ninguém. Agora é pesado: assalto na Castelo Branco, BO 2026/1003. Prioridade máxima, e nada de mandado no chute. Antes, dez minutos comigo no terminal: intervalo de horário você ainda não sabe fazer.')},1500);setTimeout(startBeto,22000)},
   relato:'Vítima teve um notebook furtado do carro no estacionamento G2. O vidro traseiro foi quebrado. O segurança do piso relata: <q>Vi um carro prata saindo apressado logo depois do barulho. A placa começava com FTR, o resto não deu pra ver.</q> Imagens da câmera interna ainda não foram liberadas.',
   steps:[
    {t:'Liste só os veículos de cor <code>prata</code>.',
