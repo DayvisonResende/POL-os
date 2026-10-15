@@ -3,7 +3,13 @@ function fill(t){return String(t).replace(/\{n\}/g,F.nVeic).replace(/\{cores\}/g
 function tutActive(){return S.tut<TUT.length}
 function tutStep(){return TUT[S.tut]}
 function setEditor(sql,ro){var ta=$('#sqlEd');if(!ta)return;if(sql!=null){ta.value=sql;S.editor=sql;syncHl()}ta.readOnly=!!ro;$('.ed').classList.toggle('locked',!!ro)}
-function tutApplyEditor(){var st=tutStep();if(!st)return setEditor(null,false);setEditor(null,!(st.type==='mold'||st.type==='free'))}
+function tutApplyEditor(){var st=tutStep();if(!st)return setEditor(null,false);setEditor(null,!(st.type==='mold'||st.type==='free'));if(tutMoldeVazio())setEditor(st.template,false)}
+/* O molde nunca pode se perder (playtest no celular: o jogador apagou tudo e ficou sem saída).
+   Volta pelo botão "Voltar o molde", pelo Limpar, ao executar com o editor vazio e ao reabrir o jogo. */
+function tutEmMolde(){return tutActive()&&S.tutPhase==='doing'&&tutStep().type==='mold'}
+function tutMoldeVazio(){var ta=$('#sqlEd');return tutEmMolde()&&ta&&!ta.value.trim()}
+function tutRestaurarMolde(fb){setEditor(tutStep().template,false);S.tutFb=fb?{k:'info',h:fb}:null;save();renderGuide();var ta=$('#sqlEd');if(ta){ta.focus();tutMarcarLacuna()}}
+function tutOnEmpty(){if(!tutEmMolde())return false;tele('tropeco',{msg:'executou com o editor vazio'});tutRestaurarMolde('Apagou tudo? Sem drama, botei o molde de volta no editor. Agora clica só nos tracinhos <code>___</code> e digita o que eu pedi.');return true}
 function tutEnter(){
   var st=tutStep();S.tutPhase='doing';S.tutPick=null;S.tutPred=false;S.tutWrong=[];S.tutBlocks=[];S.tutHint=0;S.tutFb=null;S.tutMiss=0;S.tutErr=0;S.tutBlk=0;
   if(st.type==='run'||st.type==='predict')setEditor(st.sql,true);
@@ -11,11 +17,20 @@ function tutEnter(){
   else if(st.type==='blocks'||st.type==='free')setEditor('',st.type==='blocks');
   else setEditor(null,true);
   $('#dbExpl')&&($('#dbExpl').innerHTML='');$('#dbMsg')&&($('#dbMsg').innerHTML='');
+  tele('treino_passo',{passo:S.tut+1,tipo:st.type});
   save();renderGuide();
   if(st.type==='mold'||st.type==='free'){var ta=$('#sqlEd');if(ta&&window.innerWidth>760)ta.focus()}
 }
+/* Nos passos de molde, a lacuna ___ fica selecionada quando o jogador clica no editor ou ele recebe o foco:
+   o que ele digitar substitui os tracinhos (playtest: digitavam "Veiculo" e sobrava "Veiculo___"). */
+var LACUNA='___';
+function tutMarcarLacuna(){
+  if(!tutActive()||S.tutPhase!=='doing'||tutStep().type!=='mold')return;
+  var ta=$('#sqlEd');if(!ta||ta.readOnly||ta.selectionStart!==ta.selectionEnd)return;
+  var i=ta.value.indexOf(LACUNA);if(i>=0)ta.setSelectionRange(i,i+LACUNA.length);
+}
 function tutNext(){S.tut++;if(S.tut>=TUT.length){tutFinish();return}tutEnter()}
-function tutComplete(){var st=tutStep();S.tutFb=null;if(st.after){S.tutPhase='after';save();renderGuide()}else tutNext()}
+function tutComplete(){var st=tutStep();tele('treino_ok',{passo:S.tut+1});S.tutFb=null;if(st.after){S.tutPhase='after';save();renderGuide()}else tutNext()}
 function tutFinish(){
   S.tut=TUT.length;spot(null,null);setEditor(null,false);
   var g=$('#guide');if(g){g.remove();$('.dbwrap').classList.remove('tut')}
@@ -24,7 +39,7 @@ function tutFinish(){
   say('celia','Treinamento acabou. Tô aqui no PolíciaZap se precisar, mas não me chama pra besteira. Agora me entrega o relatório no SISP Ocorrências.');
   openOcorr();
 }
-function tutFeedback(kind,html){S.tutFb={k:kind,h:html};save();renderGuide()}
+function tutFeedback(kind,html){if(kind!=='ok')tele('tropeco',{msg:semTags(html).slice(0,200)});S.tutFb={k:kind,h:html};save();renderGuide()}
 function tutBeforeRun(){
   if(!tutActive()||S.tutPhase!=='doing')return true;var st=tutStep();
   if(st.type==='predict'&&!S.tutPred){tutFeedback('info','Calma, apressadinho. Primeiro me diz o que vai sair. Quem chuta sem pensar aqui dentro acaba assinando mandado errado.');return false}
@@ -37,7 +52,7 @@ function tutOnRun(R){
   if(st.ok(R)){tutComplete();return}
   if(st.miss){tutFeedback('bad',st.miss(R,S.tutMiss||0));S.tutMiss=(S.tutMiss||0)+1;save()}
 }
-function tutOnError(){if(!tutActive()||S.tutPhase!=='doing')return;var st=tutStep();if(st.type==='mold'||st.type==='free'){tutFeedback('bad',esc(S.tutErr||0,['Errou. Ótimo, é assim que se aprende. Lê a mensagem vermelha embaixo do editor, que o sistema já te disse o que tá errado.','Errou de novo. Respira. Lê a mensagem vermelha devagar e faz o que ela diz.','Tá brigando com o teclado? Confere letra por letra com o que eu pedi. Se travar de vez, clica em Explique esta consulta.']));S.tutErr=(S.tutErr||0)+1;save()}}
+function tutOnError(tr){if(!tutActive()||S.tutPhase!=='doing')return;var st=tutStep();if(st.type==='mold'||st.type==='free'){tutFeedback('bad',esc(S.tutErr||0,['Errou. Ótimo, é assim que se aprende. O sistema já disse o que tá errado, lê aqui:','Errou de novo. Respira. Lê devagar o que o sistema disse e faz o que ele manda:',st.type==='mold'?'Tá brigando com o teclado? Clica em <b>Voltar o molde</b> e recomeça: clica nos tracinhos e digita só o que eu pedi.':'Tá brigando com o teclado? Confere letra por letra com o que eu pedi. Se travar de vez, clica em Explique esta consulta.'])+(tr?'<div class="gerr">'+tr+'</div>':''));S.tutErr=(S.tutErr||0)+1;save()}}
 function tutOnExplain(){if(tutActive()&&S.tutPhase==='doing'&&tutStep().type==='explain')tutComplete()}
 function renderGuide(){
   var g=$('#guide');if(!g)return;var st=tutStep();if(!st)return;
@@ -74,8 +89,9 @@ function renderGuide(){
     g.appendChild(pool);sp=$('#sqlEd').value?'#runBtn':null;pl=$('#sqlEd').value?'executa':null}
   if(st.type==='free'&&st.hints){
     for(var q=0;q<S.tutHint;q++)g.appendChild(h('div',{class:'ghint'},st.hints[q]));
-    if(S.tutHint<st.hints.length){var hb=h('button',{class:'tb-btn'},escH((st.hintBtns||['Pedir dica','Ver a consulta'])[S.tutHint]));hb.onclick=function(){S.tutHint++;save();renderGuide()};var ha=h('div',{class:'gact'});ha.appendChild(hb);g.appendChild(ha)}}
-  if(S.tutFb)g.appendChild(h('div',{class:'gfb '+S.tutFb.k},S.tutFb.h));
+    if(S.tutHint<st.hints.length){var hb=h('button',{class:'tb-btn'},escH((st.hintBtns||['Pedir dica','Ver a consulta'])[S.tutHint]));hb.onclick=function(){S.tutHint++;tele('dica',{nivel:S.tutHint});save();renderGuide()};var ha=h('div',{class:'gact'});ha.appendChild(hb);g.appendChild(ha)}}
+  if(st.type==='mold'){var rb=h('button',{class:'tb-btn',id:'gMolde'},'&#8634; Voltar o molde');rb.onclick=function(){tele('dica',{nivel:'molde'});tutRestaurarMolde()};var ra=h('div',{class:'gact'});ra.appendChild(rb);g.appendChild(ra)}
+  if(S.tutFb){var fbEl=h('div',{class:'gfb '+S.tutFb.k},S.tutFb.h);g.appendChild(fbEl);setTimeout(function(){g.scrollTop=Math.max(0,fbEl.offsetTop-g.offsetTop-40)},0)}
   if(st.type==='mold'||st.type==='free')g.appendChild(h('div',{class:'muted',style:'font-size:12.5px'},'Atalho: Ctrl+Enter também executa.'));
   if(sp==='#gNext'||sp==='#sqlEd')pl=null;
   spot(sp,pl);

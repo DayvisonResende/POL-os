@@ -24,18 +24,20 @@ function buildDb(r){
   var ta=$('#sqlEd',b);ta.value=S.editor||'';syncHl();
   ta.addEventListener('input',function(){S.editor=ta.value;syncHl();save()});
   ta.addEventListener('scroll',function(){$('#sqlHl').scrollTop=ta.scrollTop});
+  ta.addEventListener('focus',function(){setTimeout(tutMarcarLacuna,0)});ta.addEventListener('click',tutMarcarLacuna);
   ta.addEventListener('keydown',function(e){
     if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();runQuery()}
     else if(e.key==='Tab'&&!e.shiftKey){e.preventDefault();insertAt('  ')}
   });
   $('#runBtn',b).onclick=runQuery;
-  $('#clrBtn',b).onclick=function(){ta.value='';S.editor='';syncHl();save();ta.focus()};
+  $('#clrBtn',b).onclick=function(){if(tutEmMolde()){tutRestaurarMolde();return}ta.value='';S.editor='';syncHl();save();ta.focus()};
   $('#dictBtn',b).onclick=function(){dictOpen=!dictOpen;$('#dict').hidden=!dictOpen;this.setAttribute('aria-pressed',dictOpen)};
   $('#explBtn',b).onclick=showExplain;
   renderDict();
   if(tutActive()){tutApplyEditor();renderGuide()}
 }
 function showExplain(){
+  tele('explique');
   var box=$('#dbExpl'),ex=explainSQL($('#sqlEd').value);
   var html='<div class="explain"><div class="exh">Tradução da consulta<button id="explClose">fechar</button></div>';
   if(ex.err)html+='<div class="exn">'+ex.err+'</div>';
@@ -62,20 +64,22 @@ function renderDict(){
 }
 function runQuery(){
   var ta=$('#sqlEd');var sql=ta.value.trim();var msg=$('#dbMsg'),grid=$('#dbGrid'),st=$('#dbStatus');
-  msg.innerHTML='';if(!sql){st.textContent='Escreva uma consulta antes de executar.';return}
+  msg.innerHTML='';if(!sql){if(tutOnEmpty())return;st.textContent='Escreva uma consulta antes de executar.';return}
   if(!isReadOnly(sql)){
     msg.innerHTML='<div class="err"><b>Acesso negado.</b> Seu perfil ('+escH(rankT())+') é somente leitura. Comandos que alteram o banco, como UPDATE e DELETE, são liberados no Módulo 5, com supervisão.</div>';
     st.textContent='Tentativa de escrita bloqueada e registrada.';
+    tele('consulta',{sql:sql.slice(0,400),res:'bloqueada'});
     if(!S.writeWarned){S.writeWarned=true;addCorr(5,'Tentativa de escrita no banco com perfil de recruta.')}
     return;
   }
   if(!tutBeforeRun())return;
   S.queries++;var t0=performance.now(),res;
   try{res=db.exec(sql)}catch(e){
-    S.errors++;save();var tr=translateError(String(e.message||e),sql,SCHEMA);
+    S.errors++;tele('consulta',{sql:sql.slice(0,400),res:'erro',erro:String(e.message||e)});save();var tr=translateError(String(e.message||e),sql,SCHEMA);
     msg.innerHTML='<div class="err">'+tr+'<span class="raw">SQLite: '+escH(e.message||e)+'</span></div>';
-    st.textContent='Erro na consulta.';tutOnError();return}
+    st.textContent='Erro na consulta.';tutOnError(tr);return}
   var ms=(performance.now()-t0).toFixed(1);var last=res.length?res[res.length-1]:null;save();
+  tele('consulta',{sql:sql.slice(0,400),res:last?'ok':'vazio',linhas:last?last.values.length:0});
   if(!last){grid.innerHTML='<div class="empty">A consulta rodou e não retornou nenhuma linha.</div>';st.textContent='0 linhas · '+ms+' ms';var zh=zeroRowHint(sql);if(zh)msg.innerHTML='<div class="hint0">'+zh+'</div>';checkSteps(null);tutOnRun(toR(null));return}
   st.textContent=last.values.length+' linha'+(last.values.length===1?'':'s')+' · '+last.columns.length+' coluna'+(last.columns.length===1?'':'s')+' · '+ms+' ms';
   renderGrid(last);checkSteps(last);tutOnRun(toR(last));

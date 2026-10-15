@@ -35,7 +35,7 @@ function renderProva(){
       ta.addEventListener('input',function(){pv.sql[id]=ta.value;save();updFoot()});
       box.appendChild(ta);
       if(!g){var tb=h('button',{class:'tb-btn',type:'button'},'&#9654; Testar consulta');tb.onclick=function(){
-          var x=runSafe(ta.value);if(x.err){prev.innerHTML='<div class="err" style="margin:0">'+x.err+'</div>';return}
+          var x=runSafe(ta.value);tele('consulta',{onde:'Prova Módulo '+mod,questao:id,sql:ta.value.slice(0,400),res:x.err?'erro':x.raw?'ok':'vazio',erro:x.rawErr});if(x.err){prev.innerHTML='<div class="err" style="margin:0">'+x.err+'</div>';return}
           var raw=x.raw;if(!raw){prev.innerHTML='A consulta rodou e não trouxe nenhuma linha.';return}
           prev.innerHTML=raw.values.length+' linha(s) · colunas: '+raw.columns.map(escH).join(', ')+'<table><tr>'+raw.columns.map(function(c){return '<th>'+escH(c)+'</th>'}).join('')+'</tr>'+raw.values.slice(0,3).map(function(row){return '<tr>'+row.map(function(v){return '<td>'+escH(v===null?'NULL':v)+'</td>'}).join('')+'</tr>'}).join('')+'</table>'+(raw.values.length>3?'…':'')};
         var ac=h('div',{class:'pfoot'});ac.appendChild(tb);box.appendChild(ac)}
@@ -56,7 +56,7 @@ function gradeProva(){
   pv.qs.forEach(function(id){var q=findQ(mod,id),ok;
     if(q.check){var x=runSafe(pv.sql[id]);ok=!x.err&&q.check(x.R)}else ok=pv.ans[id]===q.ok;
     res[id]=!!ok;if(ok)score++});
-  pv.graded={score:score,res:res};S.provaTries[mod]=(S.provaTries[mod]||0)+1;save();
+  pv.graded={score:score,res:res};tele('prova',{onde:'Prova Módulo '+mod,nota:score,erradas:pv.qs.filter(function(id){return !res[id]})});S.provaTries[mod]=(S.provaTries[mod]||0)+1;save();
   var t=S.provaTries[mod];
   if(score>=4)setTimeout(function(){say('celia',t===1?'Passou de primeira. Não vou elogiar, mas anotei.':'Passou. Demorou, mas passou. É isso que importa.')},700);
   else setTimeout(function(){say('celia',t===1?'Reprovou. Normal, metade reprova na primeira. Lê as correções com calma e refaz.':'De novo? Abre o Manual do recruta no SISP Ocorrências antes de refazer. Prova com consulta, recruta. Com consulta.')},700);

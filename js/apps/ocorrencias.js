@@ -2,6 +2,7 @@
 function caseUnlocked(i){if(S.rank<(CASES[i].rankMin||0))return false;return i===0||S.closed.indexOf(CASES[i-1].id)>=0}
 function caseWaitsRank(i){return i>0&&caseDone(i-1)&&S.rank<(CASES[i].rankMin||0)}
 function caseDone(i){return S.closed.indexOf(CASES[i].id)>=0}
+function caseActive(){for(var k=0;k<CASES.length;k++)if(caseUnlocked(k)&&!caseDone(k))return k;return -1}
 function openOcorr(){openWin('ocorr',{title:'SISP Ocorrências',w:760,h:540,x:110,y:14,build:function(){renderOcorr()},refresh:function(){renderOcorr()}})}
 function renderOcorr(){
   var r=WINS.ocorr;if(!r)return;var scroll=r.body.querySelector('.ocdetail');var st=scroll?scroll.scrollTop:0;
@@ -21,7 +22,7 @@ function renderOcorr(){
     var ok=done||stp.indexOf(k)>=0,hk=c.id+':'+k,lvl=S.hintsSeen[hk]||0;
     var li=h('li',{class:'step'+(ok?' done':'')},'<span class="chk" aria-hidden="true">'+(ok?'&#10003;':'')+'</span><span class="st">'+s.t+'</span>');
     for(var q=0;q<lvl;q++)li.appendChild(h('div',{class:'hint'},(q===1?'<b>Quase a resposta:</b> ':'')+s.h[q]));
-    if(!ok&&lvl<s.h.length){var hb=h('button',{class:'hb'},lvl===0?'Pedir dica':'Ainda travado? Ver a consulta');hb.onclick=function(){S.hintsSeen[hk]=lvl+1;save();renderOcorr()};li.appendChild(hb)}
+    if(!ok&&lvl<s.h.length){var hb=h('button',{class:'hb'},lvl===0?'Pedir dica':'Ainda travado? Ver a consulta');hb.onclick=function(){S.hintsSeen[hk]=lvl+1;tele('dica',{caso:c.id,tarefa:k+1,nivel:lvl+1});save();renderOcorr()};li.appendChild(hb)}
     ul.appendChild(li)});
   d.appendChild(ul);
   d.appendChild(h('h3',null,'Manual do recruta'));
@@ -37,7 +38,7 @@ function renderOcorr(){
       '<div><button class="btn-primary" type="submit">'+(c.final.tipo==='mandado'?'Assinar e enviar ao delegado':'Enviar relatório')+'</button></div><div class="vslot"></div>';
     fin.addEventListener('submit',function(e){e.preventDefault();var v={};c.final.campos.forEach(function(f){v[f.id]=fin.elements[f.id].value});
       if(c.final.campos.some(function(f){return !String(v[f.id]).trim()}))return;
-      var res=c.final.check(v);
+      var res=c.final.check(v);tele('desfecho',{caso:c.id,ok:!!res.ok,valores:v});
       if(res.ok){closeCase(S.caseSel,res.msg)}else{fin.querySelector('.vslot').innerHTML='<div class="verdict bad">'+escH(res.msg)+'</div>';addCorr(res.pen,res.msg)}});
   }
   d.appendChild(fin);wrap.appendChild(d);r.body.appendChild(wrap);
@@ -56,8 +57,8 @@ function unlockToast(){toast('Novo chamado','Um novo BO foi atribuído a você n
 function checkSteps(res){
   var R=toR(res),i=S.caseSel;
   // checa o caso ativo (o primeiro não encerrado)
-  var idx=-1;for(var k=0;k<CASES.length;k++){if(caseUnlocked(k)&&!caseDone(k)){idx=k;break}}
+  var idx=caseActive();
   if(idx<0)return;var c=CASES[idx],stp=S.steps[c.id]||(S.steps[c.id]=[]);
-  c.steps.forEach(function(s,k){if(stp.indexOf(k)<0){var ok=false;try{ok=s.ok(R)}catch(e){}if(ok){stp.push(k);if(!tutActive())toast('Tarefa concluída',s.t.replace(/<[^>]+>/g,''),'ok')}}});
+  c.steps.forEach(function(s,k){if(stp.indexOf(k)<0){var ok=false;try{ok=s.ok(R)}catch(e){}if(ok){stp.push(k);tele('tarefa',{caso:c.id,tarefa:k+1});if(!tutActive())toast('Tarefa concluída',s.t.replace(/<[^>]+>/g,''),'ok')}}});
   save();renderOcorr();
 }

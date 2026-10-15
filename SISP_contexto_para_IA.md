@@ -112,12 +112,15 @@ js/
     notificacoes.js         toast, meters, addCorr, addMetas
     destaque.js             spot e seta "clica aqui"
     desktop.js              ícones, menu iniciar, unlockApp
+    telemetria.js           telemetria local de playtest e painel de diagnóstico (ver 4.6)
   apps/                     um arquivo por aplicativo do Pol-OS
     db-investigator.js, ocorrencias.js, policiazap.js, arquivos.js, radar.js,
     treinamento.js (motor do TUT), acadepol.js, relatorio.js
   historia/                 side quests e eventos de enredo (hoje: beto.js)
   main.js                   boot (sempre o último script)
-tests/                      testes no Node (npm test)
+tests/                      testes no Node e no navegador (npm test)
+scripts/empacotar.js        gera dist/sisp.html, o jogo num arquivo só (npm run empacotar)
+docs/playtest.md            roteiro para conduzir sessões de playtest
 ```
 
 **Regras da divisão:**
@@ -182,6 +185,13 @@ registrarCaso({                     // em js/conteudo/casos/1002.js
 - **`final.check`** precisa explicar o motivo de cada resposta errada plausível, especialmente os falsos positivos planejados ("Corolla é sedã, as testemunhas viram uma caminhonete").
 - Desbloqueio: `caseUnlocked(i)` (caso anterior fechado + `rankMin`). Os casos são ordenados pelo `id` no registro.
 - Arquivos de cada caso: `FILES[]` com `caso: 'id do BO'` a partir do qual o arquivo aparece.
+
+### 4.6 Telemetria local (playtest)
+- `js/ui/telemetria.js` grava eventos em `localStorage` na chave **`sisp-telemetria-v1`**, separada do progresso (`Reiniciar turno` não apaga). Nada é enviado para fora do navegador. Limite de 4000 eventos (os mais antigos saem).
+- Cada evento: `{t, s (sessão), tipo, onde, …}`. `onde` é o passo do treino (`Treino 06 · predict`), o BO ativo (`BO 1002`) ou a prova (`Prova Módulo 1`).
+- Tipos: `sessao`, `consulta` (`res`: ok, vazio, erro, bloqueada), `treino_passo`, `treino_ok`, `tropeco` (toda bronca da Célia que não é de acerto), `dica`, `explique`, `tarefa`, `desfecho`, `prova`, `corregedoria`.
+- Painel **Diagnóstico de playtest** no menu iniciar, **só** quando o jogo é aberto com `?teste` no endereço. Mostra tempo, consultas, erros, tropeços e dicas por lugar; destaca lugares com 3+ erros/tropeços ou 5+ minutos; exporta JSON.
+- Ao criar algo novo que o jogador possa errar, chame `tele('tipo', {...})` no ponto do erro.
 
 ---
 
@@ -319,6 +329,13 @@ Jairo Teixeira (investigador impaciente), Marina Okada (perita), Paulo Henrique 
 ### Prioridade 1 — validar com gente real
 Antes de criar muito conteúdo novo: colocar **2 ou 3 pessoas que nunca programaram** para jogar, sem ajudar, e anotar onde elas param. Ajustar o tutorial com base nisso.
 
+**Achados de playtest (registro):**
+| Data | Onde | Problema | O que foi feito |
+|---|---|---|---|
+| 14/10/2026 | Treino 11 e 12 (`mold`) | O jogador digitava a resposta e sobrava `Veiculo___`; não percebia que precisava apagar os tracinhos. | A lacuna `___` fica selecionada ao clicar no editor (`tutMarcarLacuna`), então digitar substitui. Textos da Célia ajustados. |
+| 14/10/2026 | Treino 11 (`mold`), celular | O jogador apagou o editor inteiro e ficou sem o molde, sem jeito de recuperar. A Célia mandava "ler a mensagem vermelha embaixo do editor", que no celular fica atrás do teclado. | Molde nunca se perde: botão **Voltar o molde**, Limpar devolve o molde, executar vazio e reabrir o jogo restauram. A tradução do erro aparece dentro da fala da Célia, e o painel rola até ela. |
+| 14/10/2026 | DB-Investigator | Erro de digitação no início (`SELEC`) era tratado como tentativa de escrita: +5% de Corregedoria. (Achado pela telemetria.) | `isReadOnly` só bloqueia comandos que o SQLite reconhece como escrita; o resto vira erro traduzido. |
+
 ### Prioridade 2 — escada guiada no Módulo 2
 **Lacuna conhecida:** BETWEEN, IN e ORDER BY aparecem só no manual e nas dicas do BO 1003. Eles nunca passaram pela escada (ver → prever → peça → blocos → molde). Criar mini-tutoriais da Célia no começo dos BOs 1002 e 1003, mais curtos que o do Módulo 1 (começando no degrau de prever ou de trocar uma peça).
 
@@ -358,7 +375,7 @@ Limpeza de dados sujos (`TRIM`, `UPPER`, `REPLACE` em placas com traço e nomes 
 - **Banco de questões maior** na ACADEPOL (hoje 5 de múltipla escolha + 3 de escrever por módulo).
 - **Áudio das escutas** com Web Audio API (ruído de linha telefônica) + SpeechSynthesis, como previsto no documento original. Hoje a escuta é um .txt.
 - **Quadro de Pistas** (fixar linhas do resultado para comparar suspeitos).
-- **Telemetria local** (opcional): registrar em que passo o jogador mais erra, para orientar ajustes.
+- ~~**Telemetria local**~~: feita (seção 4.6).
 
 ---
 
@@ -387,23 +404,31 @@ Limpeza de dados sujos (`TRIM`, `UPPER`, `REPLACE` em placas com traço e nomes 
 7. **Cores só por tokens** do `:root`.
 8. Elementos com o atributo `hidden` precisam da regra `[hidden]{display:none!important}` (já existe). Sem ela, a tela de login invisível bloqueava os cliques.
 9. Ao mudar o formato do estado de forma incompatível, **trocar `SAVE_KEY`**.
-10. Se publicar como artifact do Claude: só scripts externos de cdnjs, jsDelivr ou unpkg; nada de `fetch` externo, `alert()`, `confirm()` ou `window.print()`. Publicar o `index.html` como página e todos os arquivos de `css/` e `js/` como arquivos de apoio (parâmetro `files`), mantendo os mesmos caminhos.
+10. Para distribuir como arquivo único: `npm run empacotar` gera `dist/sisp.html` (não versionado).
+11. Se publicar como artifact do Claude: só scripts externos de cdnjs, jsDelivr ou unpkg; nada de `fetch` externo, `alert()`, `confirm()` ou `window.print()`. Publicar o `index.html` como página e todos os arquivos de `css/` e `js/` como arquivos de apoio (parâmetro `files`), mantendo os mesmos caminhos.
 
 ---
 
 ## 13. Como testar
 
-### Lógica e conteúdo (Node)
+### Tudo de uma vez
 ```bash
-npm install     # só instala o sql.js 1.8.0 para os testes
+npm install     # sql.js 1.8.0 e playwright-core (sem baixar navegador)
 npm test
 ```
-`tests/carregar.js` lê a lista de `<script>` do `index.html`, carrega no Node só o que está em `js/core/` e `js/conteudo/`, gera o banco e devolve `{T, db, run}`. Os testes ficam em `tests/*.test.js` e já cobrem: arquivos do index existem, registro consistente (FILES e provas apontam para casos existentes), banco determinístico, soluções e falsos positivos dos BOs, consultas prontas do treinamento, respostas-modelo da ACADEPOL e as funções de SQL.
+
+### Lógica e conteúdo (Node) — `tests/jogo.test.js`
+`tests/carregar.js` lê a lista de `<script>` do `index.html`, carrega no Node só o que está em `js/core/` e `js/conteudo/`, gera o banco e devolve `{T, db, run}`. Cobre: arquivos do index existem, registro consistente (FILES e provas apontam para casos existentes), banco determinístico, soluções e falsos positivos dos BOs, consultas prontas do treinamento, respostas-modelo da ACADEPOL e as funções de SQL.
 
 Para cada caso novo, teste: (a) a solução esperada passa; (b) consultas "quase certas" e trapaças (`SELECT *` sem filtro) **não** passam; (c) cada falso positivo gera a explicação certa no mandado.
 
-### Interface (Playwright)
-Abra o arquivo local e redirecione o pedido do cdnjs para o `sql-asm.js` local (o resto da rede pode ser bloqueado). Percorra o tutorial inteiro errando de propósito em cada degrau, nas larguras 1366 e 400. Verifique que nenhum erro aparece no console.
+### Interface (Chrome headless) — `tests/navegador.test.js`
+Joga o jogo inteiro (treinamento errando de propósito em cada degrau, BO 1001, prova 1, BO 1002 com mandado errado, BO 1003, prova 2, promoção) nas larguras 1366 e 400, e verifica estado final, telemetria, painel de diagnóstico (só com `?teste`) e **zero erros no console**. O sql.js é servido do `node_modules`; o resto da rede é bloqueado.
+- Usa o Chrome/Chromium instalado no sistema (variável `CHROME` para outro caminho). Sem navegador, o teste é pulado.
+- Se `dist/sisp.html` existir, a versão empacotada também é jogada.
+- Ao mudar o fluxo do treinamento ou dos BOs, atualize a função `treinamento()` desse arquivo.
+
+### Com pessoas — `docs/playtest.md`
 
 ---
 

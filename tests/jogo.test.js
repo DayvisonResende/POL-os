@@ -65,6 +65,13 @@ test('SQL: somente leitura, tradução de erro e explicador', () => {
   const { T } = J;
   assert.ok(T.isReadOnly('SELECT * FROM veiculos;'));
   assert.ok(!T.isReadOnly("UPDATE catraca_acessos SET horario_saida='18:00:00'"));
+  assert.ok(!T.isReadOnly('SELECT 1; DELETE FROM veiculos'));
+  assert.ok(!T.isReadOnly('BEGIN'));
+  assert.ok(!T.isReadOnly('PRAGMA writable_schema = 1'));
+  assert.ok(T.isReadOnly("SELECT * FROM veiculos WHERE modelo = 'update'"), 'palavra dentro de texto não conta');
+  // erro de digitação não é tentativa de escrita: vai para o SQLite e vira dica
+  assert.ok(T.isReadOnly('SELEC modelo FROM veiculos'));
+  assert.throws(() => J.db.exec('SELEC modelo FROM veiculos'), /syntax error/);
   const schema = { tables: ['veiculos', 'pessoas'], cols: ['placa', 'cor'] };
   assert.match(T.translateError('near "FORM": syntax error', 'SELECT * FORM veiculos', schema), /FROM/);
   assert.ok(T.explainSQL("SELECT placa FROM veiculos WHERE cor = 'prata' LIMIT 5;").rows.length >= 4);

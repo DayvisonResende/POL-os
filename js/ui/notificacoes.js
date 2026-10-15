@@ -12,5 +12,5 @@ function meters(){
   $('#clock').innerHTML=String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0')+'<small>ter 13/10 · treino</small>';
   if(S.corr>=100&&!S.fired){S.fired=true;save();setTimeout(fired,600)}
 }
-function addCorr(n,why){S.corr+=n;meters();toast('Corregedoria +'+n+'%',escH(why),'bad');save()}
+function addCorr(n,why){S.corr+=n;tele('corregedoria',{n:n,motivo:why});meters();toast('Corregedoria +'+n+'%',escH(why),'bad');save()}
 function addMetas(n){S.metas+=n;meters();save()}

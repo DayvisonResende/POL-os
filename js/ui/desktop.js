@@ -8,7 +8,7 @@ function renderIcons(){
 }
 function buildStart(){
   var m=$('#startMenu');m.innerHTML='<div class="smh">POL-OS v4.2 · recruta.dti04<br><span style="color:#e8b04a">'+escH(rankT())+'</span></div>';
-  [['SISP Ocorrências',openOcorr,'ocorr'],['DB-Investigator',function(){openDb()},'db'],['PolíciaZap',openZap,'zap'],['Arquivos',openFiles,'files'],['ACADEPOL',openProva,'prova'],null,['Relatório do turno',report],['Reiniciar turno (apaga progresso)',resetAll]].filter(function(it){return !it||!it[2]||S.apps.indexOf(it[2])>=0}).forEach(function(it){
+  [['SISP Ocorrências',openOcorr,'ocorr'],['DB-Investigator',function(){openDb()},'db'],['PolíciaZap',openZap,'zap'],['Arquivos',openFiles,'files'],['ACADEPOL',openProva,'prova'],null,['Relatório do turno',report],teleModo()?['Diagnóstico de playtest',openDiag]:false,['Reiniciar turno (apaga progresso)',resetAll]].filter(function(it){return it!==false&&(!it||!it[2]||S.apps.indexOf(it[2])>=0)}).forEach(function(it){
     if(!it){m.appendChild(h('hr'));return}var b=h('button',null,escH(it[0]));b.onclick=function(){toggleStart(false);it[1]()};m.appendChild(b)});
 }
 function unlockApp(id,label){if(S.apps.indexOf(id)>=0)return;S.apps.push(id);save();renderIcons();buildStart();toast('Programa liberado',escH(label)+' agora está na sua área de trabalho.','warn')}

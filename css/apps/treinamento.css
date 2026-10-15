@@ -47,3 +47,4 @@
 .anat span{font-size:13px;color:var(--ink-2);line-height:1.3}
 .spot{animation:spot 1.3s ease-in-out infinite;position:relative;z-index:2}
 @keyframes spot{0%,100%{box-shadow:0 0 0 2px var(--accent),0 0 0 5px rgba(214,149,28,.25)}50%{box-shadow:0 0 0 2px var(--accent),0 0 0 9px rgba(214,149,28,0)}}
+.gerr{margin-top:8px;padding:7px 9px;background:#fff;border:1px solid #d9a19c;font-size:13.5px;line-height:1.4}

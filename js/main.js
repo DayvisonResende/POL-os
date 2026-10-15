@@ -1,5 +1,6 @@
 /* ---------- boot ---------- */
 function startDesktop(resumed){
+  teleSessao(resumed);
   $('#boot').hidden=true;renderIcons();buildStart();meters();
   $('#startBtn').onclick=function(e){e.stopPropagation();toggleStart()};
   document.addEventListener('click',function(e){if(!e.target.closest('#startMenu'))toggleStart(false)});
