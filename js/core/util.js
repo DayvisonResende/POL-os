@@ -9,6 +9,13 @@ function toR(res){
 function cellSet(R){var s=new Set();R.rows.forEach(function(r){r.forEach(function(v){s.add(String(v).toLowerCase())})});return s}
 function has(R){var s=cellSet(R);for(var i=1;i<arguments.length;i++){if(!s.has(String(arguments[i]).toLowerCase()))return false}return true}
 function hasAll(R,list){var s=cellSet(R);return list.every(function(v){return s.has(String(v).toLowerCase())})}
+// O resultado tem exatamente estas linhas? Compara, coluna a coluna, só as colunas que o jogador mostrou.
+function mesmasLinhas(R,linhas){
+  if(!R.cols.length||R.n!==linhas.length||!linhas.length)return false;
+  return R.cols.every(function(c,i){if(!(c in linhas[0]))return false;
+    var a=R.rows.map(function(r){return String(r[i])}).sort(),b=linhas.map(function(l){return String(l[c])}).sort();return a.join('\u0001')===b.join('\u0001')});
+}
+function falta(R,col){return R.cols.indexOf(col)<0}
 function normPlaca(s){return String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
 function normTxt(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim()}
 function esc(k,arr){return arr[Math.min(k,arr.length-1)]}

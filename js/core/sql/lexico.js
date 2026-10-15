@@ -4,6 +4,9 @@ function lev(a,b){a=a.toLowerCase();b=b.toLowerCase();var d=[],i,j;for(i=0;i<=a.
 function kwTypo(sql,schema){var known=new Set(KEYWORDS.concat(schema.tables,schema.cols).map(function(x){return x.toLowerCase()}));var ws=stripSql(sql).match(/[A-Za-z_]+/g)||[];for(var i=0;i<ws.length;i++){var w=ws[i];if(w.length<3||known.has(w.toLowerCase()))continue;var k=closest(w.toUpperCase(),KEYWORDS,w.length<=4?1:2);if(k)return [w,k]}return null}
 function closest(w,list,max){var best=null,bd=99;list.forEach(function(x){var d=lev(w,x);if(d<bd){bd=d;best=x}});var lim=max!=null?max:Math.max(1,Math.floor(w.length/3));return bd<=lim?best:null}
 function stripSql(sql){return sql.replace(/--[^\n]*/g,' ').replace(/\/\*[\s\S]*?\*\//g,' ').replace(/'(?:[^']|'')*'/g,"''")}
-function tokSQL(sql){var re=/\s+|--[^\n]*|'(?:[^']|'')*'?|\d+(?:\.\d+)?|[A-Za-z_À-ſ][A-Za-z0-9_À-ſ]*|<=|>=|<>|!=|==|\S/g,out=[],m;while((m=re.exec(sql))){var t=m[0];if(/^\s/.test(t)||t.indexOf('--')===0)continue;out.push(t)}return out}
+function tokSQL(sql){var re=/\s+|--[^\n]*|'(?:[^']|'')*'?|"(?:[^"]|"")*"?|\d+(?:\.\d+)?|[A-Za-z_À-ſ][A-Za-z0-9_À-ſ]*|<=|>=|<>|!=|==|\S/g,out=[],m;while((m=re.exec(sql))){var t=m[0];if(/^\s/.test(t)||t.indexOf('--')===0)continue;out.push(t)}return out}
 function U(t){return String(t||'').toUpperCase()}
 function joinToks(ts){var s='';ts.forEach(function(t,i){if(i===0){s=t;return}var p=ts[i-1];if(t===','||t===';'||t===')'||t==='.'||p==='('||p==='.')s+=t;else if(t==='('&&/^[A-Za-z]/.test(p))s+=t;else s+=' '+t});return s}
+function splitConds(ts){var out=[],cur=[],d=0,conn=null,inB=false;ts.forEach(function(t){var u=U(t);if(t==='(')d++;if(t===')')d--;
+  if(d===0&&(u==='AND'||u==='OR')){if(u==='AND'&&inB){inB=false;cur.push(t);return}out.push({conn:conn,ts:cur});cur=[];conn=u;return}
+  if(u==='BETWEEN')inB=true;cur.push(t)});if(cur.length)out.push({conn:conn,ts:cur});return out}

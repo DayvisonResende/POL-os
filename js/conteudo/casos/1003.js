@@ -5,14 +5,17 @@ registrarCaso({id:'1003',titulo:'Assalto à Transportadora Central',modulo:2,nat
   relato:'Três homens renderam o motorista de um caminhão da Transportadora Central e levaram a carga de eletrônicos. Duas testemunhas viram uma <b>caminhonete preta</b> sair do acostamento em alta velocidade, sentido capital, e <q>passar voando</q> pelo radar do Km 18. A escuta do número investigado foi anexada em Arquivos › Evidências. Identifique o veículo e o proprietário.',
   steps:[
    {t:'No radar do Km 18 da Castelo, ache as passagens <b>acima de 120 km/h</b> entre <b>22:45 e 23:15</b> do dia 12/10.',
-    h:['São três filtros ao mesmo tempo, ligados por AND. Para o local, <code>LIKE \'%Km 18%\'</code> evita digitar o nome inteiro. A coluna data_hora guarda data e hora juntas.','<code>SELECT * FROM leituras_radar WHERE local_radar LIKE \'%Km 18%\' AND data_hora BETWEEN \'2026-10-12 22:45:00\' AND \'2026-10-12 23:15:00\' AND velocidade_kmh &gt; 120;</code>'],
-    ok:function(R){return R.n===3&&has(R,'KZX9B21','JKL4A12','RTA8K02')}},
+    h:['São três filtros ao mesmo tempo, ligados por AND. Para o local, <code>LIKE \'%Km 18%\'</code> evita digitar o nome inteiro. A coluna data_hora guarda data e hora juntas.','Monte uma condição de cada vez e execute a cada passo: primeiro só o local; depois acrescente <code>AND data_hora BETWEEN \'2026-10-12 HH:MM:SS\' AND \'2026-10-12 HH:MM:SS\'</code>; por fim, <code>AND velocidade_kmh &gt; número</code>.','<code>SELECT * FROM leituras_radar WHERE local_radar LIKE \'%Km 18%\' AND data_hora BETWEEN \'2026-10-12 22:45:00\' AND \'2026-10-12 23:15:00\' AND velocidade_kmh &gt; 120;</code>'],
+    ok:function(R){return R.n===3&&has(R,'KZX9B21','JKL4A12','RTA8K02')},
+    quase:function(R){if(mesmasLinhas(R,F.l1003radar)&&falta(R,'placa'))return 'vieram 3 passagens, é isso. Mas mostre a coluna <code>placa</code>, que é ela que você vai procurar no cadastro de veículos.'}},
    {t:'O radar não sabe o modelo. Descubra no cadastro de <code>veiculos</code> qual dessas placas é uma caminhonete preta.',
     h:['IN compara com uma lista: <code>WHERE placa IN (\'AAA1A11\', \'BBB2B22\')</code>.','<code>SELECT placa, modelo, cor, cpf_proprietario FROM veiculos WHERE placa IN (…as três placas…);</code>'],
-    ok:function(R){return R.n<=3&&has(R,'KZX9B21','hilux')}},
+    ok:function(R){return R.n<=3&&has(R,'KZX9B21','hilux')},
+    quase:function(R){if(mesmasLinhas(R,F.l1003veic)&&falta(R,'modelo'))return 'achou as placas no cadastro. Agora mostre a coluna <code>modelo</code> para saber qual delas é caminhonete.'}},
    {t:'Descubra o nome do proprietário na tabela <code>pessoas</code>.',
     h:['A coluna cpf_proprietario de veiculos aponta para a coluna cpf de pessoas. É assim que as tabelas se conectam.','<code>SELECT nome, cidade FROM pessoas WHERE cpf = \'…cpf que você achou…\';</code>'],
-    ok:function(R){return R.n<=2&&has(R,'Valdemar Silveira')}}
+    ok:function(R){return R.n<=2&&has(R,'Valdemar Silveira')},
+    quase:function(R){if(mesmasLinhas(R,F.l1003dono)&&falta(R,'nome'))return 'achou a pessoa pelo CPF. Agora mostre a coluna <code>nome</code>, que vai no mandado.'}}
   ],
   final:{tipo:'mandado',titulo:'Mandado de prisão preventiva',campos:[{id:'placa',label:'Placa do veículo'},{id:'nome',label:'Nome do proprietário'}],
     check:function(v){var p=normPlaca(v.placa),n=normTxt(v.nome);

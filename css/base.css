@@ -8,7 +8,8 @@
   --title:#22404c; --title-off:#7d9197; --title-ink:#f1f5f4;
   --accent:#d6951c; --accent-soft:#f6e3b8;
   --danger:#b0302a; --danger-soft:#f3d6d3; --ok:#2c7a4c; --ok-soft:#d4eadb;
-  --code-bg:#0f191c; --code-ink:#cfe2dc; --code-kw:#e8b04a; --code-str:#93d39f; --code-num:#8db7ea; --code-com:#5f7a77; --code-sel:#2b4a52;
+  --code-bg:#0f191c; /* --code-sel precisa ser translúcido: a seleção fica por cima do texto colorido do editor */
+  --code-ink:#cfe2dc; --code-kw:#e8b04a; --code-str:#93d39f; --code-num:#8db7ea; --code-com:#5f7a77; --code-sel:rgba(120,180,200,.32);
   --task:#0e1d22; --task-ink:#d5e2df;
   --f-display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
   --f-ui:"Barlow Semi Condensed","Segoe UI","Helvetica Neue",Arial,sans-serif;

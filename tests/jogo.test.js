@@ -61,6 +61,73 @@ test('ACADEPOL: toda resposta-modelo passa no próprio check', () => {
   for (const m in J.T.PROVAS) for (const q of J.T.PROVAS[m].write) assert.ok(q.check(J.run(q.model)), q.id);
 });
 
+test('diagnóstico: aponta erros de estrutura sem entregar a resposta', () => {
+  const { T } = J;
+  const schema = { tables: ['veiculos', 'pessoas'], cols: ['placa', 'modelo', 'cor', 'ano', 'nome', 'cidade'] };
+  // jogada real do playtest (BO 1002): três problemas de uma vez
+  const p = T.diagnosticarSQL('SELECT cor WHERE "prata" FROM veiculos;', schema);
+  assert.strictEqual(p.length, 3);
+  assert.match(p[0], /WHERE<\/b> veio antes do <b>FROM/);
+  assert.match(p[1], /comparação completa/);
+  assert.match(p[2], /aspas <b>simples/);
+  assert.throws(() => J.db.exec('SELECT cor WHERE "prata" FROM veiculos;'));
+  assert.match(T.translateError('near "FROM": syntax error', 'SELECT cor WHERE "prata" FROM veiculos;', schema), /3 problemas/);
+  // corrigida só a ordem, a consulta roda e volta vazia: a dica explica o porquê
+  assert.strictEqual(J.db.exec('SELECT cor FROM veiculos WHERE "prata"').length, 0);
+  assert.match(T.zeroRowHint('SELECT cor FROM veiculos WHERE "prata"', schema), /comparação completa/);
+  assert.match(T.diagnosticarSQL("SELECT * FROM veiculos LIMIT 3 ORDER BY ano", schema)[0], /LIMIT<\/b> veio antes do <b>ORDER BY/);
+  // jogada real do playtest: LIKE no lugar do WHERE, com =, sem % (e FRT no lugar de FTR)
+  const q2 = "SELECT * FROM veiculos LIKE placa = 'FRT';";
+  assert.throws(() => J.db.exec(q2));
+  const p2 = T.diagnosticarSQL(q2, schema);
+  assert.strictEqual(p2.length, 3, p2.join('\n'));
+  assert.match(p2[0], /Falta o <code>WHERE/);
+  assert.match(p2[1], /no lugar<\/b> do <code>=/);
+  assert.match(p2[2], /'FRT%'/);
+  assert.match(T.zeroRowHint("SELECT * FROM veiculos WHERE placa LIKE 'ABC'", schema), /'ABC%'/);
+  assert.doesNotMatch(T.zeroRowHint("SELECT * FROM veiculos WHERE placa LIKE 'ABC'", schema), /FTR/, 'não entrega a resposta do BO 1002');
+  // estrutura certa, letras trocadas (FRT em vez de FTR): manda conferir com a pista, sem dar a resposta
+  assert.strictEqual(J.db.exec("SELECT * FROM veiculos WHERE placa LIKE 'FRT%'").length, 0);
+  const h = T.zeroRowHint("SELECT * FROM veiculos WHERE placa LIKE 'FRT%'", schema);
+  assert.match(h, /letra por letra/);
+  assert.doesNotMatch(h, /FTR/);
+  // "funcionou por sorte": aspas duplas em valor; aspas duplas em nome de coluna são corretas
+  assert.match(T.avisoSQL('SELECT * FROM veiculos WHERE cor = "prata"', schema), /por sorte/);
+  assert.strictEqual(T.avisoSQL('SELECT "cor" FROM veiculos', schema), null);
+  // consultas certas não geram falso alarme
+  for (const q of ["SELECT * FROM veiculos WHERE cor = 'prata' AND placa LIKE 'FTR%';",
+                   "SELECT * FROM leituras_radar WHERE local_radar LIKE '%Km 18%' AND data_hora BETWEEN '2026-10-12 22:45:00' AND '2026-10-12 23:15:00' AND velocidade_kmh > 120;",
+                   "SELECT * FROM pessoas WHERE cidade IN ('Itu', 'Salto') ORDER BY nome LIMIT 5;",
+                   "SELECT * FROM veiculos WHERE cor IS NOT NULL;"])
+    assert.deepStrictEqual([...T.diagnosticarSQL(q, schema)], [], q);
+});
+
+test('BOs: o "quase" explica a consulta que chegou perto, e não dispara na certa', () => {
+  const c2 = J.T.CASES[J.T.indiceCaso('1002')], c3 = J.T.CASES[J.T.indiceCaso('1003')];
+  // jogada real do playtest: filtro certo, só a coluna cor
+  const R = J.run("SELECT cor FROM veiculos WHERE cor = 'prata';");
+  assert.ok(!c2.steps[0].ok(R));
+  assert.match(c2.steps[0].quase(R), /filtro está certo/);
+  assert.ok(!c2.steps[0].quase(J.run("SELECT * FROM veiculos WHERE cor = 'prata'")));
+  assert.match(c2.steps[1].quase(J.run("SELECT cor FROM veiculos WHERE placa LIKE 'FTR%'")), /placa/);
+  assert.match(c2.steps[2].quase(J.run("SELECT modelo FROM veiculos WHERE cor = 'prata' AND placa LIKE 'FTR%'")), /placa/);
+  assert.match(c3.steps[0].quase(J.run("SELECT velocidade_kmh FROM leituras_radar WHERE local_radar LIKE '%Km 18%' AND data_hora BETWEEN '2026-10-12 22:45:00' AND '2026-10-12 23:15:00' AND velocidade_kmh > 120")), /placa/);
+  assert.match(c3.steps[1].quase(J.run("SELECT placa, cor FROM veiculos WHERE placa IN ('KZX9B21','JKL4A12','RTA8K02')")), /modelo/);
+  assert.match(c3.steps[2].quase(J.run("SELECT cpf, cidade FROM pessoas WHERE cpf = '318.442.907-15'")), /nome/);
+  // não dispara por coincidência de número de linhas
+  assert.ok(!c2.steps[0].quase(J.run('SELECT modelo FROM veiculos LIMIT ' + J.T.F.prata.length)));
+  assert.ok(!c2.steps[0].quase(J.run("SELECT cor FROM veiculos WHERE cor = 'preto' LIMIT " + J.T.F.prata.length)));
+  // a dica do formato manda manter o *
+  assert.match(c2.steps[0].h[1], /Mantenha o <code>\*<\/code>/);
+});
+
+test('dicas dos BOs: a última é a consulta, as anteriores não entregam o valor do caso', () => {
+  for (const c of J.T.CASES) for (const s of c.steps) {
+    assert.ok(s.h.length >= 2, c.id);
+    if (c.id === '1002') for (const d of s.h.slice(0, -1)) assert.doesNotMatch(d, /'prata'|FTR%/, 'dica intermediária entrega a resposta');
+  }
+});
+
 test('SQL: somente leitura, tradução de erro e explicador', () => {
   const { T } = J;
   assert.ok(T.isReadOnly('SELECT * FROM veiculos;'));

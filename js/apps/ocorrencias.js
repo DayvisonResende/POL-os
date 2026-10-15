@@ -21,8 +21,8 @@ function renderOcorr(){
   c.steps.forEach(function(s,k){
     var ok=done||stp.indexOf(k)>=0,hk=c.id+':'+k,lvl=S.hintsSeen[hk]||0;
     var li=h('li',{class:'step'+(ok?' done':'')},'<span class="chk" aria-hidden="true">'+(ok?'&#10003;':'')+'</span><span class="st">'+s.t+'</span>');
-    for(var q=0;q<lvl;q++)li.appendChild(h('div',{class:'hint'},(q===1?'<b>Quase a resposta:</b> ':'')+s.h[q]));
-    if(!ok&&lvl<s.h.length){var hb=h('button',{class:'hb'},lvl===0?'Pedir dica':'Ainda travado? Ver a consulta');hb.onclick=function(){S.hintsSeen[hk]=lvl+1;tele('dica',{caso:c.id,tarefa:k+1,nivel:lvl+1});save();renderOcorr()};li.appendChild(hb)}
+    for(var q=0;q<lvl;q++)li.appendChild(h('div',{class:'hint'},(q===s.h.length-1&&q>0?'<b>Quase a resposta:</b> ':'')+s.h[q]));
+    if(!ok&&lvl<s.h.length){var hb=h('button',{class:'hb'},lvl===0?'Pedir dica':lvl===s.h.length-1?'Ainda travado? Ver a consulta':'Mais uma dica');hb.onclick=function(){S.hintsSeen[hk]=lvl+1;tele('dica',{caso:c.id,tarefa:k+1,nivel:lvl+1});save();renderOcorr()};li.appendChild(hb)}
     ul.appendChild(li)});
   d.appendChild(ul);
   d.appendChild(h('h3',null,'Manual do recruta'));
@@ -59,6 +59,12 @@ function checkSteps(res){
   // checa o caso ativo (o primeiro não encerrado)
   var idx=caseActive();
   if(idx<0)return;var c=CASES[idx],stp=S.steps[c.id]||(S.steps[c.id]=[]);
-  c.steps.forEach(function(s,k){if(stp.indexOf(k)<0){var ok=false;try{ok=s.ok(R)}catch(e){}if(ok){stp.push(k);tele('tarefa',{caso:c.id,tarefa:k+1});if(!tutActive())toast('Tarefa concluída',s.t.replace(/<[^>]+>/g,''),'ok')}}});
+  var feitas=0,quase=null;
+  c.steps.forEach(function(s,k){if(stp.indexOf(k)<0){var ok=false;try{ok=s.ok(R)}catch(e){}if(ok){feitas++;stp.push(k);tele('tarefa',{caso:c.id,tarefa:k+1});if(!tutActive())toast('Tarefa concluída',s.t.replace(/<[^>]+>/g,''),'ok')}
+    else if(!quase&&s.quase){try{var q=s.quase(R);if(q)quase={k:k,msg:q}}catch(e){}}}});
   save();renderOcorr();
+  // Nenhuma tarefa marcou, mas a consulta chegou perto de uma: diz o que falta em vez de ficar calado.
+  if(feitas||!quase)return null;
+  tele('quase',{caso:c.id,tarefa:quase.k+1});
+  return '<b>Quase lá</b> (tarefa '+(quase.k+1)+'): '+quase.msg;
 }

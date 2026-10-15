@@ -77,12 +77,16 @@ function runQuery(){
   try{res=db.exec(sql)}catch(e){
     S.errors++;tele('consulta',{sql:sql.slice(0,400),res:'erro',erro:String(e.message||e)});save();var tr=translateError(String(e.message||e),sql,SCHEMA);
     msg.innerHTML='<div class="err">'+tr+'<span class="raw">SQLite: '+escH(e.message||e)+'</span></div>';
+    grid.innerHTML='<div class="empty">A consulta não rodou, então não há resultado. Corrija o erro acima e execute de novo.</div>';
     st.textContent='Erro na consulta.';tutOnError(tr);return}
   var ms=(performance.now()-t0).toFixed(1);var last=res.length?res[res.length-1]:null;save();
   tele('consulta',{sql:sql.slice(0,400),res:last?'ok':'vazio',linhas:last?last.values.length:0});
-  if(!last){grid.innerHTML='<div class="empty">A consulta rodou e não retornou nenhuma linha.</div>';st.textContent='0 linhas · '+ms+' ms';var zh=zeroRowHint(sql);if(zh)msg.innerHTML='<div class="hint0">'+zh+'</div>';checkSteps(null);tutOnRun(toR(null));return}
+  if(!last){grid.innerHTML='<div class="empty">A consulta rodou e não retornou nenhuma linha.</div>';st.textContent='0 linhas · '+ms+' ms';var zh=zeroRowHint(sql,SCHEMA);if(zh)msg.innerHTML='<div class="hint0">'+zh+'</div>';checkSteps(null);tutOnRun(toR(null));return}
   st.textContent=last.values.length+' linha'+(last.values.length===1?'':'s')+' · '+last.columns.length+' coluna'+(last.columns.length===1?'':'s')+' · '+ms+' ms';
-  renderGrid(last);checkSteps(last);tutOnRun(toR(last));
+  renderGrid(last);
+  var notas=[avisoSQL(sql,SCHEMA),checkSteps(last)].filter(Boolean);
+  msg.innerHTML=notas.map(function(n){return '<div class="hint0">'+n+'</div>'}).join('');
+  tutOnRun(toR(last));
 }
 function renderGrid(res){
   var grid=$('#dbGrid'),max=300;

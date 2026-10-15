@@ -103,6 +103,9 @@ for (const alvo of ALVOS) for (const largura of [1366, 400]) {
     try {
       await treinamento(page);
       assert.ok(await page.isVisible('.win .oc'), 'Ocorrências abriu no fim do treinamento');
+      // a seleção do editor precisa ser translúcida, senão esconde o texto colorido que fica por baixo
+      const sel = await page.evaluate(() => getComputedStyle(document.querySelector('#sqlEd'), '::selection').backgroundColor);
+      assert.match(sel, /^rgba\(.*, 0?\.\d+\)$/, 'cor de seleção opaca: ' + sel);
 
       const nCores = await page.evaluate(() => F.cores.length);
       await entregar(page, { f_1001_resp: '99' });
@@ -112,6 +115,20 @@ for (const alvo of ALVOS) for (const largura of [1366, 400]) {
       await prova(page);
       assert.strictEqual(await page.evaluate(() => S.rank), 1);
 
+      // BO 1002: a jogada do playtest recebe os três problemas de uma vez; a escada de dicas tem 3 degraus
+      await page.evaluate(() => openOcorr());   // dicas antes de qualquer consulta: tarefa concluída não mostra dica
+      for (const b of ['Pedir dica', 'Mais uma dica', 'Ainda travado? Ver a consulta']) await page.click(`.step >> nth=0 >> .hb:text-is("${b}")`);
+      assert.strictEqual((await page.$$('.steps > li:first-child .hint')).length, 3);
+      await page.evaluate(() => openDb('SELECT cor WHERE "prata" FROM veiculos;'));
+      await page.click('#runBtn');
+      assert.match(await page.textContent('#dbMsg'), /3 problemas/);
+      assert.match(await page.textContent('#dbGrid'), /não rodou/, 'erro não deixa o resultado anterior na tela');
+      await page.evaluate(() => openDb("SELECT cor FROM veiculos WHERE cor = 'prata';"));   // jogada do playtest
+      await page.click('#runBtn');
+      assert.match(await page.textContent('#dbMsg'), /Quase lá.*filtro está certo/);
+      await page.evaluate(() => openDb('SELECT * FROM veiculos WHERE cor = "prata";'));
+      await page.click('#runBtn');
+      assert.match(await page.textContent('#dbMsg'), /por sorte/);
       await page.evaluate(() => openOcorr());
       await entregar(page, { f_1002_placa: 'FTR2C41' });
       assert.match(await page.textContent('.verdict.bad'), /branco/);

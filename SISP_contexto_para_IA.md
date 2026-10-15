@@ -94,6 +94,7 @@ js/
     banco/fatos.js          F e computeFacts
     sql/lexico.js           KEYWORDS, lev, closest, kwTypo, stripSql, tokSQL, joinToks
     sql/erros.js            translateError, zeroRowHint
+    sql/diagnostico.js      diagnosticarSQL (ordem das cláusulas, WHERE sem comparação, aspas duplas), avisoSQL
     sql/permissao.js        isReadOnly
     sql/explicador.js       explainSQL e textos COLDESC/TABDESC
   conteudo/                 CONTEÚDO DO JOGO, sem DOM. É aqui que o jogo mais cresce.
@@ -172,7 +173,9 @@ tutFb, tutMiss, tutErr, tutBlk, apps[], rank, prova{mod,qs,ord,ans,sql,graded}, 
 registrarCaso({                     // em js/conteudo/casos/1002.js
   id:'1002', titulo:'…', modulo:2, natureza:'…', quando:'12/10/2026 19:20', local:'…', solicitante:'…',
   relato:'HTML com o BO e os depoimentos',
-  steps:[ { t:'texto da tarefa (HTML)', h:['dica conceitual','dica quase-resposta'], ok:function(R){ return … } } ],
+  steps:[ { t:'texto da tarefa (HTML)', h:['dica conceitual','formato com nomes genéricos (sem os valores do caso)','consulta pronta'],
+            ok:function(R){ return … },
+            quase:function(R){ if(mesmasLinhas(R,F.lXXXX)&&falta(R,'placa')) return 'o que falta' } } ],   // opcional
   final:{ tipo:'mandado'|'resposta', titulo:'…', campos:[{id:'placa',label:'…'}],
           check:function(v){ return {ok:true,msg:'…'} ou {ok:false,pen:20,msg:'motivo do indeferimento'} } },
   manual:'HTML do Manual do Recruta deste caso',
@@ -182,6 +185,7 @@ registrarCaso({                     // em js/conteudo/casos/1002.js
 });
 ```
 - **`steps[].ok(R)`** valida pelo resultado, nunca pelo texto.
+- **`steps[].quase(R)`** (opcional) explica o jeito comum de chegar perto sem acertar; aparece como "Quase lá" no terminal quando nenhuma tarefa marcou. Use `mesmasLinhas(R, linhasEsperadas)` (linhas exatas, calculadas em `computeFacts` como `F.l<caso><tarefa>`), nunca só a contagem de linhas, que dispara por coincidência.
 - **`final.check`** precisa explicar o motivo de cada resposta errada plausível, especialmente os falsos positivos planejados ("Corolla é sedã, as testemunhas viram uma caminhonete").
 - Desbloqueio: `caseUnlocked(i)` (caso anterior fechado + `rankMin`). Os casos são ordenados pelo `id` no registro.
 - Arquivos de cada caso: `FILES[]` com `caso: 'id do BO'` a partir do qual o arquivo aparece.
@@ -334,6 +338,10 @@ Antes de criar muito conteúdo novo: colocar **2 ou 3 pessoas que nunca programa
 |---|---|---|---|
 | 14/10/2026 | Treino 11 e 12 (`mold`) | O jogador digitava a resposta e sobrava `Veiculo___`; não percebia que precisava apagar os tracinhos. | A lacuna `___` fica selecionada ao clicar no editor (`tutMarcarLacuna`), então digitar substitui. Textos da Célia ajustados. |
 | 14/10/2026 | Treino 11 (`mold`), celular | O jogador apagou o editor inteiro e ficou sem o molde, sem jeito de recuperar. A Célia mandava "ler a mensagem vermelha embaixo do editor", que no celular fica atrás do teclado. | Molde nunca se perde: botão **Voltar o molde**, Limpar devolve o molde, executar vazio e reabrir o jogo restauram. A tradução do erro aparece dentro da fala da Célia, e o painel rola até ela. |
+| 14/10/2026 | BO 1002, tarefa 1 (jogador iniciante) | `SELECT cor WHERE "prata" FROM veiculos;` recebia só "o banco se perdeu perto de FROM". A dica 1 não ensinava o formato, então o único caminho era ver a consulta pronta. Corrigida a ordem, `WHERE "prata"` voltava vazio sem dica; `cor = "prata"` funcionava por sorte (SQLite aceita aspas duplas como texto; PostgreSQL e SQL Server não). | `js/core/sql/diagnostico.js` lista todos os problemas de estrutura de uma vez (erro e resultado vazio) e avisa quando a consulta "funcionou por sorte". Dicas dos BOs ganharam um degrau intermediário: o **formato** com nomes genéricos (conceito → formato → consulta). O Explique entende aspas duplas. |
+| 14/10/2026 | BO 1002, tarefa 1 (jogador iniciante) | `SELECT cor FROM veiculos WHERE cor = 'prata';`: filtro certo, mas só a coluna cor (nove vezes "prata"). A tarefa não marcou e o jogo ficou calado. A dica do formato ("troque tabela, coluna e valor") induziu a trocar o `*` também. | Tarefas ganharam `quase(R)` com mensagem "Quase lá" (todas as tarefas de 1002 e 1003). A dica do formato diz "mantenha o `*`". |
+| 14/10/2026 | BO 1002, tarefa 2 (jogador iniciante) | `SELECT * FROM veiculos LIKE placa = 'FRT';` (sem WHERE, LIKE fora do lugar e com =, sem %, letras FTR trocadas) recebia só "o banco se perdeu perto de placa". A grade continuava mostrando o resultado da consulta anterior, como se fosse desta. A dica antiga de "LIKE sem %" sugeria literalmente `'FTR%'` (a resposta). | O diagnóstico aponta WHERE ausente, LIKE fora do lugar e LIKE sem % (com o texto do próprio jogador). Resultado vazio com LIKE manda conferir letra por letra com a pista. Erro limpa a grade. |
+| 14/10/2026 | DB-Investigator | Ao selecionar texto no editor, o texto sumia: a seleção da caixa de digitação (camada de cima, texto invisível) era opaca e cobria o texto colorido da camada de baixo. | `--code-sel` virou translúcido. Regra: **a cor de seleção do editor tem que ter transparência.** |
 | 14/10/2026 | DB-Investigator | Erro de digitação no início (`SELEC`) era tratado como tentativa de escrita: +5% de Corregedoria. (Achado pela telemetria.) | `isReadOnly` só bloqueia comandos que o SQLite reconhece como escrita; o resto vira erro traduzido. |
 
 ### Prioridade 2 — escada guiada no Módulo 2

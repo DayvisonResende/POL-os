@@ -2,8 +2,8 @@
 var COLDESC={placa:'a placa',modelo:'o modelo',cor:'a cor',ano:'o ano',cpf_proprietario:'o CPF do dono',nome:'o nome',cpf:'o CPF',cidade:'a cidade',data_nascimento:'a data de nascimento',local_radar:'o local do radar',data_hora:'a data e a hora',velocidade_kmh:'a velocidade em km/h',foto_radar_url:'o arquivo da foto',funcionario:'o funcionário',cargo:'o cargo',data:'a data',horario_entrada:'o horário de entrada',horario_saida:'o horário de saída',id:'o número do registro'};
 var TABDESC={veiculos:'o cadastro de veículos do Detran',pessoas:'o cadastro de pessoas',leituras_radar:'as passagens registradas pelos radares',catraca_acessos:'o ponto dos funcionários na catraca'};
 function listPt(a){return a.length<=1?a.join(''):a.slice(0,-1).join(', ')+' e '+a[a.length-1]}
-function colPt(t){var k=String(t).toLowerCase().split('.').pop();return COLDESC[k]?COLDESC[k]+' (<code>'+escH(t)+'</code>)':'<code>'+escH(t)+'</code>'}
-function valPt(ts){if(ts.length===1){var t=ts[0];if(t.charAt(0)==="'")return '<code>'+escH(t)+'</code>';if(/^\d/.test(t))return '<b>'+t+'</b>';return 'o valor da coluna '+colPt(t)}return '<code>'+escH(joinToks(ts))+'</code>'}
+function colPt(t){var k=String(t).toLowerCase().split('.').pop().replace(/^"|"$/g,'');return COLDESC[k]?COLDESC[k]+' (<code>'+escH(t)+'</code>)':'<code>'+escH(t)+'</code>'}
+function valPt(ts){if(ts.length===1){var t=ts[0];if(t.charAt(0)==="'")return '<code>'+escH(t)+'</code>';if(/^\d/.test(t))return '<b>'+t+'</b>';var dq=t.match(/^"(.*)"$/);if(dq&&!COLDESC[dq[1].toLowerCase()])return 'o texto <code>'+escH(t)+'</code> (atenção: texto vai entre aspas <b>simples</b>, <code>\''+escH(dq[1])+'\'</code>)';return 'o valor da coluna '+colPt(t)}return '<code>'+escH(joinToks(ts))+'</code>'}
 function likePt(p){var s=String(p).replace(/^'|'$/g,''),a=s.charAt(0)==='%',b=s.slice(-1)==='%'&&s.length>1,core=s.replace(/^%/,'').replace(/%$/,'');
   if(/[%_]/.test(core))return 'segue o padrão <code>'+escH(p)+'</code>';
   if(a&&b)return 'contém <code>'+escH(core)+'</code> em qualquer parte';if(b)return 'começa com <code>'+escH(core)+'</code>';if(a)return 'termina com <code>'+escH(core)+'</code>';
@@ -20,9 +20,6 @@ function condPt(ts){
   if(OPPT[op]&&ts.length>i+1)return colPt(c)+' '+OPPT[op]+' '+valPt(ts.slice(i+1));
   return null;
 }
-function splitConds(ts){var out=[],cur=[],d=0,conn=null,inB=false;ts.forEach(function(t){var u=U(t);if(t==='(')d++;if(t===')')d--;
-  if(d===0&&(u==='AND'||u==='OR')){if(u==='AND'&&inB){inB=false;cur.push(t);return}out.push({conn:conn,ts:cur});cur=[];conn=u;return}
-  if(u==='BETWEEN')inB=true;cur.push(t)});if(cur.length)out.push({conn:conn,ts:cur});return out}
 function explainSQL(sql){
   var ts=tokSQL(sql);if(!ts.length)return {err:'O editor está vazio. Escreva uma consulta primeiro e depois peça a explicação.'};
   var semi=ts.indexOf(';'),extra=semi>=0&&semi<ts.length-1;if(semi>=0)ts=ts.slice(0,semi);

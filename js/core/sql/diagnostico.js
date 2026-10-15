@@ -1,0 +1,58 @@
+/* Diagnóstico de erros de estrutura que o SQLite não explica bem (ou nem acusa).
+   Usado na tradução de erros, na dica de resultado vazio e no aviso de consulta que "funcionou por sorte".
+   Nunca entrega a resposta: aponta o problema e mostra o formato com nomes genéricos. */
+var CLAUSULAS=['SELECT','FROM','WHERE','GROUP BY','HAVING','ORDER BY','LIMIT'];
+var ORDEM_PT='<code>SELECT</code> colunas <code>FROM</code> tabela <code>WHERE</code> filtro <code>ORDER BY</code> coluna <code>LIMIT</code> n';
+
+// Cláusulas no nível de cima da consulta (fora de parênteses), na ordem em que aparecem: [{k:'WHERE', i:3}, …]
+function clausulasSQL(ts){var out=[],d=0;ts.forEach(function(t,i){if(t==='(')d++;else if(t===')')d--;else if(d===0){var u=U(t),n=U(ts[i+1]);
+  if((u==='GROUP'||u==='ORDER')&&n==='BY')out.push({k:u+' BY',i:i});else if(['SELECT','FROM','WHERE','HAVING','LIMIT'].indexOf(u)>=0)out.push({k:u,i:i})}});return out}
+
+var OPERADORES=['=','==','!=','<>','<','>','<=','>='];
+function semComparacao(c){
+  if(c.ts.indexOf('(')>=0)return false;
+  return !c.ts.some(function(t){return OPERADORES.indexOf(t)>=0||['LIKE','IN','BETWEEN','IS','GLOB'].indexOf(U(t))>=0});
+}
+
+// Lista de problemas encontrados (HTML). Vazia se nada óbvio estiver errado.
+function diagnosticarSQL(sql,schema){
+  var probs=[],ts=tokSQL(stripSqlKeepDq(sql)),semi=ts.indexOf(';');if(semi>=0)ts=ts.slice(0,semi);
+  var cl=clausulasSQL(ts);
+  for(var a=0;a<cl.length;a++)for(var b=a+1;b<cl.length;b++)if(CLAUSULAS.indexOf(cl[b].k)<CLAUSULAS.indexOf(cl[a].k)){
+    probs.push('O <b>'+cl[a].k+'</b> veio antes do <b>'+cl[b].k+'</b>. A ordem das partes é sempre a mesma: '+ORDEM_PT+'.');a=b=cl.length}
+  var depois=function(c){var f=cl.filter(function(x){return x.i>c.i})[0];return ts.slice(c.i+1,f?f.i:ts.length)};
+  var w=cl.filter(function(c){return c.k==='WHERE'})[0],fr=cl.filter(function(c){return c.k==='FROM'})[0],cond=null;
+  if(w)cond=depois(w);
+  else if(fr){var resto=depois(fr).slice(1);   // o que vem depois do nome da tabela
+    if(resto.some(function(t){return OPERADORES.indexOf(t)>=0||['LIKE','IN','BETWEEN'].indexOf(U(t))>=0})){
+      probs.push('Falta o <code>WHERE</code>. Todo filtro começa com ele, logo depois do nome da tabela: <code>FROM tabela WHERE coluna = \'valor\'</code>.');cond=resto}}
+  if(cond){var conds=splitConds(cond);
+    var ruim=conds.filter(semComparacao)[0];
+    if(ruim)probs.push('Depois do <code>WHERE</code> vem uma comparação completa: <b>coluna</b>, <b>operador</b> e <b>valor</b>, como em <code>WHERE coluna = \'valor\'</code>. Em <code>'+escH(joinToks(ruim.ts))+'</code> falta dizer com qual coluna comparar.');
+    var lk=conds.filter(function(c){var u=c.ts.map(U),i=u.indexOf('LIKE');return i===0||(i>0&&c.ts.indexOf('=')>=0)})[0];
+    if(lk)probs.push('O <code>LIKE</code> fica <b>entre</b> a coluna e o padrão, e entra <b>no lugar</b> do <code>=</code>: <code>coluna LIKE \'padrão\'</code>. Em <code>'+escH(joinToks(lk.ts))+'</code> ele está fora do lugar.');
+    conds.forEach(function(c){var i=c.ts.map(U).indexOf('LIKE'),p=i<0?null:c.ts.slice(i+1).filter(function(t){return t.charAt(0)==="'"})[0];
+      if(i>=0&&p&&p.charAt(0)==="'"&&!/[%_]/.test(p))probs.push('<code>LIKE '+escH(p)+'</code> sem <code>%</code> procura o texto <b>exato</b>: só acha o que for inteirinho igual a <code>'+escH(p)+'</code>. O <code>%</code> quer dizer "qualquer coisa": no fim, <code>\''+escH(p.slice(1,-1))+'%\'</code> é "começa com"; no começo, "termina com".')})}
+  var dq=aspasDuplas(sql,schema);
+  if(dq)probs.push('Texto vai entre aspas <b>simples</b>: <code>\''+escH(dq)+'\'</code>. Aspas duplas (<code>"'+escH(dq)+'"</code>) são para nome de coluna.');
+  return probs;
+}
+function juntarProblemas(probs){
+  if(probs.length===1)return probs[0];
+  return 'Encontrei '+probs.length+' problemas nesta consulta:<ol class="probs">'+probs.map(function(p){return '<li>'+p+'</li>'}).join('')+'</ol>';
+}
+// Primeiro texto entre aspas duplas que não é nome de coluna/tabela (o SQLite aceita como texto; outros bancos não).
+// Sem schema, usa as colunas e tabelas descritas no explicador.
+function aspasDuplas(sql,schema){
+  var m,re=/"([^"]*)"/g,s=stripSql(sql),nomes=(schema?schema.tables.concat(schema.cols):Object.keys(COLDESC).concat(Object.keys(TABDESC))).map(function(x){return x.toLowerCase()});
+  while((m=re.exec(s)))if(nomes.indexOf(m[1].toLowerCase())<0)return m[1];return null;
+}
+// Como stripSql, mas sem apagar o conteúdo das aspas simples (mantém os tokens de valor para as mensagens).
+function stripSqlKeepDq(sql){return sql.replace(/--[^\n]*/g,' ').replace(/\/\*[\s\S]*?\*\//g,' ')}
+
+// Aviso para consulta que rodou, mas está fora do padrão (funciona no SQLite, falha em outros bancos).
+function avisoSQL(sql,schema){
+  var dq=aspasDuplas(sql,schema);
+  if(dq)return 'Funcionou, mas por sorte: o SQLite aceitou <code>"'+escH(dq)+'"</code> como texto porque não existe coluna com esse nome. O certo é aspas simples, <code>\''+escH(dq)+'\'</code>. No PostgreSQL e no SQL Server, aspas duplas dão erro.';
+  return null;
+}

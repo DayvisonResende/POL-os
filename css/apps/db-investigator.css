@@ -40,3 +40,4 @@
 .explain td{padding:7px 10px;border-top:1px solid #d3e3e7;vertical-align:top;font-size:14.5px;line-height:1.45}
 .explain td.cd{width:40%;font-family:var(--f-code);font-size:12.5px;background:var(--code-bg);color:var(--code-ink);overflow-wrap:anywhere}
 .explain .exn{padding:6px 10px;font-size:13px;color:var(--ink-2)}
+.err .probs,.hint0 .probs{margin:6px 0 0;padding-left:20px;display:grid;gap:4px}
