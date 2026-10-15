@@ -54,11 +54,11 @@ Tempo: 40 a 60 minutos por sessão (o treinamento + BO 1001 + prova do Módulo 1
 
 1. Menu **SISP › Diagnóstico de playtest**.
 2. Olhe as linhas **em destaque** (3 ou mais erros/tropeços, ou 5 minutos ou mais no mesmo lugar): são os candidatos a ponto de travamento.
-3. Clique em **Baixar JSON** e guarde o arquivo com o nome da sessão (ex.: `sessao-1-ana.json`) junto com suas anotações.
+3. Clique em **Baixar JSON** e guarde em `docs/playtest/sessoes/` como `AAAA-MM-DD-nome.json`, junto com um relatório `AAAA-MM-DD-nome.md` com suas anotações (modelo: [sessoes/2026-10-15-dayvison.md](playtest/sessoes/2026-10-15-dayvison.md)).
 4. **Limpar telemetria** antes da próxima pessoa.
 
 A telemetria fica só no navegador; nada é enviado para lugar nenhum.
 
 ## Depois de todas as sessões
 
-Junte anotações + JSONs e procure **pontos em que 2 ou mais pessoas travaram**. Esses viram tarefas do ajuste do tutorial (último item do Sprint 1). Travamento de uma pessoa só: anote, mas não mude nada por causa dele ainda.
+Junte anotações + JSONs e procure **pontos em que 2 ou mais pessoas travaram**. Esses viram tarefas de ajuste do tutorial e entram na tabela de achados do `SISP_contexto_para_IA.md` (seção 10). Travamento de uma pessoa só: anote, mas não mude nada por causa dele ainda.

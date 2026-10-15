@@ -1,2 +1,5 @@
 node_modules/
 dist/
+
+# telemetria baixada na raiz por engano; sessões que valem guardar vão em docs/playtest/sessoes/
+/sisp-telemetria-*.json

@@ -1,4 +1,4 @@
-# SISP — Documento de Continuidade para IA (v3.1)
+# SISP — Documento de Continuidade para IA (v3.2)
 
 > **Para a IA que vai continuar este projeto:** leia este arquivo inteiro antes de mexer no código. Ele descreve o que o jogo é, por que ele é assim, o que já existe no código (`index.html` + pastas `css/` e `js/`), como ele está organizado, quais decisões já foram tomadas (e por quê) e o que falta fazer. A autora do projeto é a May, que fala português, é detalhista e quer **entender** as decisões, não só recebê-las. Dê opinião honesta quando ela pedir, mesmo discordando.
 
@@ -331,8 +331,22 @@ Jairo Teixeira (investigador impaciente), Marina Okada (perita), Paulo Henrique 
 
 ## 10. Como evoluir o jogo (roadmap em ordem de prioridade)
 
-### Prioridade 1 — validar com gente real
-Antes de criar muito conteúdo novo: colocar **2 ou 3 pessoas que nunca programaram** para jogar, sem ajudar, e anotar onde elas param. Ajustar o tutorial com base nisso.
+### Status dos sprints
+| Sprint | Tema | Status |
+|---|---|---|
+| — | Refatoração: arquivo único → `css/` + `js/` | ✅ concluído (14/10/2026) |
+| 1 | Consolidar e testar com gente real (Prioridade 1) | ✅ concluído (15/10/2026) |
+| 2 | Escada guiada no Módulo 2 (Prioridade 2) | ⏭️ próximo |
+| 3 | Infraestrutura do Módulo 3 | — |
+| 4 | Conteúdo do Módulo 3 | — |
+| 5 | Módulo 4 (JOIN) | — |
+| 6 | Módulo 5 (escrita, transações) | — |
+| 7 | Módulo 6 (avançado) | — |
+
+### Prioridade 1 — validar com gente real ✅
+Colocar **2 ou 3 pessoas que nunca programaram** para jogar, sem ajudar, e anotar onde elas param. Roteiro em `docs/playtest.md`; sessões em `docs/playtest/sessoes/` (telemetria `.json` + relatório `.md`).
+
+**Fechamento do Sprint 1 (15/10/2026):** ferramentas prontas (teste de navegador, telemetria + painel `?teste`, empacotador, roteiro). Playtests: um iniciante em desktop com telemetria completa (`2026-10-15-dayvison`) e uma sessão parcial no celular. Resultado: o treinamento do Módulo 1 flui (~13 min, 1 tropeço); o **BO 1002 custou ~49 min** a um iniciante, todos os travamentos de *estrutura* da consulta. Os 2 ou 3 playtests restantes com quem nunca viu o jogo ficam para **depois do Sprint 2**: hoje eles só confirmariam o gargalo já conhecido. Para playtest no celular, hospedar o jogo (ex.: GitHub Pages) e mandar o link com `?teste`.
 
 **Achados de playtest (registro):**
 | Data | Onde | Problema | O que foi feito |
@@ -347,7 +361,18 @@ Antes de criar muito conteúdo novo: colocar **2 ou 3 pessoas que nunca programa
 | 14/10/2026 | DB-Investigator | Erro de digitação no início (`SELEC`) era tratado como tentativa de escrita: +5% de Corregedoria. (Achado pela telemetria.) | `isReadOnly` só bloqueia comandos que o SQLite reconhece como escrita; o resto vira erro traduzido. |
 
 ### Prioridade 2 — escada guiada no Módulo 2
-**Lacuna conhecida:** BETWEEN, IN e ORDER BY aparecem só no manual e nas dicas do BO 1003. Eles nunca passaram pela escada (ver → prever → peça → blocos → molde). Criar mini-tutoriais da Célia no começo dos BOs 1002 e 1003, mais curtos que o do Módulo 1 (começando no degrau de prever ou de trocar uma peça).
+**Lacuna conhecida:** WHERE, LIKE, BETWEEN, IN e ORDER BY são cobrados nos BOs 1002 e 1003 sem nunca terem passado pela escada (ver → prever → peça → blocos → molde). Criar mini-tutoriais da Célia no começo dos BOs 1002 e 1003, mais curtos que o do Módulo 1 (começando no degrau de prever ou de trocar uma peça).
+
+**Requisitos tirados do playtest do Sprint 1** (o mini-treinamento do BO 1002 precisa cobrir cada um destes, porque foi exatamente onde o iniciante travou):
+1. A **ordem das partes**: `SELECT … FROM … WHERE …` (ele escreveu WHERE antes de FROM).
+2. O WHERE é uma **comparação completa**: coluna, operador, valor (ele escreveu só `WHERE "prata"`).
+3. Texto entre **aspas simples** (ele usou duplas).
+4. O que o SELECT mostra precisa **identificar** o resultado: filtrar por cor e mostrar só a cor não diz quais carros são.
+5. O **LIKE** entra no lugar do `=`, entre a coluna e o padrão, e precisa do **%** para "começa com".
+6. Conferir o **valor da pista letra por letra** (FTR × FRT custou 12 min).
+7. Lembrar do **Explique** quando travar: não foi usado nenhuma vez fora do tutorial.
+- O motor do treinamento hoje só serve ao BO 1001 (`tutActive()` = `S.tut < TUT.length`). Generalizar para vários treinamentos (um por conceito novo) sem quebrar saves antigos.
+- Ao terminar, rodar os playtests pendentes da Prioridade 1 e comparar o tempo no BO 1002 com os ~49 min da sessão de referência.
 
 ### Prioridade 3 — Módulo 3 (COUNT, SUM, AVG, MIN, MAX, aritmética, GROUP BY, HAVING)
 - Patente ao final: **Inspetor Analítico**.
