@@ -96,6 +96,7 @@ js/
     sql/erros.js            translateError, zeroRowHint
     sql/diagnostico.js      diagnosticarSQL (ordem das cláusulas, WHERE sem comparação, aspas duplas), avisoSQL
     sql/permissao.js        isReadOnly
+    sql/executar.js         executarSQL: resultado de cada consulta do editor, inclusive as vazias
     sql/explicador.js       explainSQL e textos COLDESC/TABDESC
   conteudo/                 CONTEÚDO DO JOGO, sem DOM. É aqui que o jogo mais cresce.
     casos/<id>.js           um arquivo por BO: registrarCaso({...})
@@ -193,7 +194,7 @@ registrarCaso({                     // em js/conteudo/casos/1002.js
 ### 4.6 Telemetria local (playtest)
 - `js/ui/telemetria.js` grava eventos em `localStorage` na chave **`sisp-telemetria-v1`**, separada do progresso (`Reiniciar turno` não apaga). Nada é enviado para fora do navegador. Limite de 4000 eventos (os mais antigos saem).
 - Cada evento: `{t, s (sessão), tipo, onde, …}`. `onde` é o passo do treino (`Treino 06 · predict`), o BO ativo (`BO 1002`) ou a prova (`Prova Módulo 1`).
-- Tipos: `sessao`, `consulta` (`res`: ok, vazio, erro, bloqueada), `treino_passo`, `treino_ok`, `tropeco` (toda bronca da Célia que não é de acerto), `dica`, `explique`, `tarefa`, `desfecho`, `prova`, `corregedoria`.
+- Tipos: `sessao`, `consulta` (`res`: ok, vazio, erro, bloqueada; `consultas`: quantas havia no editor), `treino_passo` (`degrau`: tipo do passo), `quase`, `treino_ok`, `tropeco` (toda bronca da Célia que não é de acerto), `dica`, `explique`, `tarefa`, `desfecho`, `prova`, `corregedoria`.
 - Painel **Diagnóstico de playtest** no menu iniciar, **só** quando o jogo é aberto com `?teste` no endereço. Mostra tempo, consultas, erros, tropeços e dicas por lugar; destaca lugares com 3+ erros/tropeços ou 5+ minutos; exporta JSON.
 - Ao criar algo novo que o jogador possa errar, chame `tele('tipo', {...})` no ponto do erro.
 
@@ -342,6 +343,7 @@ Antes de criar muito conteúdo novo: colocar **2 ou 3 pessoas que nunca programa
 | 14/10/2026 | BO 1002, tarefa 1 (jogador iniciante) | `SELECT cor FROM veiculos WHERE cor = 'prata';`: filtro certo, mas só a coluna cor (nove vezes "prata"). A tarefa não marcou e o jogo ficou calado. A dica do formato ("troque tabela, coluna e valor") induziu a trocar o `*` também. | Tarefas ganharam `quase(R)` com mensagem "Quase lá" (todas as tarefas de 1002 e 1003). A dica do formato diz "mantenha o `*`". |
 | 14/10/2026 | BO 1002, tarefa 2 (jogador iniciante) | `SELECT * FROM veiculos LIKE placa = 'FRT';` (sem WHERE, LIKE fora do lugar e com =, sem %, letras FTR trocadas) recebia só "o banco se perdeu perto de placa". A grade continuava mostrando o resultado da consulta anterior, como se fosse desta. A dica antiga de "LIKE sem %" sugeria literalmente `'FTR%'` (a resposta). | O diagnóstico aponta WHERE ausente, LIKE fora do lugar e LIKE sem % (com o texto do próprio jogador). Resultado vazio com LIKE manda conferir letra por letra com a pista. Erro limpa a grade. |
 | 14/10/2026 | DB-Investigator | Ao selecionar texto no editor, o texto sumia: a seleção da caixa de digitação (camada de cima, texto invisível) era opaca e cobria o texto colorido da camada de baixo. | `--code-sel` virou translúcido. Regra: **a cor de seleção do editor tem que ter transparência.** |
+| 15/10/2026 | BO 1002 (telemetria da sessão do Dayvison, ~49 min no BO) | (1) Com duas consultas no editor e a última vazia (`… 'Preto'`), o jogo mostrava o resultado da **primeira** como se fosse da última; o jogador executou 14 vezes em 6 s achando que nada acontecia, e a dica de minúsculas nunca apareceu. (2) `placa = 'FRT'` voltava vazio sem dica (3×). (3) 6 min parado depois da última dica da tarefa 3, que começava com `… WHERE`. (4) Telemetria: o campo `tipo` do passo do treino sobrescrevia o tipo do evento. | (1) `executarSQL` roda consulta por consulta; o resultado mostrado é sempre o da última, mesmo vazio, com aviso "o editor tem N consultas". Selecionar um trecho e Executar roda só ele. A barra de status mostra a hora da execução e pisca. (2) Dica para `=` com valor parcial (usar LIKE). (3) Última dica de cada tarefa é sempre a consulta completa. (4) Campo renomeado para `degrau`; `tipo` virou reservado. |
 | 14/10/2026 | DB-Investigator | Erro de digitação no início (`SELEC`) era tratado como tentativa de escrita: +5% de Corregedoria. (Achado pela telemetria.) | `isReadOnly` só bloqueia comandos que o SQLite reconhece como escrita; o resto vira erro traduzido. |
 
 ### Prioridade 2 — escada guiada no Módulo 2

@@ -129,6 +129,17 @@ for (const alvo of ALVOS) for (const largura of [1366, 400]) {
       await page.evaluate(() => openDb('SELECT * FROM veiculos WHERE cor = "prata";'));
       await page.click('#runBtn');
       assert.match(await page.textContent('#dbMsg'), /por sorte/);
+      // duas consultas no editor, a última vazia: o resultado é o da última (vazio), com aviso e dica
+      await page.evaluate(() => openDb("SELECT * FROM veiculos Where cor = 'prata';  SELECT * FROM veiculos Where cor = 'Preto';"));
+      await page.click('#runBtn');
+      assert.match(await page.textContent('#dbGrid'), /não retornou nenhuma linha/);
+      assert.match(await page.textContent('#dbMsg'), /2 consultas.*minúsculas/s);
+      assert.match(await page.textContent('#dbStatus'), /executada às/);
+      // selecionar uma consulta e executar roda só ela
+      await page.evaluate(() => { const t = document.querySelector('#sqlEd'); t.focus(); t.setSelectionRange(0, t.value.indexOf(';') + 1); });
+      await page.click('#runBtn');
+      assert.match(await page.textContent('#dbStatus'), /só o trecho selecionado/);
+      assert.strictEqual(await page.$$eval('#dbGrid tbody tr', r => r.length), await page.evaluate(() => F.prata.length));
       await page.evaluate(() => openOcorr());
       await entregar(page, { f_1002_placa: 'FTR2C41' });
       assert.match(await page.textContent('.verdict.bad'), /branco/);

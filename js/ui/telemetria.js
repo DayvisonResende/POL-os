@@ -11,7 +11,7 @@ function teleOnde(){
 }
 function tele(tipo,dados){
   var e={t:Date.now(),s:TELE.sessoes,tipo:tipo,onde:teleOnde()};
-  if(dados)for(var k in dados)e[k]=dados[k];
+  if(dados)for(var k in dados)if(k!=='tipo')e[k]=dados[k];   // tipo é reservado: identifica o evento
   TELE.ev.push(e);if(TELE.ev.length>TELE_MAX)TELE.ev.splice(0,TELE.ev.length-TELE_MAX);
   teleSalvar();
 }

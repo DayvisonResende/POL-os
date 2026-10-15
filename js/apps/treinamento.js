@@ -17,7 +17,7 @@ function tutEnter(){
   else if(st.type==='blocks'||st.type==='free')setEditor('',st.type==='blocks');
   else setEditor(null,true);
   $('#dbExpl')&&($('#dbExpl').innerHTML='');$('#dbMsg')&&($('#dbMsg').innerHTML='');
-  tele('treino_passo',{passo:S.tut+1,tipo:st.type});
+  tele('treino_passo',{passo:S.tut+1,degrau:st.type});
   save();renderGuide();
   if(st.type==='mold'||st.type==='free'){var ta=$('#sqlEd');if(ta&&window.innerWidth>760)ta.focus()}
 }

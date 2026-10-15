@@ -63,7 +63,10 @@ function renderDict(){
     det.appendChild(ul);d.appendChild(det)});
 }
 function runQuery(){
-  var ta=$('#sqlEd');var sql=ta.value.trim();var msg=$('#dbMsg'),grid=$('#dbGrid'),st=$('#dbStatus');
+  var ta=$('#sqlEd'),msg=$('#dbMsg'),grid=$('#dbGrid'),st=$('#dbStatus');
+  // Com um trecho selecionado, executa só ele (como nos programas de banco de verdade). No treinamento, sempre o editor todo.
+  var trecho=!tutActive()&&ta.selectionEnd>ta.selectionStart?ta.value.slice(ta.selectionStart,ta.selectionEnd).trim():'';
+  var sql=trecho||ta.value.trim();
   msg.innerHTML='';if(!sql){if(tutOnEmpty())return;st.textContent='Escreva uma consulta antes de executar.';return}
   if(!isReadOnly(sql)){
     msg.innerHTML='<div class="err"><b>Acesso negado.</b> Seu perfil ('+escH(rankT())+') é somente leitura. Comandos que alteram o banco, como UPDATE e DELETE, são liberados no Módulo 5, com supervisão.</div>';
@@ -73,20 +76,28 @@ function runQuery(){
     return;
   }
   if(!tutBeforeRun())return;
-  S.queries++;var t0=performance.now(),res;
-  try{res=db.exec(sql)}catch(e){
+  S.queries++;var t0=performance.now(),todos;
+  var hora=new Date().toLocaleTimeString('pt-BR');
+  var status=function(t){st.textContent=t+' · executada às '+hora+(trecho?' · só o trecho selecionado':'');st.classList.remove('flash');void st.offsetWidth;st.classList.add('flash')};
+  try{todos=executarSQL(db,sql)}catch(e){
     S.errors++;tele('consulta',{sql:sql.slice(0,400),res:'erro',erro:String(e.message||e)});save();var tr=translateError(String(e.message||e),sql,SCHEMA);
     msg.innerHTML='<div class="err">'+tr+'<span class="raw">SQLite: '+escH(e.message||e)+'</span></div>';
     grid.innerHTML='<div class="empty">A consulta não rodou, então não há resultado. Corrija o erro acima e execute de novo.</div>';
-    st.textContent='Erro na consulta.';tutOnError(tr);return}
-  var ms=(performance.now()-t0).toFixed(1);var last=res.length?res[res.length-1]:null;save();
-  tele('consulta',{sql:sql.slice(0,400),res:last?'ok':'vazio',linhas:last?last.values.length:0});
-  if(!last){grid.innerHTML='<div class="empty">A consulta rodou e não retornou nenhuma linha.</div>';st.textContent='0 linhas · '+ms+' ms';var zh=zeroRowHint(sql,SCHEMA);if(zh)msg.innerHTML='<div class="hint0">'+zh+'</div>';checkSteps(null);tutOnRun(toR(null));return}
-  st.textContent=last.values.length+' linha'+(last.values.length===1?'':'s')+' · '+last.columns.length+' coluna'+(last.columns.length===1?'':'s')+' · '+ms+' ms';
-  renderGrid(last);
-  var notas=[avisoSQL(sql,SCHEMA),checkSteps(last)].filter(Boolean);
-  msg.innerHTML=notas.map(function(n){return '<div class="hint0">'+n+'</div>'}).join('');
-  tutOnRun(toR(last));
+    status('Erro na consulta');tutOnError(tr);return}
+  var ms=(performance.now()-t0).toFixed(1),ult=todos[todos.length-1],vazio=!ult||!ult.values.length;save();
+  tele('consulta',{sql:sql.slice(0,400),res:vazio?'vazio':'ok',linhas:vazio?0:ult.values.length,consultas:todos.length});
+  var notas=[];
+  if(todos.length>1)notas.push('O editor tem <b>'+todos.length+' consultas</b>. Executei todas, mas o resultado abaixo é só da <b>última</b>: <code>'+escH(ult.sql)+'</code>. Para rodar só uma, selecione o texto dela e clique em Executar, ou apague as outras.');
+  if(vazio){
+    grid.innerHTML='<div class="empty">A consulta rodou e não retornou nenhuma linha.</div>';status('0 linhas · '+ms+' ms');
+    var zh=zeroRowHint(ult?ult.sql:sql,SCHEMA);if(zh)notas.push(zh);
+    msg.innerHTML=notas.map(function(n){return '<div class="hint0">'+n+'</div>'}).join('');
+    checkSteps(null);tutOnRun(toR(null));return}
+  status(ult.values.length+' linha'+(ult.values.length===1?'':'s')+' · '+ult.columns.length+' coluna'+(ult.columns.length===1?'':'s')+' · '+ms+' ms');
+  renderGrid(ult);
+  notas.push(avisoSQL(sql,SCHEMA),checkSteps(ult));
+  msg.innerHTML=notas.filter(Boolean).map(function(n){return '<div class="hint0">'+n+'</div>'}).join('');
+  tutOnRun(toR(ult));
 }
 function renderGrid(res){
   var grid=$('#dbGrid'),max=300;

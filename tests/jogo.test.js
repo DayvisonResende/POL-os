@@ -121,6 +121,20 @@ test('BOs: o "quase" explica a consulta que chegou perto, e não dispara na cert
   assert.match(c2.steps[0].h[1], /Mantenha o <code>\*<\/code>/);
 });
 
+test('telemetria do playtest: várias consultas no editor e resultados vazios explicados', () => {
+  const { T } = J;
+  // jogada real: duas consultas, a segunda vazia. Antes, o jogo mostrava a primeira como se fosse o resultado.
+  const r = T.executarSQL(J.db, "SELECT * FROM veiculos Where cor = 'prata';  SELECT * FROM veiculos Where cor = 'Preto';");
+  assert.strictEqual(r.length, 2);
+  assert.strictEqual(r[0].values.length, T.F.prata.length);
+  assert.strictEqual(r[1].values.length, 0);
+  assert.deepStrictEqual([...r[1].columns], ['placa', 'modelo', 'cor', 'ano', 'cpf_proprietario']);
+  assert.match(T.zeroRowHint(r[1].sql), /'Preto'.*diferente de.*'preto'/);
+  // placa = 'FRT': o = exige o valor inteiro
+  assert.match(T.zeroRowHint("SELECT * FROM veiculos WHERE placa = 'FRT';"), /inteiro e idêntico/);
+  assert.throws(() => T.executarSQL(J.db, 'SELECT * FORM veiculos'), /syntax error/);
+});
+
 test('dicas dos BOs: a última é a consulta, as anteriores não entregam o valor do caso', () => {
   for (const c of J.T.CASES) for (const s of c.steps) {
     assert.ok(s.h.length >= 2, c.id);

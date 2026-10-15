@@ -1,0 +1,1074 @@
+{
+ "exportado": "2026-10-15T02:30:22.850Z",
+ "resumo": {
+  "lugares": [
+   {
+    "onde": "Treino 02 · msg",
+    "seg": 194.18,
+    "consultas": 0,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino 03 · run",
+    "seg": 53.69,
+    "consultas": 1,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino 04 · msg",
+    "seg": 26.119,
+    "consultas": 0,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino 05 · explain",
+    "seg": 86.771,
+    "consultas": 0,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 1
+   },
+   {
+    "onde": "Treino 06 · predict",
+    "seg": 51.112,
+    "consultas": 1,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino 07 · slot",
+    "seg": 51.248000000000005,
+    "consultas": 1,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino 08 · msg",
+    "seg": 25.8,
+    "consultas": 0,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino 09 · blocks",
+    "seg": 33.870000000000005,
+    "consultas": 1,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino 10 · msg",
+    "seg": 40.422,
+    "consultas": 0,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino 11 · mold",
+    "seg": 69.593,
+    "consultas": 1,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino 12 · mold",
+    "seg": 24.259,
+    "consultas": 1,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino 13 · free",
+    "seg": 87.94500000000001,
+    "consultas": 2,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 1,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino 14 · final",
+    "seg": 43.012,
+    "consultas": 0,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "BO 1001",
+    "seg": 0,
+    "consultas": 0,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Prova Módulo 1",
+    "seg": 126.20899999999999,
+    "consultas": 4,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Sem chamado aberto",
+    "seg": 84.071,
+    "consultas": 1,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "BO 1002",
+    "seg": 882.1089999999996,
+    "consultas": 39,
+    "erros": 6,
+    "vazias": 8,
+    "tropecos": 0,
+    "dicas": 6,
+    "explique": 0
+   },
+   {
+    "onde": "BO 1003",
+    "seg": 0,
+    "consultas": 0,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   }
+  ],
+  "erros": [
+   [
+    "near \"placa\": syntax error",
+    4
+   ],
+   [
+    "near \"FROM\": syntax error",
+    1
+   ],
+   [
+    "near \"=\": syntax error",
+    1
+   ]
+  ],
+  "tropecos": [
+   [
+    "Treino 13 · free — As colunas tão certas. Falta o freio: limitar a 3 linhas.",
+    1
+   ]
+  ]
+ },
+ "eventos": [
+  {
+   "t": 1792023239438,
+   "s": 1,
+   "tipo": "sessao",
+   "onde": "Treino 02 · msg",
+   "retomada": true,
+   "largura": 1853
+  },
+  {
+   "t": 1792023433618,
+   "s": 1,
+   "tipo": "run",
+   "onde": "Treino 03 · run",
+   "passo": 3
+  },
+  {
+   "t": 1792023456960,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "Treino 03 · run",
+   "sql": "SELECT * FROM veiculos;",
+   "res": "ok",
+   "linhas": 48
+  },
+  {
+   "t": 1792023456961,
+   "s": 1,
+   "tipo": "tarefa",
+   "onde": "Treino 03 · run",
+   "caso": "1001",
+   "tarefa": 1
+  },
+  {
+   "t": 1792023456962,
+   "s": 1,
+   "tipo": "treino_ok",
+   "onde": "Treino 03 · run",
+   "passo": 3
+  },
+  {
+   "t": 1792024019198,
+   "s": 2,
+   "tipo": "sessao",
+   "onde": "Treino 03 · run",
+   "retomada": true,
+   "largura": 1482
+  },
+  {
+   "t": 1792024049544,
+   "s": 2,
+   "tipo": "msg",
+   "onde": "Treino 04 · msg",
+   "passo": 4
+  },
+  {
+   "t": 1792024075663,
+   "s": 2,
+   "tipo": "explain",
+   "onde": "Treino 05 · explain",
+   "passo": 5
+  },
+  {
+   "t": 1792024079301,
+   "s": 2,
+   "tipo": "explique",
+   "onde": "Treino 05 · explain"
+  },
+  {
+   "t": 1792024079303,
+   "s": 2,
+   "tipo": "treino_ok",
+   "onde": "Treino 05 · explain",
+   "passo": 5
+  },
+  {
+   "t": 1792024162434,
+   "s": 2,
+   "tipo": "predict",
+   "onde": "Treino 06 · predict",
+   "passo": 6
+  },
+  {
+   "t": 1792024195310,
+   "s": 2,
+   "tipo": "consulta",
+   "onde": "Treino 06 · predict",
+   "sql": "SELECT placa FROM veiculos;",
+   "res": "ok",
+   "linhas": 48
+  },
+  {
+   "t": 1792024195312,
+   "s": 2,
+   "tipo": "treino_ok",
+   "onde": "Treino 06 · predict",
+   "passo": 6
+  },
+  {
+   "t": 1792024213546,
+   "s": 2,
+   "tipo": "slot",
+   "onde": "Treino 07 · slot",
+   "passo": 7
+  },
+  {
+   "t": 1792024244445,
+   "s": 2,
+   "tipo": "consulta",
+   "onde": "Treino 07 · slot",
+   "sql": "SELECT placa, modelo FROM veiculos;",
+   "res": "ok",
+   "linhas": 48
+  },
+  {
+   "t": 1792024244447,
+   "s": 2,
+   "tipo": "tarefa",
+   "onde": "Treino 07 · slot",
+   "caso": "1001",
+   "tarefa": 2
+  },
+  {
+   "t": 1792024244447,
+   "s": 2,
+   "tipo": "treino_ok",
+   "onde": "Treino 07 · slot",
+   "passo": 7
+  },
+  {
+   "t": 1792024264794,
+   "s": 2,
+   "tipo": "msg",
+   "onde": "Treino 08 · msg",
+   "passo": 8
+  },
+  {
+   "t": 1792024290594,
+   "s": 2,
+   "tipo": "blocks",
+   "onde": "Treino 09 · blocks",
+   "passo": 9
+  },
+  {
+   "t": 1792024316130,
+   "s": 2,
+   "tipo": "consulta",
+   "onde": "Treino 09 · blocks",
+   "sql": "SELECT DISTINCT cor FROM veiculos;",
+   "res": "ok",
+   "linhas": 6
+  },
+  {
+   "t": 1792024316132,
+   "s": 2,
+   "tipo": "tarefa",
+   "onde": "Treino 09 · blocks",
+   "caso": "1001",
+   "tarefa": 3
+  },
+  {
+   "t": 1792024316132,
+   "s": 2,
+   "tipo": "treino_ok",
+   "onde": "Treino 09 · blocks",
+   "passo": 9
+  },
+  {
+   "t": 1792024324464,
+   "s": 2,
+   "tipo": "msg",
+   "onde": "Treino 10 · msg",
+   "passo": 10
+  },
+  {
+   "t": 1792024364886,
+   "s": 2,
+   "tipo": "mold",
+   "onde": "Treino 11 · mold",
+   "passo": 11
+  },
+  {
+   "t": 1792024391468,
+   "s": 2,
+   "tipo": "consulta",
+   "onde": "Treino 11 · mold",
+   "sql": "SELECT placa, modelo AS Veiculo FROM veiculos;",
+   "res": "ok",
+   "linhas": 48
+  },
+  {
+   "t": 1792024391469,
+   "s": 2,
+   "tipo": "treino_ok",
+   "onde": "Treino 11 · mold",
+   "passo": 11
+  },
+  {
+   "t": 1792024434479,
+   "s": 2,
+   "tipo": "mold",
+   "onde": "Treino 12 · mold",
+   "passo": 12
+  },
+  {
+   "t": 1792024452323,
+   "s": 2,
+   "tipo": "consulta",
+   "onde": "Treino 12 · mold",
+   "sql": "SELECT placa, modelo AS Veiculo FROM veiculos LIMIT 5;",
+   "res": "ok",
+   "linhas": 5
+  },
+  {
+   "t": 1792024452325,
+   "s": 2,
+   "tipo": "tarefa",
+   "onde": "Treino 12 · mold",
+   "caso": "1001",
+   "tarefa": 4
+  },
+  {
+   "t": 1792024452325,
+   "s": 2,
+   "tipo": "treino_ok",
+   "onde": "Treino 12 · mold",
+   "passo": 12
+  },
+  {
+   "t": 1792024458738,
+   "s": 2,
+   "tipo": "free",
+   "onde": "Treino 13 · free",
+   "passo": 13
+  },
+  {
+   "t": 1792024518593,
+   "s": 2,
+   "tipo": "consulta",
+   "onde": "Treino 13 · free",
+   "sql": "SELECT MODELO, COR FROM VEICULOS;",
+   "res": "ok",
+   "linhas": 48
+  },
+  {
+   "t": 1792024518595,
+   "s": 2,
+   "tipo": "tropeco",
+   "onde": "Treino 13 · free",
+   "msg": "As colunas tão certas. Falta o freio: limitar a 3 linhas."
+  },
+  {
+   "t": 1792024534543,
+   "s": 2,
+   "tipo": "consulta",
+   "onde": "Treino 13 · free",
+   "sql": "SELECT MODELO, COR FROM VEICULOS LIMIT 3;",
+   "res": "ok",
+   "linhas": 3
+  },
+  {
+   "t": 1792024534545,
+   "s": 2,
+   "tipo": "treino_ok",
+   "onde": "Treino 13 · free",
+   "passo": 13
+  },
+  {
+   "t": 1792024546683,
+   "s": 2,
+   "tipo": "final",
+   "onde": "Treino 14 · final",
+   "passo": 14
+  },
+  {
+   "t": 1792024589695,
+   "s": 2,
+   "tipo": "desfecho",
+   "onde": "BO 1001",
+   "caso": "1001",
+   "ok": true,
+   "valores": {
+    "resp": "6"
+   }
+  },
+  {
+   "t": 1792025054613,
+   "s": 2,
+   "tipo": "consulta",
+   "onde": "Prova Módulo 1",
+   "questao": "1w1",
+   "sql": "SELECT nome, cidade FROM pessoas;",
+   "res": "ok"
+  },
+  {
+   "t": 1792025155737,
+   "s": 2,
+   "tipo": "consulta",
+   "onde": "Sem chamado aberto",
+   "sql": "SELECT MODELO, COR AS SUSPEITOS FROM VEICULOS LIMIT 3;",
+   "res": "ok",
+   "linhas": 3
+  },
+  {
+   "t": 1792025239808,
+   "s": 2,
+   "tipo": "consulta",
+   "onde": "Prova Módulo 1",
+   "questao": "1w3",
+   "sql": "SELECT placa AS Placa_Suspeita FROM veiculos LIMIT 4;",
+   "res": "ok"
+  },
+  {
+   "t": 1792025249448,
+   "s": 2,
+   "tipo": "consulta",
+   "onde": "Prova Módulo 1",
+   "questao": "1w3",
+   "sql": "SELECT placa AS Placa_Suspeita FROM veiculos LIMIT 5;",
+   "res": "ok"
+  },
+  {
+   "t": 1792025253691,
+   "s": 2,
+   "tipo": "consulta",
+   "onde": "Prova Módulo 1",
+   "questao": "1w3",
+   "sql": "SELECT placa AS Placa_Suspeita FROM veiculos LIMIT 4;",
+   "res": "ok"
+  },
+  {
+   "t": 1792025264893,
+   "s": 2,
+   "tipo": "prova",
+   "onde": "Prova Módulo 1",
+   "nota": 5,
+   "erradas": []
+  },
+  {
+   "t": 1792025394252,
+   "s": 3,
+   "tipo": "sessao",
+   "onde": "BO 1002",
+   "retomada": true,
+   "largura": 1482
+  },
+  {
+   "t": 1792025845883,
+   "s": 3,
+   "tipo": "dica",
+   "onde": "BO 1002",
+   "caso": "1002",
+   "tarefa": 1,
+   "nivel": 1
+  },
+  {
+   "t": 1792025933900,
+   "s": 3,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT cor WHERE \"prata\" FROM veiculos;",
+   "res": "erro",
+   "erro": "near \"FROM\": syntax error"
+  },
+  {
+   "t": 1792026444129,
+   "s": 4,
+   "tipo": "sessao",
+   "onde": "BO 1002",
+   "retomada": true,
+   "largura": 1482
+  },
+  {
+   "t": 1792026460745,
+   "s": 4,
+   "tipo": "dica",
+   "onde": "BO 1002",
+   "caso": "1002",
+   "tarefa": 1,
+   "nivel": 2
+  },
+  {
+   "t": 1792026551581,
+   "s": 5,
+   "tipo": "sessao",
+   "onde": "BO 1002",
+   "retomada": true,
+   "largura": 1482
+  },
+  {
+   "t": 1792026579362,
+   "s": 6,
+   "tipo": "sessao",
+   "onde": "BO 1002",
+   "retomada": true,
+   "largura": 1482
+  },
+  {
+   "t": 1792026723078,
+   "s": 6,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT cor FROM veiculos WHERE cor = \"prata\";",
+   "res": "ok",
+   "linhas": 9
+  },
+  {
+   "t": 1792026750903,
+   "s": 6,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT cor FROM veiculos WHERE cor = 'prata';",
+   "res": "ok",
+   "linhas": 9
+  },
+  {
+   "t": 1792026795326,
+   "s": 6,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT cor FROM veiculos WHERE cor = 'prata';",
+   "res": "ok",
+   "linhas": 9
+  },
+  {
+   "t": 1792026955412,
+   "s": 7,
+   "tipo": "sessao",
+   "onde": "BO 1002",
+   "retomada": true,
+   "largura": 1482
+  },
+  {
+   "t": 1792026971785,
+   "s": 8,
+   "tipo": "sessao",
+   "onde": "BO 1002",
+   "retomada": true,
+   "largura": 1482
+  },
+  {
+   "t": 1792027012929,
+   "s": 9,
+   "tipo": "sessao",
+   "onde": "BO 1002",
+   "retomada": true,
+   "largura": 1482
+  },
+  {
+   "t": 1792027026655,
+   "s": 9,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT cor FROM veiculos WHERE cor = 'prata';",
+   "res": "ok",
+   "linhas": 9
+  },
+  {
+   "t": 1792027026661,
+   "s": 9,
+   "tipo": "quase",
+   "onde": "BO 1002",
+   "caso": "1002",
+   "tarefa": 1
+  },
+  {
+   "t": 1792027050020,
+   "s": 9,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos WHERE cor = 'prata';",
+   "res": "ok",
+   "linhas": 9
+  },
+  {
+   "t": 1792027050021,
+   "s": 9,
+   "tipo": "tarefa",
+   "onde": "BO 1002",
+   "caso": "1002",
+   "tarefa": 1
+  },
+  {
+   "t": 1792027110359,
+   "s": 9,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos WHERE placa = 'FRT';",
+   "res": "vazio",
+   "linhas": 0
+  },
+  {
+   "t": 1792027115248,
+   "s": 9,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos WHERE placa = 'FRT';",
+   "res": "vazio",
+   "linhas": 0
+  },
+  {
+   "t": 1792027115746,
+   "s": 9,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos WHERE placa = 'FRT';",
+   "res": "vazio",
+   "linhas": 0
+  },
+  {
+   "t": 1792027133608,
+   "s": 9,
+   "tipo": "dica",
+   "onde": "BO 1002",
+   "caso": "1002",
+   "tarefa": 2,
+   "nivel": 1
+  },
+  {
+   "t": 1792027152608,
+   "s": 9,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos LIKE placa = 'FRT';",
+   "res": "erro",
+   "erro": "near \"placa\": syntax error"
+  },
+  {
+   "t": 1792027174361,
+   "s": 9,
+   "tipo": "dica",
+   "onde": "BO 1002",
+   "caso": "1002",
+   "tarefa": 2,
+   "nivel": 2
+  },
+  {
+   "t": 1792027230061,
+   "s": 9,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos Where cor = 'prata';",
+   "res": "ok",
+   "linhas": 9
+  },
+  {
+   "t": 1792027252067,
+   "s": 9,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos Where cor = 'prata'; \nSELECT * FROM veiculos Where cor = 'Preto';",
+   "res": "ok",
+   "linhas": 9
+  },
+  {
+   "t": 1792027253001,
+   "s": 9,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos Where cor = 'prata'; \nSELECT * FROM veiculos Where cor = 'Preto';",
+   "res": "ok",
+   "linhas": 9
+  },
+  {
+   "t": 1792027253364,
+   "s": 9,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos Where cor = 'prata'; \nSELECT * FROM veiculos Where cor = 'Preto';",
+   "res": "ok",
+   "linhas": 9
+  },
+  {
+   "t": 1792027253529,
+   "s": 9,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos Where cor = 'prata'; \nSELECT * FROM veiculos Where cor = 'Preto';",
+   "res": "ok",
+   "linhas": 9
+  },
+  {
+   "t": 1792027253709,
+   "s": 9,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos Where cor = 'prata'; \nSELECT * FROM veiculos Where cor = 'Preto';",
+   "res": "ok",
+   "linhas": 9
+  },
+  {
+   "t": 1792027253879,
+   "s": 9,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos Where cor = 'prata'; \nSELECT * FROM veiculos Where cor = 'Preto';",
+   "res": "ok",
+   "linhas": 9
+  },
+  {
+   "t": 1792027254370,
+   "s": 9,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos Where cor = 'prata'; \nSELECT * FROM veiculos Where cor = 'Preto';",
+   "res": "ok",
+   "linhas": 9
+  },
+  {
+   "t": 1792027254642,
+   "s": 9,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos Where cor = 'prata'; \nSELECT * FROM veiculos Where cor = 'Preto';",
+   "res": "ok",
+   "linhas": 9
+  },
+  {
+   "t": 1792027256860,
+   "s": 9,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos Where cor = 'prata'; \nSELECT * FROM veiculos Where cor = 'Preto';",
+   "res": "ok",
+   "linhas": 9
+  },
+  {
+   "t": 1792027258523,
+   "s": 9,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos Where cor = 'prata'; \nSELECT * FROM veiculos Where cor = 'Preto';",
+   "res": "ok",
+   "linhas": 9
+  },
+  {
+   "t": 1792027258889,
+   "s": 9,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos Where cor = 'prata'; \nSELECT * FROM veiculos Where cor = 'Preto';",
+   "res": "ok",
+   "linhas": 9
+  },
+  {
+   "t": 1792027259033,
+   "s": 9,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos Where cor = 'prata'; \nSELECT * FROM veiculos Where cor = 'Preto';",
+   "res": "ok",
+   "linhas": 9
+  },
+  {
+   "t": 1792027259168,
+   "s": 9,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos Where cor = 'prata'; \nSELECT * FROM veiculos Where cor = 'Preto';",
+   "res": "ok",
+   "linhas": 9
+  },
+  {
+   "t": 1792027259319,
+   "s": 9,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos Where cor = 'prata'; \nSELECT * FROM veiculos Where cor = 'Preto';",
+   "res": "ok",
+   "linhas": 9
+  },
+  {
+   "t": 1792027259463,
+   "s": 9,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos Where cor = 'prata'; \nSELECT * FROM veiculos Where cor = 'Preto';",
+   "res": "ok",
+   "linhas": 9
+  },
+  {
+   "t": 1792027307913,
+   "s": 9,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos LIKE placa = 'FRT';",
+   "res": "erro",
+   "erro": "near \"placa\": syntax error"
+  },
+  {
+   "t": 1792027308826,
+   "s": 9,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos LIKE placa = 'FRT';",
+   "res": "erro",
+   "erro": "near \"placa\": syntax error"
+  },
+  {
+   "t": 1792027308991,
+   "s": 9,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos LIKE placa = 'FRT';",
+   "res": "erro",
+   "erro": "near \"placa\": syntax error"
+  },
+  {
+   "t": 1792027710986,
+   "s": 10,
+   "tipo": "sessao",
+   "onde": "BO 1002",
+   "retomada": true,
+   "largura": 1482
+  },
+  {
+   "t": 1792027749666,
+   "s": 10,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos WHERE placa LIKE = 'FRT';",
+   "res": "erro",
+   "erro": "near \"=\": syntax error"
+  },
+  {
+   "t": 1792027806319,
+   "s": 10,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos WHERE placa LIKE 'FRT';",
+   "res": "vazio",
+   "linhas": 0
+  },
+  {
+   "t": 1792027817534,
+   "s": 10,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos WHERE placa LIKE 'FRT%';",
+   "res": "vazio",
+   "linhas": 0
+  },
+  {
+   "t": 1792027819671,
+   "s": 10,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos WHERE placa LIKE 'FRT%';",
+   "res": "vazio",
+   "linhas": 0
+  },
+  {
+   "t": 1792027820168,
+   "s": 10,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos WHERE placa LIKE 'FRT%';",
+   "res": "vazio",
+   "linhas": 0
+  },
+  {
+   "t": 1792027820302,
+   "s": 10,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos WHERE placa LIKE 'FRT%';",
+   "res": "vazio",
+   "linhas": 0
+  },
+  {
+   "t": 1792027860343,
+   "s": 10,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos WHERE cor = 'prata'; \n\nSELECT * FROM veiculos WHERE placa LIKE 'FRT%';",
+   "res": "ok",
+   "linhas": 9
+  },
+  {
+   "t": 1792027874611,
+   "s": 10,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos WHERE placa LIKE 'FTR%';",
+   "res": "ok",
+   "linhas": 4
+  },
+  {
+   "t": 1792027874612,
+   "s": 10,
+   "tipo": "tarefa",
+   "onde": "BO 1002",
+   "caso": "1002",
+   "tarefa": 2
+  },
+  {
+   "t": 1792027878383,
+   "s": 10,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos WHERE placa LIKE 'FTR%';",
+   "res": "ok",
+   "linhas": 4
+  },
+  {
+   "t": 1792027906738,
+   "s": 10,
+   "tipo": "dica",
+   "onde": "BO 1002",
+   "caso": "1002",
+   "tarefa": 3,
+   "nivel": 1
+  },
+  {
+   "t": 1792027913257,
+   "s": 10,
+   "tipo": "dica",
+   "onde": "BO 1002",
+   "caso": "1002",
+   "tarefa": 3,
+   "nivel": 2
+  },
+  {
+   "t": 1792028294711,
+   "s": 10,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "SELECT * FROM veiculos WHERE cor = 'prata' AND placa LIKE 'FTR%';",
+   "res": "ok",
+   "linhas": 1
+  },
+  {
+   "t": 1792028294713,
+   "s": 10,
+   "tipo": "tarefa",
+   "onde": "BO 1002",
+   "caso": "1002",
+   "tarefa": 3
+  },
+  {
+   "t": 1792028357890,
+   "s": 10,
+   "tipo": "desfecho",
+   "onde": "BO 1002",
+   "caso": "1002",
+   "ok": true,
+   "valores": {
+    "placa": "FTR7A93"
+   }
+  },
+  {
+   "t": 1792031091526,
+   "s": 11,
+   "tipo": "sessao",
+   "onde": "BO 1003",
+   "retomada": true,
+   "largura": 1482
+  },
+  {
+   "t": 1792031401004,
+   "s": 12,
+   "tipo": "sessao",
+   "onde": "BO 1003",
+   "retomada": true,
+   "largura": 1482
+  }
+ ]
+}

@@ -26,7 +26,10 @@ function zeroRowHint(sql,schema){
   if(/data_hora/i.test(sql)&&lits.some(function(l){return /^\d{1,2}:\d{2}(:\d{2})?$/.test(l)}))return 'A coluna <code>data_hora</code> guarda data e hora juntas. Escreva o valor completo: <code>\'2026-10-12 22:45:00\'</code>.';
   if(lits.some(function(l){return /^[A-Z]{3}-\d/.test(l)}))return 'As placas estão gravadas sem traço: <code>\'ABC1D23\'</code>.';
   if(/local_radar\s*=/i.test(sql))return 'Com <code>=</code> o texto precisa ser idêntico, letra por letra. Para o local do radar, tente <code>LIKE \'%Castelo%\'</code>.';
-  if(lits.some(function(l){return /[A-ZÀ-Ú]/.test(l)&&l===l.charAt(0).toUpperCase()+l.slice(1).toLowerCase()&&!/\d/.test(l)&&l.length>2})&&/\bcor\b/i.test(sql))return 'As cores estão gravadas em minúsculas. <code>\'Prata\'</code> é diferente de <code>\'prata\'</code>.';
+  var cap=lits.filter(function(l){return /[A-ZÀ-Ú]/.test(l)&&l===l.charAt(0).toUpperCase()+l.slice(1).toLowerCase()&&!/\d/.test(l)&&l.length>2})[0];
+  if(cap&&/\bcor\b/i.test(sql))return 'As cores estão gravadas em minúsculas. <code>\''+escH(cap)+'\'</code> é diferente de <code>\''+escH(cap.toLowerCase())+'\'</code>.';
+  var eq=sql.match(/(\w+)\s*=\s*('[^']*')/);
+  if(eq&&!/\blike\b/i.test(sql))return 'Nenhum registro tem <code>'+escH(eq[1])+'</code> exatamente igual a <code>'+escH(eq[2])+'</code>. Com <code>=</code> o valor precisa ser <b>inteiro e idêntico</b>, letra por letra. Se você só sabe um pedaço dele (o começo, por exemplo), use <code>LIKE</code> com <code>%</code>; se sabe o valor inteiro, confira a grafia.';
   var lk=sql.match(/like\s*('[^']*')/i);
   if(lk)return 'Nenhum registro bate com <code>'+escH(lk[1])+'</code>. A estrutura da consulta está certa, então confira o padrão <b>letra por letra</b> com a pista do relato: uma letra trocada de lugar já basta para não achar nada.';
   return null;

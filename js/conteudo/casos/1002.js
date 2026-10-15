@@ -13,7 +13,7 @@ registrarCaso({id:'1002',titulo:'Furto no estacionamento do shopping',modulo:2,n
     ok:function(R){return R.n===F.ftr.length&&hasAll(R,F.ftr)},
     quase:function(R){if(mesmasLinhas(R,F.l1002ftr)&&falta(R,'placa'))return 'o filtro está certo, vieram '+R.n+' veículos. Mas sem a coluna <code>placa</code> no resultado não dá pra conferir quais são. Inclua a placa, ou use <code>SELECT *</code>.'}},
    {t:'Combine as duas pistas numa consulta só.',
-    h:['AND exige que as duas condições sejam verdadeiras na mesma linha.','Pegue as duas condições que você já escreveu nos passos anteriores e junte as duas com AND: <code>WHERE condição_1 AND condição_2</code>.','<code>… WHERE cor = \'prata\' AND placa LIKE \'FTR%\';</code>'],
+    h:['AND exige que as duas condições sejam verdadeiras na mesma linha.','Pegue as duas condições que você já escreveu nos passos anteriores e junte as duas com AND: <code>WHERE condição_1 AND condição_2</code>.','<code>SELECT * FROM veiculos WHERE cor = \'prata\' AND placa LIKE \'FTR%\';</code>'],
     ok:function(R){return R.n===1&&has(R,'FTR7A93')},
     quase:function(R){if(mesmasLinhas(R,F.l1002alvo)&&falta(R,'placa'))return 'sobrou um veículo só, ótimo. Agora mostre a <code>placa</code> dele no resultado, que é ela que vai no mandado.'}}
   ],
