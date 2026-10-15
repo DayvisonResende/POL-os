@@ -360,6 +360,8 @@ Jairo Teixeira (investigador impaciente), Marina Okada (perita), Paulo Henrique 
 | 5 | Módulo 4 (JOIN) | — |
 | 6 | Módulo 5 (escrita, transações) | — |
 | 7 | Módulo 6 (avançado) | — |
+| 8 | Prova final e certificado (Prioridade 7) | — |
+| — | Arte dos personagens (transversal, ver "Arte" abaixo) | — |
 
 ### Prioridade 1 — validar com gente real ✅
 Colocar **2 ou 3 pessoas que nunca programaram** para jogar, sem ajudar, e anotar onde elas param. Roteiro em `docs/playtest.md`; sessões em `docs/playtest/sessoes/` (telemetria `.json` + relatório `.md`).
@@ -421,6 +423,32 @@ CREATE TABLE transferencias (id INTEGER PRIMARY KEY AUTOINCREMENT, conta_origem 
 
 ### Prioridade 6 — Módulo 6 (texto, datas, CASE, subqueries, CTE, window functions)
 Limpeza de dados sujos (`TRIM`, `UPPER`, `REPLACE` em placas com traço e nomes com espaços), reconstituição de rota com `LAG`/`LEAD` em antenas de celular, dossiê final com CTEs.
+
+### Prioridade 7 — Prova final e certificado
+**Pedido do Dayvison (15/10/2026):** no fim do jogo, o jogador gera um **certificado** de que sabe SQL, com **o nome dele**, em duas versões: uma **para imprimir** e uma **imagem para redes sociais**. Só libera depois de **concluir o treinamento** e passar num **teste mais difícil**, que mostre que ele sabe o que está fazendo.
+
+Requisitos:
+- O jogador digita o nome que vai no certificado. O nome fica só no navegador, como o resto do progresso.
+- **Prova final** mais difícil que as da ACADEPOL: todas as questões são de escrever consulta do zero, sem dicas nem molde, cobrindo todos os módulos concluídos. Corrigida pelo resultado (pilar 3), com sorteio de um banco maior de questões, nota mínima alta e refação com outro sorteio.
+- Versão para imprimir: página A4 paisagem. Atenção à regra técnica 11: artifact não permite `window.print()`; lá, oferecer download em PDF ou PNG.
+- Versão para redes: imagem PNG gerada em canvas (1200×627 para LinkedIn; 1080×1080 para Instagram), para baixar.
+
+**Sugestões a decidir com o Dayvison** (ver conversa de 15/10/2026):
+- O certificado **não pode parecer documento oficial**: nada de "Polícia Civil", "ACADEPOL" ou brasão no certificado exportado. Deve dizer que é de um jogo educativo (SISP). Motivo: uma imagem nas redes com "ACADEPOL" pode ser lida como credencial policial real.
+- Chamar de **"Certificado de conclusão"** e listar **o que a pessoa sabe fazer** (competências), sem prometer equivalência a curso e sem carga horária inventada. O documento já removeu promessas exageradas (seção 11).
+- **Certificados por nível**, em vez de um só no fim: Nível 1 (consultas e filtros, Módulos 1–2), Nível 2 (agregação e JOIN, 3–4), Nível 3 (escrita e avançado, 5–6). Dá valor desde já, porque hoje o jogo só vai até o Módulo 2.
+- **Código de verificação** no certificado, conferível numa página do jogo. Limite honesto: sem servidor, qualquer verificação local pode ser forjada por quem souber programar; o código serve contra erro de digitação, não contra fraude.
+- **Caderno de consultas**: exportar as consultas que o jogador escreveu para resolver os casos, como portfólio para mostrar em entrevista. Prova mais que um certificado.
+- **Ponte para o mercado** na prova final: mostrar a mesma consulta em PostgreSQL e SQL Server (base: `comparativo_de_dialetos_sql_do_jogo_ao_postgresql_e_sql_server.md`).
+
+### Arte dos personagens
+Imagens em `Images/Arco1/` (14/10/2026), estilo quadrinho noir, 1254×1254 PNG (~2,4 MB cada): Beto, Estagiária e Estagiário Analista de Dados. Ajustes combinados para o futuro:
+- **Beto:** o distintivo diz "DETECTIVE BETO" (inglês; o cargo é *Investigador*). O fundo diz "7º DP" (no jogo ele é do DTI, em Sorocaba).
+- **Jogador:** os crachás dizem "Estagiário(a) Analista de Dados", e a patente do jogo é "Recruta" e depois "Estagiário do Arquivo". Alinhar um dos dois.
+- **Falta a Célia**, a personagem com mais falas (hoje é "CM" num quadrado). Prioridade da arte.
+- **Para entrar no jogo:** converter para WebP em 256 px (~20–30 KB cada; hoje cada PNG pesa mais que o jogo inteiro), em `img/personagens/` com nomes sem espaço nem acento (`beto.webp`, `jogador-f.webp`, `jogador-m.webp`). Os originais grandes ficam fora do que é publicado.
+- **Onde usar:** avatares do PolíciaZap, cabeçalho do treinamento (Célia), login, menu iniciar, tela de promoção, relatório e certificado.
+- **Decisão pendente:** ter estagiário e estagiária sugere escolha de personagem. Opções: (1) escolha no login com texto flexionado em tudo; (2) escolha só da imagem, com falas neutras; (3) um personagem só. Hoje os textos estão no masculino ("Estagiário do Arquivo", "Investigador Júnior", "sozinho").
 
 ### Outras melhorias pendentes
 - **Cada módulo como um dia de expediente:** a tela de login abre com data nova, patente nova e um e-mail da chefia com as permissões. Isso substitui a ideia de "fase".
