@@ -286,3 +286,52 @@ test('treino Intervalos · BETWEEN com data e hora em duas lacunas', { skip: !CH
     assert.deepStrictEqual(erros, []);
   } finally { await browser.close(); }
 });
+
+// Backup do progresso: salvar em arquivo, reiniciar (com confirmação) e carregar pelo menu Configurações.
+test('backup · salvar, reiniciar e carregar o progresso', { skip: !CHROME && 'Chrome não encontrado (defina CHROME)', timeout: 90000 }, async () => {
+  const os = require('os');
+  const { browser, page, erros } = await abrir('index.html', 1366);
+  try {
+    await page.click('#lgBtn');
+    await page.evaluate(() => { S.treino = null; S.tut = 0; S.treinosFeitos = ['m1', 'm2-filtros']; S.rank = 1; S.closed = ['1001']; S.metas = 30; save(); buildStart(); });
+    const menu = async item => { await page.click('#startBtn'); await page.click('#startMenu .sm-abre'); await page.click(`#startMenu .sm-fly button:has-text("${item}")`); };
+
+    const dl = page.waitForEvent('download');
+    await menu('Salvar progresso em arquivo');
+    const download = await dl;
+    assert.match(download.suggestedFilename(), /^sisp-progresso-.*\.json$/);
+    const arquivo = await download.path();
+    const salvo = JSON.parse(fs.readFileSync(arquivo, 'utf8'));
+    assert.strictEqual(salvo.jogo, 'sisp');
+    assert.deepStrictEqual(salvo.estado.closed, ['1001']);
+
+    // reiniciar pede confirmação; cancelar não apaga nada
+    await menu('Reiniciar turno');
+    assert.ok(await page.isVisible('.overlay [role=dialog]'));
+    await page.click('.overlay button:has-text("Cancelar")');
+    assert.strictEqual(await page.evaluate(() => S.rank), 1);
+    await menu('Reiniciar turno');
+    await Promise.all([page.waitForNavigation(), page.click('.overlay button:has-text("Reiniciar sem salvar")')]);
+    await page.waitForFunction(() => !document.querySelector('#lgBtn').disabled);
+    assert.strictEqual(await page.evaluate(() => S.rank), 0, 'progresso apagado');
+
+    assert.strictEqual(await page.$('#bootImport'), null, 'a tela de login não oferece carregar progresso');
+    await page.click('#lgBtn');
+
+    // arquivo que não é backup: explica e não mexe em nada
+    const ruim = path.join(os.tmpdir(), 'nao-e-backup.json'); fs.writeFileSync(ruim, '{"oi":1}');
+    let fc = page.waitForEvent('filechooser'); await menu('Carregar progresso'); await (await fc).setFiles(ruim);
+    await page.waitForFunction(() => /não é um progresso salvo/.test(document.querySelector('#toasts').textContent));
+
+    // carregar o backup pelo menu Configurações
+    fc = page.waitForEvent('filechooser'); await menu('Carregar progresso'); await (await fc).setFiles(arquivo);
+    await page.waitForSelector('.overlay [role=dialog]');
+    assert.match(await page.textContent('.overlay'), /Estagiário do Arquivo, 1 chamado/);
+    await Promise.all([page.waitForNavigation(), page.click('.overlay button:has-text("Carregar este progresso")')]);
+    await page.waitForFunction(() => !document.querySelector('#lgBtn').disabled);
+    const S = await page.evaluate(() => ({ rank: S.rank, closed: S.closed, feitos: S.treinosFeitos, metas: S.metas }));
+    assert.deepStrictEqual(S, { rank: 1, closed: ['1001'], feitos: ['m1', 'm2-filtros'], metas: 30 });
+    assert.match(await page.textContent('#bootStatus'), /progresso foi mantido/);
+    assert.deepStrictEqual(erros, []);
+  } finally { await browser.close(); }
+});

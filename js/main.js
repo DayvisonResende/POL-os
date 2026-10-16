@@ -4,6 +4,7 @@ function startDesktop(resumed){
   $('#boot').hidden=true;renderIcons();buildStart();meters();
   $('#startBtn').onclick=function(e){e.stopPropagation();toggleStart()};
   document.addEventListener('click',function(e){if(!e.target.closest('#startMenu'))toggleStart(false)});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!$('#startMenu').hidden){toggleStart(false);$('#startBtn').focus()}});
   if(verificarTreinos()){}
   else if(tutActive()){openDb();if(S.tutEntrou!==tutChavePasso())tutEnter()}
   else{openOcorr();if(S.closed.indexOf('1002')>=0&&S.beto==='none')setTimeout(startBeto,15000)}

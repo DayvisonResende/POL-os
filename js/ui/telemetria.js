@@ -53,7 +53,5 @@ function renderDiag(){
 function ligarDiag(r){
   $('#dgAtual',r.body).onclick=renderDiag;
   $('#dgLimpar',r.body).onclick=function(){TELE={sessoes:0,ev:[]};teleSalvar();renderDiag()};
-  $('#dgBaixar',r.body).onclick=function(){
-    var a=h('a',{href:URL.createObjectURL(new Blob([JSON.stringify({exportado:new Date().toISOString(),resumo:teleResumo(),eventos:TELE.ev},null,1)],{type:'application/json'})),download:'sisp-telemetria-'+new Date().toISOString().slice(0,16).replace(/[:T]/g,'-')+'.json'});
-    document.body.appendChild(a);a.click();a.remove()};
+  $('#dgBaixar',r.body).onclick=function(){baixarArquivo(JSON.stringify({exportado:new Date().toISOString(),resumo:teleResumo(),eventos:TELE.ev},null,1),'sisp-telemetria-'+new Date().toISOString().slice(0,16).replace(/[:T]/g,'-')+'.json','application/json')};
 }

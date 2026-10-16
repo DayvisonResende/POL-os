@@ -24,3 +24,9 @@
   .tbtn{max-width:96px;padding:0 6px}
   #startBtn span{display:none}
 }
+/* menu iniciar no celular: submenu de Configurações abre embaixo, como sanfona */
+@media (max-width:760px){
+  #startMenu{left:6px;right:6px;width:auto;max-height:calc(100% - var(--tbh) - 12px);overflow:auto}
+  #startMenu .sm-abre[aria-expanded="true"] .sm-seta{transform:rotate(90deg)}
+  #startMenu .sm-fly{position:static;width:auto;box-shadow:none;border:0;border-left:2px solid #33505a;margin:2px 0 4px 18px;padding:2px 0 2px 6px}
+}

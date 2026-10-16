@@ -6,7 +6,7 @@ function report(){
    '<tr><td>Consultas executadas</td><td>'+S.queries+'</td></tr><tr><td>Consultas com erro</td><td>'+S.errors+'</td></tr><tr><td>Metas</td><td>'+S.metas+'%</td></tr><tr><td>Corregedoria</td><td>'+S.corr+'%</td></tr></table>'+
    '<p>'+(S.done?'Promovido a Investigador Júnior. Você concluiu os Módulos 1 e 2: SELECT, colunas, DISTINCT, LIMIT, AS, WHERE, AND, LIKE, BETWEEN, IN e ORDER BY. O Módulo 3 (COUNT, SUM, GROUP BY, HAVING) ainda está em desenvolvimento.':'Ainda há chamados em aberto. Feche o relatório e volte ao trabalho.')+'</p>'+
    '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-primary" id="rpClose">Voltar ao desktop</button><button class="tb-btn" id="rpReset">Recomeçar do zero</button></div></div></div>';
-  $('#app').appendChild(ov);$('#rpClose',ov).onclick=function(){ov.remove()};$('#rpReset',ov).onclick=resetAll;
+  $('#app').appendChild(ov);$('#rpClose',ov).onclick=function(){ov.remove()};$('#rpReset',ov).onclick=function(){ov.remove();pedirReinicio()};
 }
 function fired(){
   var ov=h('div',{class:'overlay fired'});

@@ -115,6 +115,8 @@ js/
     destaque.js             spot e seta "clica aqui"
     desktop.js              ícones, menu iniciar, unlockApp
     telemetria.js           telemetria local de playtest e painel de diagnóstico (ver 4.6)
+    backup.js               salvar/carregar progresso em arquivo, confirmação de reinício, caixa confirmar()
+                            (o menu iniciar fica em desktop.js: programas, Relatório e Configurações ▸ com submenu)
   apps/                     um arquivo por aplicativo do Pol-OS
     db-investigator.js, ocorrencias.js, policiazap.js, arquivos.js, radar.js,
     treinamento.js (motor do TUT), acadepol.js, relatorio.js
@@ -168,6 +170,8 @@ treino (id do treinamento ativo ou null), treinosFeitos[ids], tutEntrou ('treino
 tut (passo dentro do treino ativo), tutPhase ('doing'|'after'), tutPick, tutPred, tutWrong[], tutBlocks[], tutHint,
 tutFb, tutMiss, tutErr, tutBlk, apps[], rank, prova{mod,qs,ord,ans,sql,graded}, provaTries{}
 ```
+**Backup em arquivo** (`js/ui/backup.js`): menu SISP › **Configurações** › *Salvar progresso em arquivo* baixa `sisp-progresso-AAAA-MM-DD-HH-MM.json` = `{jogo:'sisp', formato:SAVE_KEY, salvoEm, patente, encerrados, estado:S}`. *Carregar progresso de arquivo* (só no menu Configurações, depois de entrar; a tela de login não oferece carregar, por decisão do Dayvison) valida `jogo` e `formato`, pede confirmação e grava no `localStorage` antes de recarregar; formatos antigos de `S` passam pela migração normal do `load()`. *Reiniciar turno* pede confirmação e oferece salvar antes. Ao trocar `SAVE_KEY`, decidir se backups antigos devem ser aceitos (hoje são recusados com aviso).
+
 `load()` mescla o estado salvo com `freshState()`, então **campos novos ganham valor padrão sozinhos**. Se uma mudança **quebrar** a compatibilidade (mudar o significado de um campo), troque a chave `SAVE_KEY` (ex.: `sisp-proto-v3`).
 
 ### 4.5 Formato de um caso (`CASES`)
