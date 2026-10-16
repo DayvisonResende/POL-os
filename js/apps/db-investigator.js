@@ -75,6 +75,8 @@ function runQuery(){
     if(!S.writeWarned){S.writeWarned=true;addCorr(5,'Tentativa de escrita no banco com perfil de recruta.')}
     return;
   }
+  var bloq=tabelaBloqueada(sql);
+  if(bloq){msg.innerHTML='<div class="err">'+msgTabelaBloqueada(bloq)+'</div>';st.textContent='Acesso a tabela restrita bloqueado.';tele('consulta',{sql:sql.slice(0,400),res:'restrita',tabela:bloq.nome});return}
   if(!tutBeforeRun())return;
   S.queries++;var t0=performance.now(),todos;
   var hora=new Date().toLocaleTimeString('pt-BR');

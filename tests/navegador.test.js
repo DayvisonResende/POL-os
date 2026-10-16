@@ -287,6 +287,25 @@ test('treino Intervalos · BETWEEN com data e hora em duas lacunas', { skip: !CH
   } finally { await browser.close(); }
 });
 
+// Tabelas financeiras: só para Inspetor Analítico. Antes disso, não aparecem e não podem ser consultadas (sem punição).
+test('tabelas restritas por patente', { skip: !CHROME && 'Chrome não encontrado (defina CHROME)', timeout: 60000 }, async () => {
+  const { browser, page, erros } = await abrir('index.html', 1366);
+  try {
+    await page.click('#lgBtn');
+    await page.evaluate(() => { S.treino = null; S.treinosFeitos = ['m1']; S.tut = 0; Object.keys(WINS).forEach(k => WINS[k].el.remove()); for (const k in WINS) delete WINS[k]; dictOpen = true; openDb('SELECT * FROM transferencias;'); });
+    assert.doesNotMatch(await page.textContent('#dict'), /transferencias|contas_bancarias/, 'Dicionário não mostra tabela restrita');
+    const corr = await page.evaluate(() => S.corr);
+    await page.click('#runBtn');
+    assert.match(await page.textContent('#dbMsg'), /Acesso negado.*transferencias.*Inspetor Analítico/s);
+    assert.strictEqual(await page.evaluate(() => S.corr), corr, 'consultar tabela restrita não pune');
+    // com a patente, a tabela aparece e roda
+    await page.evaluate(() => { S.rank = 3; atualizarSchema(); renderDict(); });
+    assert.match(await page.textContent('#dict'), /transferencias/);
+    assert.strictEqual(await page.evaluate(() => tabelaBloqueada('SELECT * FROM transferencias')), null);
+    assert.deepStrictEqual(erros, []);
+  } finally { await browser.close(); }
+});
+
 // Backup do progresso: salvar em arquivo, reiniciar (com confirmação) e carregar pelo menu Configurações.
 test('backup · salvar, reiniciar e carregar o progresso', { skip: !CHROME && 'Chrome não encontrado (defina CHROME)', timeout: 90000 }, async () => {
   const os = require('os');

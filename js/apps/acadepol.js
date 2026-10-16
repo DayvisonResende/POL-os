@@ -4,7 +4,7 @@ function newProva(mod){var P=PROVAS[mod],m=shuffle(P.mcq).slice(0,3),w=shuffle(P
   m.forEach(function(q){ord[q.id]=shuffle([0,1,2])});
   S.prova={mod:mod,qs:m.map(function(q){return q.id}).concat(w.map(function(q){return q.id})),ord:ord,ans:{},sql:{},graded:null};save()}
 function findQ(mod,id){var P=PROVAS[mod];return P.mcq.concat(P.write).filter(function(q){return q.id===id})[0]}
-function runSafe(sql){if(!sql||!sql.trim())return {err:'Consulta vazia.'};if(!isReadOnly(sql))return {err:'Na prova só vale consulta de leitura (SELECT).'};
+function runSafe(sql){if(!sql||!sql.trim())return {err:'Consulta vazia.'};if(!isReadOnly(sql))return {err:'Na prova só vale consulta de leitura (SELECT).'};var bloq=tabelaBloqueada(sql);if(bloq)return {err:msgTabelaBloqueada(bloq)};
   try{var r=db.exec(sql);return {R:toR(r.length?r[r.length-1]:null),raw:r.length?r[r.length-1]:null}}catch(e){return {err:translateError(String(e.message||e),sql,SCHEMA),rawErr:String(e.message||e)}}}
 function openProva(){openWin('prova',{title:'ACADEPOL — Avaliação',w:720,h:600,x:150,y:12,build:function(){renderProva()},refresh:function(){renderProva()}})}
 function renderProva(){
@@ -63,7 +63,7 @@ function gradeProva(){
   renderProva();var w=WINS.prova&&WINS.prova.body.querySelector('.prova');if(w)w.scrollTop=0;
 }
 function promote(to){
-  S.rank=to;save();buildStart();
+  S.rank=to;save();buildStart();atualizarSchema();if(WINS.db)renderDict();
   var R=RANKS[to],ov=h('div',{class:'overlay'});
   var stars='';for(var i=0;i<to;i++)stars+='<path transform="translate('+(i*30)+' 0)" d="M15 2l3.5 8.2 8.9.7-6.8 5.8 2.1 8.7L15 20.8l-7.7 4.6 2.1-8.7L2.6 10.9l8.9-.7z" fill="#d6951c"/>';
   ov.innerHTML='<div class="promo" role="dialog" aria-label="Promoção"><svg width="'+(to*30)+'" height="28" viewBox="0 0 '+(to*30)+' 28" aria-hidden="true">'+stars+'</svg><div class="eyebrow">Diário Oficial · DTI · Promoção</div><h2>'+escH(R.t)+'</h2><div class="muted">recruta.dti04, por aprovação na ACADEPOL</div><ul>'+R.libera.map(function(l){return '<li>'+escH(l)+'</li>'}).join('')+'</ul><q>'+escH(R.celia)+'</q><button class="btn-primary" id="prOk">Voltar ao trabalho</button></div>';

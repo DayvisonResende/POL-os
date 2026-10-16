@@ -1,4 +1,4 @@
-# SISP — Documento de Continuidade para IA (v3.3)
+# SISP — Documento de Continuidade para IA (v3.4)
 
 > **Para a IA que vai continuar este projeto:** leia este arquivo inteiro antes de mexer no código. Ele descreve o que o jogo é, por que ele é assim, o que já existe no código (`index.html` + pastas `css/` e `js/`), como ele está organizado, quais decisões já foram tomadas (e por quê) e o que falta fazer. A autora do projeto é a May, que fala português, é detalhista e quer **entender** as decisões, não só recebê-las. Dê opinião honesta quando ela pedir, mesmo discordando.
 
@@ -38,7 +38,7 @@ Hypnospace Outlaw, Hacknet, Her Story, Papers, Please, SQL Murder Mystery.
 
 ## 3. Estado atual (o que já está pronto)
 
-Ponto de entrada: **`index.html`** (o resto está em `css/` e `js/`, ver seção 4). Também publicado como artifact no Claude.
+Ponto de entrada: **`index.html`** (o resto está em `css/` e `js/`, ver seção 4). Publicado no **GitHub Pages**: https://dayvisonresende.github.io/POL-os/ (cada push na `main` atualiza; para playtest, mandar o link com `?teste`).
 
 ### Fluxo completo jogável hoje
 1. **Login** no Pol-OS (tela de boot; o banco carrega enquanto isso).
@@ -94,7 +94,8 @@ js/
     banco/fatos.js          F e computeFacts
     sql/lexico.js           KEYWORDS, lev, closest, kwTypo, stripSql, tokSQL, joinToks
     sql/erros.js            translateError, zeroRowHint
-    sql/diagnostico.js      diagnosticarSQL (ordem das cláusulas, WHERE sem comparação, aspas duplas), avisoSQL
+    sql/diagnostico.js      diagnosticarSQL (ordem das cláusulas, WHERE sem comparação, aspas duplas, LIKE, BETWEEN,
+                            agregação no WHERE, HAVING sem GROUP BY), avisoSQL (aspas duplas, coluna solta no GROUP BY)
     sql/permissao.js        isReadOnly
     sql/executar.js         executarSQL: resultado de cada consulta do editor, inclusive as vazias
     sql/explicador.js       explainSQL e textos COLDESC/TABDESC
@@ -109,7 +110,7 @@ js/
   ui/                       base do Pol-OS (mexe no DOM)
     dom.js, icones.js       $, h, ICONS
     estado.js               S, SAVE_KEY, freshState, save, load, rankT, resetAll
-    banco.js                SQL, db, SCHEMA, TABELAS, iniciarBanco
+    banco.js                SQL, db, SCHEMA, TABELAS (com rankMin), iniciarBanco, atualizarSchema, tabelaBloqueada
     janelas.js              gerenciador de janelas e barra de tarefas
     notificacoes.js         toast, meters, addCorr, addMetas
     destaque.js             spot e seta "clica aqui"
@@ -216,7 +217,18 @@ CREATE TABLE leituras_radar (id INTEGER PRIMARY KEY AUTOINCREMENT, placa TEXT NO
                        foto_radar_url TEXT NOT NULL);
 CREATE TABLE catraca_acessos (id INTEGER PRIMARY KEY AUTOINCREMENT, funcionario TEXT NOT NULL, cargo TEXT NOT NULL,
                        data DATE NOT NULL, horario_entrada TEXT NOT NULL, horario_saida TEXT NOT NULL);
+-- Módulo 3 (seedFinanceiro; visíveis só a partir de Inspetor Analítico, rank 3):
+CREATE TABLE contas_bancarias (id INTEGER PRIMARY KEY, banco TEXT NOT NULL, agencia TEXT NOT NULL, numero TEXT NOT NULL,
+                       cpf_titular TEXT NOT NULL REFERENCES pessoas(cpf));
+CREATE TABLE transferencias (id INTEGER PRIMARY KEY AUTOINCREMENT, conta_origem INTEGER NOT NULL REFERENCES contas_bancarias(id),
+                       conta_destino INTEGER NOT NULL REFERENCES contas_bancarias(id), valor REAL NOT NULL,
+                       data_hora DATETIME NOT NULL, descricao TEXT);
 ```
+**Tabelas por patente:** `TABELAS` em `js/ui/banco.js` tem `rankMin`/`patente`. Tabela não liberada não aparece no Dicionário nem nas sugestões de erro, e consultá-la (terminal ou prova) dá "Acesso negado… liberada para Inspetor Analítico", **sem** Corregedoria. A promoção chama `atualizarSchema()`.
+
+**Dados financeiros (`seedFinanceiro`):** ~44 contas e 220 transferências aleatórias de 01/09 a 12/10/2026, com **PRNG próprio (seed 2042)**: não mexem nos dados de `buildSeedSQL`. As transferências aleatórias **evitam a faixa de R$ 8.500 a R$ 10.500**, reservada para os depósitos fracionados plantados do caso de lavagem (Sprint 4). Registros plantados devem ser acrescentados **depois** dos aleatórios. Valores em reais com centavos (`REAL`).
+
+**Garantia:** `tests/jogo.test.js` guarda a impressão digital (contagem + hash) das quatro tabelas originais. Se ela mudar, alguma alteração no gerador mexeu em dados de que o enredo depende.
 **Mudança em relação ao documento original v2.1:** `veiculos` deixou de ter `proprietario_nome`. Agora aponta para `pessoas` por `cpf_proprietario`. Motivo: com o nome dentro de `veiculos`, o JOIN do Módulo 4 seria opcional e o jogador não entenderia por que ele existe.
 
 ### Convenções dos dados (o jogo depende delas)
@@ -361,7 +373,7 @@ Jairo Teixeira (investigador impaciente), Marina Okada (perita), Paulo Henrique 
 | — | Refatoração: arquivo único → `css/` + `js/` | ✅ concluído (14/10/2026) |
 | 1 | Consolidar e testar com gente real (Prioridade 1) | ✅ concluído (15/10/2026) |
 | 2 | Escada guiada no Módulo 2 (Prioridade 2) | 🟡 implementado (15/10/2026); falta playtest |
-| 3 | Infraestrutura do Módulo 3 | — |
+| 3 | Infraestrutura do Módulo 3 | 🟡 dados, Explique e diagnóstico prontos (15/10/2026); "dia de expediente" e relógio aguardam decisão |
 | 4 | Conteúdo do Módulo 3 | — |
 | 5 | Módulo 4 (JOIN) | — |
 | 6 | Módulo 5 (escrita, transações) | — |
@@ -372,7 +384,7 @@ Jairo Teixeira (investigador impaciente), Marina Okada (perita), Paulo Henrique 
 ### Prioridade 1 — validar com gente real ✅
 Colocar **2 ou 3 pessoas que nunca programaram** para jogar, sem ajudar, e anotar onde elas param. Roteiro em `docs/playtest.md`; sessões em `docs/playtest/sessoes/` (telemetria `.json` + relatório `.md`).
 
-**Fechamento do Sprint 1 (15/10/2026):** ferramentas prontas (teste de navegador, telemetria + painel `?teste`, empacotador, roteiro). Playtests: um iniciante em desktop com telemetria completa (`2026-10-15-dayvison`) e uma sessão parcial no celular. Resultado: o treinamento do Módulo 1 flui (~13 min, 1 tropeço); o **BO 1002 custou ~49 min** a um iniciante, todos os travamentos de *estrutura* da consulta. Os 2 ou 3 playtests restantes com quem nunca viu o jogo ficam para **depois do Sprint 2**: hoje eles só confirmariam o gargalo já conhecido. Para playtest no celular, hospedar o jogo (ex.: GitHub Pages) e mandar o link com `?teste`.
+**Fechamento do Sprint 1 (15/10/2026):** ferramentas prontas (teste de navegador, telemetria + painel `?teste`, empacotador, roteiro). Playtests: um iniciante em desktop com telemetria completa (`2026-10-15-dayvison`) e uma sessão parcial no celular. Resultado: o treinamento do Módulo 1 flui (~13 min, 1 tropeço); o **BO 1002 custou ~49 min** a um iniciante, todos os travamentos de *estrutura* da consulta. Os 2 ou 3 playtests restantes com quem nunca viu o jogo ficam para **depois do Sprint 2**: hoje eles só confirmariam o gargalo já conhecido. Para playtest (inclusive no celular): https://dayvisonresende.github.io/POL-os/?teste
 
 **Achados de playtest (registro):**
 | Data | Onde | Problema | O que foi feito |
@@ -404,16 +416,10 @@ Colocar **2 ou 3 pessoas que nunca programaram** para jogar, sem ajudar, e anota
 
 ### Prioridade 3 — Módulo 3 (COUNT, SUM, AVG, MIN, MAX, aritmética, GROUP BY, HAVING)
 - Patente ao final: **Inspetor Analítico**.
-- Tabelas novas sugeridas:
-```sql
-CREATE TABLE contas_bancarias (id INTEGER PRIMARY KEY, banco TEXT, agencia TEXT, numero TEXT,
-                               cpf_titular TEXT REFERENCES pessoas(cpf));
-CREATE TABLE transferencias (id INTEGER PRIMARY KEY AUTOINCREMENT, conta_origem INTEGER, conta_destino INTEGER,
-                             valor REAL, data_hora DATETIME, descricao TEXT);
-```
+- ✅ **Infraestrutura (Sprint 3, 15/10/2026):** tabelas `contas_bancarias` e `transferencias` (seção 5), restritas a Inspetor Analítico; Explique traduz COUNT/SUM/AVG/MIN/MAX (inclusive COUNT DISTINCT), GROUP BY e HAVING; diagnóstico explica agregação no WHERE e HAVING sem GROUP BY e avisa "funcionou por sorte" quando há coluna solta (fora do GROUP BY e fora de agregação), que o SQLite aceita e PostgreSQL/SQL Server recusam.
+- ⏳ **A decidir com o Dayvison antes de implementar:** "cada módulo é um dia de expediente" (login com data nova e e-mail da chefia) e o relógio passando a pressionar.
 - Caso sugerido: **lavagem de dinheiro com depósitos fracionados** (muitos valores pouco abaixo de R$ 10.000 para a mesma conta), resolvido com `GROUP BY conta_destino HAVING COUNT(*) > N`.
 - Ligar ao enredo: o dinheiro da carga roubada no BO 1003.
-- `explainSQL` hoje só diz "agrupando (Módulo 3)" para GROUP BY e HAVING. Precisa explicar as agregações de verdade.
 - A partir daqui o relógio do expediente pode começar a pressionar.
 
 ### Prioridade 4 — Módulo 4 (JOIN)

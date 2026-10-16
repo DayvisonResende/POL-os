@@ -26,6 +26,10 @@ function diagnosticarSQL(sql,schema){
   else if(fr){var resto=depois(fr).slice(1);   // o que vem depois do nome da tabela
     if(resto.some(function(t){return OPERADORES.indexOf(t)>=0||['LIKE','IN','BETWEEN'].indexOf(U(t))>=0})){
       probs.push('Falta o <code>WHERE</code>. Todo filtro começa com ele, logo depois do nome da tabela: <code>FROM tabela WHERE coluna = \'valor\'</code>.');cond=resto}}
+  var temAgreg=function(t){return t.some(function(x,i){return AGREGACOES.indexOf(U(x))>=0&&t[i+1]==='('})};
+  if(w&&temAgreg(cond))probs.push('<code>COUNT</code>, <code>SUM</code>, <code>AVG</code>, <code>MIN</code> e <code>MAX</code> não vão no <code>WHERE</code>. O WHERE olha <b>uma linha de cada vez</b>, e essas contas são de um <b>grupo</b> de linhas. Para filtrar pelo resultado da conta, use <code>HAVING</code> depois do <code>GROUP BY</code>: <code>GROUP BY coluna HAVING COUNT(*) &gt; 3</code>.');
+  var hv=cl.filter(function(c){return c.k==='HAVING'})[0];
+  if(hv&&!cl.some(function(c){return c.k==='GROUP BY'}))probs.push('O <code>HAVING</code> filtra <b>grupos</b>, então precisa de um <code>GROUP BY</code> antes dele: <code>… GROUP BY coluna HAVING COUNT(*) &gt; 1</code>. Para filtrar linhas comuns, use <code>WHERE</code>.');
   if(cond){var conds=splitConds(cond);
     var ruim=conds.filter(semComparacao)[0];
     if(ruim)probs.push('Depois do <code>WHERE</code> vem uma comparação completa: <b>coluna</b>, <b>operador</b> e <b>valor</b>, como em <code>WHERE coluna = \'valor\'</code>. Em <code>'+escH(joinToks(ruim.ts))+'</code> falta dizer com qual coluna comparar.');
@@ -52,9 +56,30 @@ function aspasDuplas(sql,schema){
 // Como stripSql, mas sem apagar o conteúdo das aspas simples (mantém os tokens de valor para as mensagens).
 function stripSqlKeepDq(sql){return sql.replace(/--[^\n]*/g,' ').replace(/\/\*[\s\S]*?\*\//g,' ')}
 
+// Colunas "soltas": no SELECT, fora de agregação e fora do GROUP BY. O SQLite aceita e devolve um valor qualquer do grupo.
+function colunasSoltas(sql){
+  var ts=tokSQL(stripSqlKeepDq(sql)),semi=ts.indexOf(';');if(semi>=0)ts=ts.slice(0,semi);
+  var cl=clausulasSQL(ts),sel=cl.filter(function(c){return c.k==='SELECT'})[0];if(!sel)return [];
+  var fim=function(c){var f=cl.filter(function(x){return x.i>c.i})[0];return f?f.i:ts.length};
+  var itens=[],cur=[],d=0;ts.slice(sel.i+1,fim(sel)).forEach(function(t){if(t==='(')d++;if(t===')')d--;if(t===','&&d===0){itens.push(cur);cur=[]}else cur.push(t)});if(cur.length)itens.push(cur);
+  if(U((itens[0]||[])[0])==='DISTINCT')itens[0]=itens[0].slice(1);
+  var ehAgreg=function(it){return AGREGACOES.indexOf(U(it[0]))>=0&&it[1]==='('};
+  var gb=cl.filter(function(c){return c.k==='GROUP BY'})[0],grupo=gb?ts.slice(gb.i+2,fim(gb)).filter(function(t){return t!==','}).map(function(t){return t.toLowerCase().split('.').pop()}):null;
+  if(!grupo&&!itens.some(ehAgreg))return [];   // consulta sem agrupamento: nada a avisar
+  return itens.filter(function(it){
+    if(ehAgreg(it))return false;
+    var a=it.map(U).indexOf('AS'),expr=a>=0?it.slice(0,a):(it.length===2&&/^[A-Za-z_]/.test(it[1])?[it[0]]:it);
+    if(expr.length===1&&expr[0]==='*')return true;
+    if(expr.length!==1||!/^[A-Za-z_]/.test(expr[0]))return false;   // números, textos e cálculos ficam de fora
+    return !grupo||grupo.indexOf(expr[0].toLowerCase().split('.').pop())<0;
+  }).map(function(it){return joinToks(it)});
+}
 // Aviso para consulta que rodou, mas está fora do padrão (funciona no SQLite, falha em outros bancos).
 function avisoSQL(sql,schema){
   var dq=aspasDuplas(sql,schema);
+  var soltas=colunasSoltas(sql);
+  if(soltas[0]==='*')return 'Funcionou, mas por sorte: com <code>GROUP BY</code>, cada grupo vira <b>uma linha só</b>, e o <code>*</code> pede todas as colunas. Para as colunas que não estão no GROUP BY, o SQLite mostra o valor de uma linha <b>qualquer</b> do grupo. No PostgreSQL e no SQL Server isso dá erro. Troque o <code>*</code> pelas colunas do GROUP BY e pelas contas (COUNT, SUM…).';
+  if(soltas.length)return 'Funcionou, mas por sorte: <code>'+escH(soltas[0])+'</code> não está no <code>GROUP BY</code> nem dentro de uma conta (COUNT, SUM…). Então o banco não sabe <b>qual</b> valor mostrar de cada grupo, e o SQLite escolhe <b>um qualquer</b>. No PostgreSQL e no SQL Server isso dá erro. Ou coloque a coluna no GROUP BY, ou tire ela do SELECT.';
   if(dq)return 'Funcionou, mas por sorte: o SQLite aceitou <code>"'+escH(dq)+'"</code> como texto porque não existe coluna com esse nome. O certo é aspas simples, <code>\''+escH(dq)+'\'</code>. No PostgreSQL e no SQL Server, aspas duplas dão erro.';
   return null;
 }

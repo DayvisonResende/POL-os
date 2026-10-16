@@ -75,5 +75,37 @@ function buildSeedSQL(){
   vs.forEach(function(v){sql.push('INSERT INTO veiculos VALUES ('+sq(v.placa)+','+sq(v.modelo)+','+sq(v.cor)+','+v.ano+','+sq(v.cpf)+');')});
   radar.forEach(function(r){sql.push('INSERT INTO leituras_radar (placa,local_radar,data_hora,velocidade_kmh,foto_radar_url) VALUES ('+sq(r[0])+','+sq(r[1])+','+sq(r[2])+','+r[3]+','+sq(r[4])+');')});
   catraca.forEach(function(c){sql.push('INSERT INTO catraca_acessos (funcionario,cargo,data,horario_entrada,horario_saida) VALUES ('+c.map(sq).join(',')+');')});
+  sql.push(seedFinanceiro(people));
+  return sql.join('\n');
+}
+
+/* Módulo 3: contas bancárias e transferências (liberadas na patente Inspetor Analítico).
+   PRNG próprio (seed 2042): estes dados não mexem nos dados aleatórios de buildSeedSQL, dos quais os BOs 1001–1003 dependem.
+   As transferências aleatórias evitam a faixa de R$ 8.500 a R$ 10.500: o padrão de depósitos fracionados logo abaixo
+   de R$ 10 mil fica reservado para os registros plantados do caso de lavagem (Sprint 4), que devem ser acrescentados DEPOIS destes. */
+function seedFinanceiro(people){
+  var rf=mulberry32(2042),pf=function(a){return a[Math.floor(rf()*a.length)]};
+  var pad=function(n){return String(n).padStart(2,'0')};
+  var bancos=['Banco do Brasil','Caixa','Itaú','Bradesco','Santander','Nubank'];
+  var contas=[],usados=new Set();
+  people.forEach(function(p){
+    var n=rf()<.2?2:(rf()<.85?1:0);
+    for(var k=0;k<n;k++){var num;do{num=(10000+Math.floor(rf()*89999))+'-'+Math.floor(rf()*10)}while(usados.has(num));usados.add(num);
+      contas.push({id:contas.length+1,banco:pf(bancos),agencia:String(1000+Math.floor(rf()*8999)),numero:num,cpf:p.cpf})}
+  });
+  var descr=['PIX','PIX','PIX','PIX','TED','Aluguel','Mercado','Conserto','Empréstimo','Presente','Mensalidade','Venda de usado',null];
+  var inicio=Date.UTC(2026,8,1,0,0,0),fim=Date.UTC(2026,9,12,23,59,59),tr=[];
+  for(var i=0;i<220;i++){
+    var o=pf(contas),d;do{d=pf(contas)}while(d===o);
+    var r=rf(),v=r<.6?20+rf()*780:(r<.9?800+rf()*7700:10500+rf()*37500);
+    var t=new Date(inicio+Math.floor(rf()*(fim-inicio)));
+    var ts=t.getUTCFullYear()+'-'+pad(t.getUTCMonth()+1)+'-'+pad(t.getUTCDate())+' '+pad(t.getUTCHours())+':'+pad(t.getUTCMinutes())+':'+pad(t.getUTCSeconds());
+    tr.push([o.id,d.id,Math.round(v*100)/100,ts,pf(descr)]);
+  }
+  tr.sort(function(a,b){return a[3]<b[3]?-1:1});
+  var sql=["CREATE TABLE contas_bancarias (id INTEGER PRIMARY KEY, banco TEXT NOT NULL, agencia TEXT NOT NULL, numero TEXT NOT NULL, cpf_titular TEXT NOT NULL REFERENCES pessoas(cpf));",
+           "CREATE TABLE transferencias (id INTEGER PRIMARY KEY AUTOINCREMENT, conta_origem INTEGER NOT NULL REFERENCES contas_bancarias(id), conta_destino INTEGER NOT NULL REFERENCES contas_bancarias(id), valor REAL NOT NULL, data_hora DATETIME NOT NULL, descricao TEXT);"];
+  contas.forEach(function(c){sql.push('INSERT INTO contas_bancarias VALUES ('+c.id+','+[c.banco,c.agencia,c.numero,c.cpf].map(sq).join(',')+');')});
+  tr.forEach(function(x){sql.push('INSERT INTO transferencias (conta_origem,conta_destino,valor,data_hora,descricao) VALUES ('+x[0]+','+x[1]+','+x[2].toFixed(2)+','+sq(x[3])+','+(x[4]==null?'NULL':sq(x[4]))+');')});
   return sql.join('\n');
 }

@@ -28,6 +28,64 @@ test('banco gerado é determinístico e os fatos batem', () => {
   assert.strictEqual(J.run("SELECT nome FROM pessoas WHERE cpf='318.442.907-15'").rows[0][0], 'Valdemar Silveira');
 });
 
+test('dados dos BOs 1001–1003 não mudam (impressão digital das tabelas)', () => {
+  // Se este teste falhar, alguma mudança no gerador alterou dados de que o enredo depende.
+  // Dados novos devem ser acrescentados depois, com PRNG próprio (ver seedFinanceiro).
+  const crypto = require('crypto');
+  const esperado = { pessoas: [47, '40efb4e5d6f8d203'], veiculos: [48, 'f9bec12300d28a7b'], leituras_radar: [81, '5c8d9c63d6e0261f'], catraca_acessos: [21, '1f2ef8031675c4d8'] };
+  for (const t in esperado) {
+    const r = J.db.exec('SELECT * FROM ' + t + ' ORDER BY rowid')[0];
+    assert.deepStrictEqual([r.values.length, crypto.createHash('sha256').update(JSON.stringify(r.values)).digest('hex').slice(0, 16)], esperado[t], t);
+  }
+});
+
+test('Módulo 3: contas e transferências íntegras, sem padrão de lavagem por acaso', () => {
+  const um = q => J.db.exec(q)[0].values[0][0];
+  assert.ok(um('SELECT COUNT(*) FROM contas_bancarias') >= 30);
+  assert.ok(um('SELECT COUNT(*) FROM transferencias') >= 200);
+  assert.strictEqual(um('SELECT COUNT(*) FROM contas_bancarias WHERE cpf_titular NOT IN (SELECT cpf FROM pessoas)'), 0);
+  assert.strictEqual(um('SELECT COUNT(*) FROM transferencias WHERE conta_origem NOT IN (SELECT id FROM contas_bancarias) OR conta_destino NOT IN (SELECT id FROM contas_bancarias)'), 0);
+  assert.strictEqual(um('SELECT COUNT(*) FROM transferencias WHERE conta_origem = conta_destino'), 0);
+  // faixa reservada para os depósitos fracionados do caso de lavagem (Sprint 4)
+  assert.strictEqual(um('SELECT COUNT(*) FROM transferencias WHERE valor BETWEEN 8500 AND 10500'), 0);
+  assert.strictEqual(um("SELECT COUNT(*) FROM transferencias WHERE data_hora NOT BETWEEN '2026-09-01 00:00:00' AND '2026-10-12 23:59:59'"), 0);
+});
+
+test('Explique: agregações, GROUP BY e HAVING em português', () => {
+  const pt = q => J.T.explainSQL(q).rows.map(r => r.pt.replace(/<[^>]+>/g, '')).join(' | ');
+  const a = pt('SELECT conta_destino, COUNT(*) AS qtd, SUM(valor) FROM transferencias GROUP BY conta_destino HAVING COUNT(*) > 3 ORDER BY qtd DESC;');
+  assert.match(a, /quantidade de linhas em cada grupo/);
+  assert.match(a, /soma do valor/);
+  assert.match(a, /um grupo para cada valor diferente da conta de destino/);
+  assert.match(a, /só os grupos em que a quantidade de linhas é maior que 3/);
+  assert.match(a, /que são as transferências/);
+  const b = pt('SELECT COUNT(DISTINCT cor), MIN(ano), MAX(ano), AVG(ano) FROM veiculos;');
+  assert.match(b, /quantos valores diferentes da cor/);
+  assert.match(b, /menor valor do ano.*maior valor do ano.*média do ano/);
+  assert.match(b, /uma vez só/);
+  assert.doesNotMatch(a + b, /Módulo 3|de o |de a /);
+});
+
+test('diagnóstico de agregação: erros explicados, "por sorte" avisado, consultas certas em paz', () => {
+  const { T } = J;
+  const schema = { tables: ['veiculos', 'transferencias'], cols: ['placa', 'cor', 'ano', 'valor', 'conta_destino'] };
+  const erro = q => { try { J.db.exec(q); return null; } catch (e) { return T.translateError(e.message, q, schema); } };
+  assert.match(erro('SELECT * FROM veiculos WHERE COUNT(*) > 1'), /não vão no <code>WHERE/);
+  assert.match(erro('SELECT cor FROM veiculos HAVING COUNT(*) > 1'), /precisa de um <code>GROUP BY/);
+  // o SQLite aceita, mas é vício: PostgreSQL e SQL Server recusam
+  assert.ok(J.db.exec('SELECT placa, COUNT(*) FROM veiculos').length);
+  assert.match(T.avisoSQL('SELECT placa, COUNT(*) FROM veiculos', schema), /por sorte.*placa/);
+  assert.match(T.avisoSQL('SELECT cor, placa, COUNT(*) FROM veiculos GROUP BY cor', schema), /placa/);
+  assert.match(T.avisoSQL('SELECT * FROM veiculos GROUP BY cor', schema), /cada grupo vira/);
+  for (const q of ['SELECT cor, COUNT(*) AS qtd FROM veiculos GROUP BY cor HAVING COUNT(*) > 3 ORDER BY qtd DESC',
+                   'SELECT COUNT(*), MAX(ano) FROM veiculos', 'SELECT DISTINCT cor FROM veiculos', 'SELECT cor, ano, COUNT(*) FROM veiculos GROUP BY cor, ano',
+                   'SELECT conta_destino, COUNT(*), SUM(valor) FROM transferencias WHERE valor < 9000 GROUP BY conta_destino',
+                   "SELECT * FROM veiculos WHERE cor = 'prata' AND placa LIKE 'FTR%'"]) {
+    assert.strictEqual(T.avisoSQL(q, schema), null, q);
+    assert.deepStrictEqual([...T.diagnosticarSQL(q, schema)], [], q);
+  }
+});
+
 test('BO 1002: solução passa, SELECT * não passa, falsos positivos explicados', () => {
   const c = J.T.CASES[J.T.indiceCaso('1002')];
   assert.ok(c.steps[2].ok(J.run("SELECT * FROM veiculos WHERE cor='prata' AND placa LIKE 'FTR%'")));

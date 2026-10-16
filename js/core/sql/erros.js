@@ -16,7 +16,8 @@ function translateError(msg,sql,schema){
   if(/incomplete input/.test(msg))return 'A consulta terminou no meio. Faltou fechar aspas, fechar parênteses ou completar uma condição?';
   if(/unrecognized token/.test(msg))return 'Tem aspas abertas e não fechadas. Todo texto precisa começar e terminar com aspas simples: <code>\'prata\'</code>.';
   if(/ambiguous column/.test(msg))return 'Essa coluna existe em mais de uma tabela da consulta. Diga de qual: <code>tabela.coluna</code>.';
-  if(/misuse of aggregate/.test(msg))return 'Funções como COUNT e SUM não podem ir no WHERE. Isso é assunto do Módulo 3 (HAVING).';
+  if(/misuse of aggregate/.test(msg)||/non-aggregate query/.test(msg)){var pa=diagnosticarSQL(sql,schema);if(pa.length)return juntarProblemas(pa);
+    return /non-aggregate/.test(msg)?'O <code>HAVING</code> filtra grupos e precisa de um <code>GROUP BY</code> antes dele. Para filtrar linhas, use <code>WHERE</code>.':'Funções como COUNT e SUM não vão no WHERE: o WHERE olha uma linha de cada vez. Para filtrar pelo resultado da conta, use HAVING depois do GROUP BY.'}
   return 'O banco recusou a consulta. Confira a ordem das partes: <code>SELECT</code> … <code>FROM</code> … <code>WHERE</code> … <code>ORDER BY</code> … <code>LIMIT</code>.';
 }
 

@@ -11,7 +11,9 @@ Tempo: 40 a 60 minutos por sessão (o treinamento + BO 1001 + prova do Módulo 1
 ## Antes da sessão
 
 1. Use um computador com Chrome ou Firefox. Teste também no celular com pelo menos uma das pessoas, se der.
-2. Abra o jogo com `?teste` no fim do endereço. Exemplo: `file:///…/POL-os/index.html?teste`
+2. Abra o jogo com `?teste` no fim do endereço. O jeito mais fácil (PC ou celular) é o link publicado:
+   **https://dayvisonresende.github.io/POL-os/?teste**
+   No computador, também dá para abrir o arquivo local: `file:///…/POL-os/index.html?teste`
    (versão de arquivo único: `dist/sisp.html?teste`, gerada com `npm run empacotar`).
 3. Se já jogou nesse navegador: menu **SISP › Reiniciar turno**, e depois **SISP › Diagnóstico de playtest › Limpar telemetria**.
 4. Deixe o jogo na tela de login. Tenha papel ou a tabela abaixo aberta para anotar.
