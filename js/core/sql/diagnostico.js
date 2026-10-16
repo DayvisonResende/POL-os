@@ -31,6 +31,8 @@ function diagnosticarSQL(sql,schema){
     if(ruim)probs.push('Depois do <code>WHERE</code> vem uma comparação completa: <b>coluna</b>, <b>operador</b> e <b>valor</b>, como em <code>WHERE coluna = \'valor\'</code>. Em <code>'+escH(joinToks(ruim.ts))+'</code> falta dizer com qual coluna comparar.');
     var lk=conds.filter(function(c){var u=c.ts.map(U),i=u.indexOf('LIKE');return i===0||(i>0&&c.ts.indexOf('=')>=0)})[0];
     if(lk)probs.push('O <code>LIKE</code> fica <b>entre</b> a coluna e o padrão, e entra <b>no lugar</b> do <code>=</code>: <code>coluna LIKE \'padrão\'</code>. Em <code>'+escH(joinToks(lk.ts))+'</code> ele está fora do lugar.');
+    var btw=conds.filter(function(c){var u=c.ts.map(U),i=u.indexOf('BETWEEN');if(i<0)return false;var r=u.slice(i+1),a=r.indexOf('AND');return a<1||a===r.length-1})[0];
+    if(btw)probs.push('O <code>BETWEEN</code> precisa das <b>duas pontas</b> do intervalo, ligadas por <code>AND</code>: <code>coluna BETWEEN início AND fim</code>. Em <code>'+escH(joinToks(btw.ts))+'</code> está faltando ponta. Com data e hora, cada ponta vai completa e entre aspas: <code>\'2026-10-12 18:00:00\'</code>.');
     conds.forEach(function(c){var i=c.ts.map(U).indexOf('LIKE'),p=i<0?null:c.ts.slice(i+1).filter(function(t){return t.charAt(0)==="'"})[0];
       if(i>=0&&p&&p.charAt(0)==="'"&&!/[%_]/.test(p))probs.push('<code>LIKE '+escH(p)+'</code> sem <code>%</code> procura o texto <b>exato</b>: só acha o que for inteirinho igual a <code>'+escH(p)+'</code>. O <code>%</code> quer dizer "qualquer coisa": no fim, <code>\''+escH(p.slice(1,-1))+'%\'</code> é "começa com"; no começo, "termina com".')})}
   var dq=aspasDuplas(sql,schema);

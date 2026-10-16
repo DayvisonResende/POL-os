@@ -64,6 +64,7 @@ test('treinamentos: todo passo que executa aceita a resposta esperada', () => {
   const { T } = J;
   assert.deepStrictEqual(Object.keys(T.TREINOS).sort(), ['m1', 'm2-filtros', 'm2-intervalos']);
   for (const id in T.TREINOS) for (const [k, st] of T.TREINOS[id].passos.entries()) {
+    assert.ok(st.tema, `${id} passo ${k + 1}: falta o tema (rótulo do histórico)`);
     if (!st.ok) continue;
     if (st.type === 'slot') assert.strictEqual(st.chips.filter(c => c.certo).length, 1, `${id} passo ${k + 1}: marque a peça certa com certo:true`);
     const q = respostaDoPasso(T, st);
@@ -79,10 +80,12 @@ test('treinamentos: todo passo que executa aceita a resposta esperada', () => {
 test('treinamentos: casos apontam para treinos que existem; os do Módulo 2 não entregam respostas', () => {
   const { T } = J;
   for (const c of T.CASES) if (c.treino) assert.ok(T.TREINOS[c.treino], c.id + ' → ' + c.treino);
+  // todo treinamento deixa as Anotações da Célia em Arquivos
+  for (const id in T.TREINOS) { const a = T.TREINOS[id].anotacoes; assert.ok(a && /\.txt$/.test(a.arquivo) && a.texto.length > 200, id + ' sem anotações'); }
   // respostas dos BOs 1002/1003 e da prova do Módulo 2
   const proibido = [/FTR/, /'prata'/, /Km 18/, /KZX/, /Valdemar/, /Hilux/, /22:45/, /23:15/, /Dom Aguirre/, /'Itu'/, /'Salto'/, /BETWEEN 2018 AND 2020/];
   for (const id of ['m2-filtros', 'm2-intervalos']) {
-    const texto = JSON.stringify(T.TREINOS[id].passos) + T.TREINOS[id].passos.map(p => String(p.ok) + String(p.miss || '')).join('');
+    const texto = JSON.stringify(T.TREINOS[id].passos) + T.TREINOS[id].passos.map(p => String(p.ok) + String(p.miss || '')).join('') + T.TREINOS[id].anotacoes.texto;
     for (const re of proibido) assert.doesNotMatch(texto, re, `${id} contém ${re}`);
   }
 });
@@ -121,6 +124,11 @@ test('diagnóstico: aponta erros de estrutura sem entregar a resposta', () => {
   const h = T.zeroRowHint("SELECT * FROM veiculos WHERE placa LIKE 'FRT%'", schema);
   assert.match(h, /letra por letra/);
   assert.doesNotMatch(h, /FTR/);
+  // jogada real do playtest (treino Intervalos): BETWEEN sem as pontas
+  const q3 = "SELECT placa, data_hora FROM leituras_radar WHERE local_radar = 'Av. São Paulo' AND data_hora BETWEEN ;";
+  assert.throws(() => J.db.exec(q3));
+  assert.match(T.translateError('near ";": syntax error', q3, schema), /duas pontas/);
+  assert.match(T.diagnosticarSQL("SELECT * FROM veiculos WHERE ano BETWEEN 2020", schema)[0], /duas pontas/);
   // "funcionou por sorte": aspas duplas em valor; aspas duplas em nome de coluna são corretas
   assert.match(T.avisoSQL('SELECT * FROM veiculos WHERE cor = "prata"', schema), /por sorte/);
   assert.strictEqual(T.avisoSQL('SELECT "cor" FROM veiculos', schema), null);

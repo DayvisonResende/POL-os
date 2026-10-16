@@ -5,7 +5,7 @@ function startDesktop(resumed){
   $('#startBtn').onclick=function(e){e.stopPropagation();toggleStart()};
   document.addEventListener('click',function(e){if(!e.target.closest('#startMenu'))toggleStart(false)});
   if(verificarTreinos()){}
-  else if(tutActive()){openDb();if(S.tutEntrou!==S.treino+':'+S.tut)tutEnter()}
+  else if(tutActive()){openDb();if(S.tutEntrou!==tutChavePasso())tutEnter()}
   else{openOcorr();if(S.closed.indexOf('1002')>=0&&S.beto==='none')setTimeout(startBeto,15000)}
   if(provaMod()&&S.apps.indexOf('prova')<0){S.apps.push('prova');save();renderIcons();buildStart()}
 }

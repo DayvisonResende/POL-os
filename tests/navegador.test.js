@@ -139,6 +139,11 @@ for (const alvo of ALVOS) for (const largura of [1366, 400]) {
       assert.strictEqual(await jogarTreino(page), 'm2-filtros', 'treinamento de filtros começa depois da promoção');
       assert.ok(await page.isVisible('.win .oc'), 'Ocorrências abre no fim do treinamento');
       assert.strictEqual(await page.evaluate(() => CASES[S.caseSel].id), '1002');
+      // Anotações da Célia: uma por treinamento concluído, em Arquivos › Anotações
+      await page.evaluate(() => { openFiles(); filesDir = 'Anotações'; renderFiles(); });
+      assert.deepStrictEqual(await page.$$eval('.flist .file span', e => e.map(x => x.textContent)), ['01_consultas_basicas.txt', '02_filtros.txt']);
+      await page.dblclick('.flist .file:has-text("02_filtros.txt")');
+      assert.match(await page.textContent('.txtview'), /LIKE entra NO LUGAR do =/);
 
       // BO 1002: a jogada do playtest recebe os três problemas de uma vez; a escada de dicas tem 3 degraus
       await page.evaluate(() => openOcorr());   // dicas antes de qualquer consulta: tarefa concluída não mostra dica
@@ -249,3 +254,35 @@ for (const c of CASOS_SAVE) {
     } finally { await browser.close(); }
   });
 }
+
+// Playtest do Dayvison (treino Intervalos): o intervalo de data e hora agora tem duas lacunas pequenas.
+// Clicar seleciona a primeira lacuna que sobrou; digitar substitui. Executar com o BETWEEN vazio explica o que falta.
+test('treino Intervalos · BETWEEN com data e hora em duas lacunas', { skip: !CHROME && 'Chrome não encontrado (defina CHROME)', timeout: 60000 }, async () => {
+  const { browser, page, erros } = await abrir('index.html', 1366);
+  try {
+    await page.click('#lgBtn');
+    const passo = await page.evaluate(() => { S.treinosFeitos = ['m1']; iniciarTreino('m2-intervalos'); const i = tutPassos().findIndex(p => p.type === 'mold' && /BETWEEN '2026-10-12 ___'/.test(p.template)); S.tut = i; tutEnter(); return i; });
+    assert.ok(passo > 0);
+    assert.strictEqual(await page.evaluate(() => tutPassos()[S.tut - 1].type), 'predict', 'antes de escrever, o jogador vê e prevê');
+    // histórico: as falas anteriores ficam disponíveis para reler, recolhidas
+    assert.strictEqual((await page.textContent('.ghist > summary')).trim(), `Rever falas anteriores (${passo})`);
+    assert.ok(!(await page.isVisible('.ghi')), 'histórico começa recolhido');
+    await page.click('.ghist > summary');
+    await page.click(`.ghi[data-k="${passo}"] > summary`);
+    assert.match(await page.textContent(`.ghi[data-k="${passo}"]`), /data e hora/);
+    await page.waitForFunction(n => TELE.ev.some(e => e.tipo === 'releu' && e.passo === n), passo, { timeout: 3000 });   // releitura vai para a telemetria
+    // a jogada que travou: apagar a lacuna e executar
+    await page.fill('#sqlEd', "SELECT placa, data_hora FROM leituras_radar WHERE local_radar = 'Av. São Paulo' AND data_hora BETWEEN ;");
+    await page.click('#runBtn');
+    assert.match(await page.textContent('.gfb.bad'), /duas pontas/);
+    await page.click('#gMolde');
+    await page.click('#guide');
+    await page.click('#sqlEd'); await page.keyboard.type('18:00:00');
+    await page.click('#guide');
+    await page.click('#sqlEd'); await page.keyboard.type('20:00:00');
+    assert.match(await page.inputValue('#sqlEd'), /BETWEEN '2026-10-12 18:00:00' AND '2026-10-12 20:00:00';$/);
+    await page.click('#runBtn');
+    assert.strictEqual(await page.evaluate(() => S.tutPhase), 'after');
+    assert.deepStrictEqual(erros, []);
+  } finally { await browser.close(); }
+});

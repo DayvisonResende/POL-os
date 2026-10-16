@@ -5,6 +5,8 @@ function treinoAtual(){return S.treino?TREINOS[S.treino]||null:null}
 function tutPassos(){var t=treinoAtual();return t?t.passos:[]}
 function tutActive(){return S.tut<tutPassos().length}
 function tutStep(){return tutPassos()[S.tut]}
+// Identifica o passo iniciado; se o conteúdo do passo mudar numa versão nova, ele é reiniciado ao reabrir o jogo.
+function tutChavePasso(){var st=tutStep();return S.treino+':'+S.tut+':'+(st?st.type+':'+(st.sql||st.template||''):'')}
 function treinoFeito(id){return S.treinosFeitos.indexOf(id)>=0}
 /* Cada caso pode declarar o treinamento que vem antes dele (caso.treino). Quando o caso vira o ativo
    e o treinamento ainda não foi feito, ele começa: no jogo novo, depois de promoção, depois de fechar
@@ -34,7 +36,7 @@ function tutEnter(){
   else if(st.type==='blocks'||st.type==='free')setEditor('',st.type==='blocks');
   else setEditor(null,true);
   $('#dbExpl')&&($('#dbExpl').innerHTML='');$('#dbMsg')&&($('#dbMsg').innerHTML='');
-  S.tutEntrou=S.treino+':'+S.tut;tele('treino_passo',{passo:S.tut+1,degrau:st.type});
+  S.tutEntrou=tutChavePasso();tele('treino_passo',{passo:S.tut+1,degrau:st.type});
   save();renderGuide();
   if(st.type==='mold'||st.type==='free'){var ta=$('#sqlEd');if(ta&&window.innerWidth>760)ta.focus()}
 }
@@ -52,7 +54,8 @@ function tutFinish(){
   var T=treinoAtual();S.treinosFeitos.push(T.id);S.treino=null;S.tut=0;tele('treino_fim',{treino:T.id});
   spot(null,null);setEditor(null,false);
   var g=$('#guide');if(g){g.remove();$('.dbwrap').classList.remove('tut')}
-  save();if(T.aoConcluir)T.aoConcluir();
+  histAberto=false;save();if(T.aoConcluir)T.aoConcluir();
+  if(T.anotacoes&&S.apps.indexOf('files')>=0)setTimeout(function(){toast('Anotações da Célia','O resumo do treinamento ficou em Arquivos › Anotações.','warn',function(){filesDir='Anotações';openFiles();renderFiles()})},2200);
 }
 function tutFeedback(kind,html){if(kind!=='ok')tele('tropeco',{msg:semTags(html).slice(0,200)});S.tutFb={k:kind,h:html};save();renderGuide()}
 function tutBeforeRun(){
@@ -69,13 +72,28 @@ function tutOnRun(R){
 }
 function tutOnError(tr){if(!tutActive()||S.tutPhase!=='doing')return;var st=tutStep();if(st.type==='mold'||st.type==='free'){tutFeedback('bad',esc(S.tutErr||0,['Errou. Ótimo, é assim que se aprende. O sistema já disse o que tá errado, lê aqui:','Errou de novo. Respira. Lê devagar o que o sistema disse e faz o que ele manda:',st.type==='mold'?'Tá brigando com o teclado? Clica em <b>Voltar o molde</b> e recomeça: clica nos tracinhos e digita só o que eu pedi.':'Tá brigando com o teclado? Confere letra por letra com o que eu pedi. Se travar de vez, clica em Explique esta consulta.'])+(tr?'<div class="gerr">'+tr+'</div>':''));S.tutErr=(S.tutErr||0)+1;save()}}
 function tutOnExplain(){if(tutActive()&&S.tutPhase==='doing'&&tutStep().type==='explain')tutComplete()}
+/* Histórico: as falas dos passos anteriores do treinamento ativo, só para reler (playtest: quem se perdia travava).
+   Fica recolhido; cada passo abre com um clique. Não deixa voltar e refazer passos. */
+var histAberto=false;
+function rotuloPasso(st){if(st.tema)return st.tema;var t=semTags(fill(st.text||''));var f=t.split(/(?<=[.!?])\s/)[0];return f.length>72?f.slice(0,70)+'…':f}
+function histHTML(){
+  if(S.tut<1)return '';
+  var itens=tutPassos().slice(0,S.tut).map(function(st,k){
+    return '<details class="ghi" data-k="'+(k+1)+'"><summary><span class="gn">'+(k+1)+'</span>'+escH(rotuloPasso(st))+'</summary><div class="gbub">'+fill(st.text||'')+(st.extra||'')+(st.text2||'')+'</div>'+(st.after?'<div class="gbub after">'+fill(st.after)+'</div>':'')+'</details>'}).join('');
+  return '<details class="ghist"'+(histAberto?' open':'')+'><summary>Rever falas anteriores ('+S.tut+')</summary><div class="ghl">'+itens+'</div></details>';
+}
+function ligarHist(g){
+  var d=g.querySelector('.ghist');if(!d)return;
+  d.addEventListener('toggle',function(){histAberto=d.open});
+  d.querySelectorAll('.ghi').forEach(function(x){x.addEventListener('toggle',function(){if(x.open)tele('releu',{passo:+x.getAttribute('data-k')})})});
+}
 function renderGuide(){
   var g=$('#guide');if(!g)return;var st=tutStep();if(!st)return;
   var i=S.tut,N=tutPassos().length,after=S.tutPhase==='after';
-  var html='<div class="gh"><span class="av">CM</span><div><b>Célia Moura</b><small>'+escH(treinoAtual().titulo)+' · passo '+(i+1)+' de '+N+'</small></div></div><div class="gprog"><i style="width:'+Math.round((i+(after?1:0))/N*100)+'%"></i></div>';
-  if(after){html+='<div class="gbub after">'+fill(st.after)+'</div><div class="gact"><button class="btn-primary" id="gNext">Continuar</button></div>';g.innerHTML=html;$('#gNext').onclick=tutNext;spot('#gNext');return}
+  var html='<div class="gh"><span class="av">CM</span><div><b>Célia Moura</b><small>'+escH(treinoAtual().titulo)+' · passo '+(i+1)+' de '+N+'</small></div></div><div class="gprog"><i style="width:'+Math.round((i+(after?1:0))/N*100)+'%"></i></div>'+histHTML();
+  if(after){html+='<div class="gbub after">'+fill(st.after)+'</div><div class="gact"><button class="btn-primary" id="gNext">Continuar</button></div>';g.innerHTML=html;ligarHist(g);$('#gNext').onclick=tutNext;spot('#gNext');return}
   html+='<div class="gbub">'+fill(st.text)+(st.extra||'')+(st.text2||'')+'</div>';
-  g.innerHTML=html;var sp=st.spot||null,pl=st.point||null;
+  g.innerHTML=html;ligarHist(g);var sp=st.spot||null,pl=st.point||null;
   if(st.type==='msg'||st.type==='final'){var a=h('div',{class:'gact'});var b=h('button',{class:'btn-primary',id:'gNext'},escH(st.btn||'Continuar'));b.onclick=tutNext;a.appendChild(b);g.appendChild(a);sp='#gNext'}
   if(st.type==='predict'){
     g.appendChild(h('div',{class:'gq'},escH(st.q)));var og=h('div',{class:'gopts'});

@@ -48,3 +48,11 @@
 .spot{animation:spot 1.3s ease-in-out infinite;position:relative;z-index:2}
 @keyframes spot{0%,100%{box-shadow:0 0 0 2px var(--accent),0 0 0 5px rgba(214,149,28,.25)}50%{box-shadow:0 0 0 2px var(--accent),0 0 0 9px rgba(214,149,28,0)}}
 .gerr{margin-top:8px;padding:7px 9px;background:#fff;border:1px solid #d9a19c;font-size:13.5px;line-height:1.4}
+/* histórico de falas do treinamento */
+.ghist{border:1px solid var(--rule);background:#fff;font-size:13.5px}
+.ghist>summary{padding:6px 10px;cursor:pointer;color:var(--ink-2);font-weight:600}
+.ghl{display:grid;gap:4px;padding:0 6px 6px}
+.ghi>summary{display:flex;gap:8px;align-items:baseline;padding:4px 6px;cursor:pointer;color:var(--ink-2)}
+.ghi>summary:hover{background:var(--accent-soft)}
+.ghi .gn{flex:none;font-family:var(--f-code);font-size:11.5px;color:var(--ink-3)}
+.ghi .gbub{font-size:14px;margin:4px 0 6px}
