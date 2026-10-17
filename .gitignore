@@ -7,3 +7,7 @@ dist/
 # telemetria remota baixada (dados de jogadores) e chaves secretas: nunca commitar
 telemetria/
 .env
+
+# material do autor: contém o final do jogo (o repositório é público). Ver SISP_contexto_para_IA.md, "Pendências".
+docs/historia.md
+docs/supabaseKeys.md
