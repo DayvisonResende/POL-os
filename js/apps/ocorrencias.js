@@ -1,6 +1,7 @@
 /* ---------- Ocorrências ---------- */
-function caseUnlocked(i){if(S.rank<(CASES[i].rankMin||0))return false;return i===0||S.closed.indexOf(CASES[i-1].id)>=0}
+function caseUnlocked(i){if(S.rank<(CASES[i].rankMin||0)||S.dia<(CASES[i].diaMin||0))return false;return i===0||S.closed.indexOf(CASES[i-1].id)>=0}
 function caseWaitsRank(i){return i>0&&caseDone(i-1)&&S.rank<(CASES[i].rankMin||0)}
+function caseWaitsDay(i){return i>0&&caseDone(i-1)&&S.dia<(CASES[i].diaMin||0)}
 function caseDone(i){return S.closed.indexOf(CASES[i].id)>=0}
 function caseActive(){for(var k=0;k<CASES.length;k++)if(caseUnlocked(k)&&!caseDone(k))return k;return -1}
 function openOcorr(){openWin('ocorr',{title:nomeApp('ocorr'),w:760,h:540,x:110,y:14,build:function(){renderOcorr()},refresh:function(){renderOcorr()}})}
@@ -9,7 +10,7 @@ function renderOcorr(){
   r.body.innerHTML='';var wrap=h('div',{class:'oc'}),list=h('div',{class:'oclist'});
   CASES.forEach(function(c,i){
     var un=caseUnlocked(i),dn=caseDone(i);
-    var b=h('button',{class:'ocitem'+(i===S.caseSel?' sel':'')},'<span class="no">'+L('BO 2026/{id} · Módulo {m}',{id:c.id,m:c.modulo})+'</span><span class="tt">'+escH(c.titulo)+'</span><span class="pill '+(dn?'p-done':un?'p-open':'p-lock')+'">'+(dn?L('Encerrado'):un?L('Em análise'):(caseWaitsRank(i)?L('Aguarda promoção'):L('Pendente')))+'</span>');
+    var b=h('button',{class:'ocitem'+(i===S.caseSel?' sel':'')},'<span class="no">'+L('BO 2026/{id} · Módulo {m}',{id:c.id,m:c.modulo})+'</span><span class="tt">'+escH(c.titulo)+'</span><span class="pill '+(dn?'p-done':un?'p-open':'p-lock')+'">'+(dn?L('Encerrado'):un?L('Em análise'):(caseWaitsRank(i)?L('Aguarda promoção'):caseWaitsDay(i)?L('Próximo expediente'):L('Pendente')))+'</span>');
     if(!un)b.disabled=true;b.onclick=function(){S.caseSel=i;save();renderOcorr()};list.appendChild(b)});
   wrap.appendChild(list);
   var c=CASES[S.caseSel],d=h('div',{class:'ocdetail'});
@@ -50,6 +51,7 @@ function closeCase(i,msg){
   toast(L('Chamado encerrado'),L('BO 2026/{id}: {titulo}',{id:c.id,titulo:escH(c.titulo)}),'ok');
   if(c.aoEncerrar)c.aoEncerrar();
   setTimeout(verificarTreinos,2500);   // o próximo caso pode ter treinamento
+  verificarPedidos();
   if(i<CASES.length-1&&caseUnlocked(i+1))S.caseSel=i+1;
   save();renderOcorr();renderFiles();
 }
@@ -61,7 +63,7 @@ function checkSteps(res){
   var idx=caseActive();
   if(idx<0)return;var c=CASES[idx],stp=S.steps[c.id]||(S.steps[c.id]=[]);
   var feitas=0,quase=null;
-  c.steps.forEach(function(s,k){if(stp.indexOf(k)<0){var ok=false;try{ok=s.ok(R)}catch(e){}if(ok){feitas++;stp.push(k);tele('tarefa',{caso:c.id,tarefa:k+1});if(!tutActive())toast('Tarefa concluída',s.t.replace(/<[^>]+>/g,''),'ok')}
+  c.steps.forEach(function(s,k){if(stp.indexOf(k)<0){var ok=false;try{ok=s.ok(R)}catch(e){}if(ok){feitas++;stp.push(k);tele('tarefa',{caso:c.id,tarefa:k+1});if(s.aoConcluir)setTimeout(s.aoConcluir,1200);if(!tutActive())toast('Tarefa concluída',s.t.replace(/<[^>]+>/g,''),'ok')}
     else if(!quase&&s.quase){try{var q=s.quase(R);if(q)quase={k:k,msg:q}}catch(e){}}}});
   save();renderOcorr();
   // Nenhuma tarefa marcou, mas a consulta chegou perto de uma: diz o que falta em vez de ficar calado.

@@ -3,10 +3,11 @@
 var SQL=null, db=null, SCHEMA={tables:[],cols:[],info:{}};
 var TABELAS=[
  {nome:'veiculos'},{nome:'pessoas'},{nome:'leituras_radar'},{nome:'catraca_acessos'},
- {nome:'contas_bancarias',rankMin:3,patente:L('Inspetor Analítico')},
- {nome:'transferencias',rankMin:3,patente:L('Inspetor Analítico')}
+ {nome:'contas_bancarias',rankMin:3,diaMin:1,patente:L('Inspetor Analítico')},
+ {nome:'transferencias',rankMin:3,diaMin:1,patente:L('Inspetor Analítico')}
 ];
-function tabelaLiberada(t){return S.rank>=(t.rankMin||0)}
+// diaMin: acesso provisório a partir desse dia (Operação Véio, quarta-feira); rankMin: acesso definitivo pela patente.
+function tabelaLiberada(t){return S.rank>=(t.rankMin||0)||(t.diaMin!=null&&S.dia>=t.diaMin)}
 function iniciarBanco(lib){
   SQL=lib;db=new SQL.Database();db.run(buildSeedSQL());computeFacts(db);
   TABELAS.forEach(function(t){var info=db.exec('PRAGMA table_info('+t.nome+')')[0].values;var fks=(db.exec('PRAGMA foreign_key_list('+t.nome+')')[0]||{values:[]}).values.map(function(v){return v[3]});

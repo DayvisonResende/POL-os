@@ -9,7 +9,7 @@
 .contact .cr{font-size:12px;color:var(--ink-3)}
 .contact .badge{position:static;margin-left:auto}
 .thread{flex:1;min-width:0;display:flex;flex-direction:column}
-.msgs{flex:1;min-height:0;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:8px;background:#eef2f0}
+.msgs{position:relative;flex:1;min-height:0;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:8px;background:#eef2f0}
 .msg{max-width:80%;padding:8px 11px;font-size:14.5px;line-height:1.42;background:#fff;border:1px solid var(--rule);align-self:flex-start}
 .msg.me{align-self:flex-end;background:#d9e7ea;border-color:#b6cdd3}
 .msg.sys{align-self:center;background:none;border:0;color:var(--ink-3);font-size:12.5px;text-align:center}
@@ -21,3 +21,12 @@
 .reply .muted{font-size:13px;padding:4px}
 .av.jairo{background:#4a5a2e}
 .av.marina{background:#5a3f6e}
+/* lidas e não lidas */
+.thread{position:relative}
+.novas{align-self:stretch;display:flex;align-items:center;gap:8px;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:#8a5a06;margin:4px 0}
+.novas::before,.novas::after{content:"";flex:1;border-top:1px solid #d8a64a}
+.msg.nova{border-left:3px solid var(--accent)}
+.msg.chegou{animation:chegou 1.2s ease-out}
+@keyframes chegou{from{background:var(--accent-soft)}to{background:#fff}}
+.msg .hora{display:block;text-align:right;font-size:10.5px;color:var(--ink-3);margin-top:3px;font-variant-numeric:tabular-nums}
+.pular{position:absolute;right:14px;bottom:62px;padding:5px 10px;border:1px solid #d8a64a;background:var(--accent-soft);font-size:12.5px;font-weight:600;box-shadow:0 4px 12px rgba(0,0,0,.18)}

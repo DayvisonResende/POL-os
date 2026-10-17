@@ -10,7 +10,7 @@ function openProva(){openWin('prova',{title:L('ACADEPOL — Avaliação'),w:720,
 function renderProva(){
   var r=WINS.prova;if(!r)return;var mod=provaMod();var b=r.body;var sc=b.querySelector('.prova');var top=sc?sc.scrollTop:0;b.innerHTML='';
   var wrap=h('div',{class:'prova'});b.appendChild(wrap);
-  if(!mod){wrap.innerHTML='<div class="phead"><div class="eyebrow">'+L('Academia de Polícia Civil · ACADEPOL')+'</div><h2>'+L('Nenhuma prova agendada')+'</h2><p>'+(S.rank>=2?L('Você já é {patente}. A prova do Módulo 3 sai quando o módulo sair.',{patente:escH(rankT())}):L('A próxima prova é liberada quando você fechar os chamados do módulo.'))+'</p></div>';return}
+  if(!mod){wrap.innerHTML='<div class="phead"><div class="eyebrow">'+L('Academia de Polícia Civil · ACADEPOL')+'</div><h2>'+L('Nenhuma prova agendada')+'</h2><p>'+(S.rank>=2?L('Você já é {patente}. A próxima prova sai quando o próximo módulo sair.',{patente:escH(rankT())}):L('A próxima prova é liberada quando você fechar os chamados do módulo.'))+'</p></div>';return}
   if(!S.prova||S.prova.mod!==mod)newProva(mod);
   var P=PROVAS[mod],pv=S.prova,g=pv.graded;
   wrap.innerHTML='<div class="phead"><div class="eyebrow">'+L('Academia de Polícia Civil · ACADEPOL')+'</div><h2>'+L('Prova de promoção a {patente}',{patente:escH(RANKS[P.para].t)})+'</h2><p>'+escH(P.titulo)+'. '+L('Cinco questões, aprovação com 4 acertos. A prova é com consulta: pode usar o DB-Investigator, o Dicionário de Dados e o botão Explique. Reprovou, refaz com outras questões.')+'</p></div>';
@@ -71,5 +71,6 @@ function promote(to){
   $('#prOk',ov).onclick=function(){ov.remove();say('celia',R.celia);
     if(R.aoPromover)R.aoPromover();
     setTimeout(verificarTreinos,1200);
+    verificarPedidos();
     if(WINS.prova)renderProva();if(WINS.db)$('#dbStatus').textContent=L('Perfil: {patente} (somente leitura).',{patente:rankT()})};
 }

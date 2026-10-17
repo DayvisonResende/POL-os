@@ -1,0 +1,16 @@
+/* Prova do Módulo 3. requer = BO que precisa estar encerrado; para = índice da patente em RANKS.
+   As questões de escrever são corrigidas pelo resultado (bateGrupos / temNumero), nunca pelo texto. */
+registrarProva(3,{requer:'1005',para:3,titulo:L('Módulo 3 · Contar, somar e agrupar'),
+  mcq:[
+   {id:'3a',q:L('Qual a diferença entre <code>COUNT(*)</code> e <code>COUNT(descricao)</code>?'),opts:[L('COUNT(*) conta todas as linhas; COUNT(descricao) só as que têm descrição preenchida'),L('Nenhuma: as duas contam todas as linhas'),L('COUNT(descricao) soma os textos da coluna')],ok:0,exp:L('COUNT(coluna) não conta os vazios (NULL). COUNT(*) conta todas as linhas.')},
+   {id:'3b',q:L('Qual palavra filtra os <b>grupos</b> no lugar do ___?'),code:'SELECT cidade, COUNT(*) FROM pessoas\nGROUP BY cidade ___ COUNT(*) > 5;',opts:['HAVING','WHERE','ORDER BY'],ok:0,exp:L('Depois do GROUP BY, quem filtra grupos é o HAVING. O WHERE filtra linhas, antes de agrupar.')},
+   {id:'3c',q:L('Quantas linhas esta consulta devolve?'),code:'SELECT cor, COUNT(*) FROM veiculos GROUP BY cor;',opts:[L('Uma para cada cor diferente'),L('Uma para cada veículo'),L('Uma só, com o total')],ok:0,exp:L('Cada grupo (cada cor) vira uma linha, com a contagem ao lado.')},
+   {id:'3d',q:L('Esta consulta volta vazia, mesmo havendo transferências sem descrição. Por quê?'),code:'SELECT * FROM transferencias WHERE descricao = NULL;',opts:[L('Porque com NULL não se usa =: o certo é IS NULL'),L('Porque faltaram aspas em NULL'),L('Porque NULL só funciona com números')],ok:0,exp:L('Nada é "igual" ao vazio: = NULL nunca é verdade. Para achar o vazio, use IS NULL.')},
+   {id:'3e',q:L('O que esta consulta mostra?'),code:'SELECT local_radar, MAX(velocidade_kmh)\nFROM leituras_radar GROUP BY local_radar;',opts:[L('A maior velocidade registrada em cada radar'),L('Todas as passagens, da mais rápida para a mais lenta'),L('Só o radar mais rápido de todos')],ok:0,exp:L('GROUP BY local_radar faz uma conta por radar; MAX pega a maior velocidade de cada um.')}
+  ],
+  write:[
+   {id:'3w1',q:L('Mostre <b>quantas pessoas</b> moram em <b>cada cidade</b>.'),check:function(R){return bateGrupos(R,linhasDe('SELECT cidade, COUNT(*) AS n FROM pessoas GROUP BY cidade'),'cidade','n')},model:'SELECT cidade, COUNT(*) FROM pessoas GROUP BY cidade;'},
+   {id:'3w2',q:L('Mostre a <b>velocidade média</b> das passagens em <b>cada local de radar</b>.'),check:function(R){return bateGrupos(R,linhasDe('SELECT local_radar, AVG(velocidade_kmh) AS m FROM leituras_radar GROUP BY local_radar'),'local_radar','m',0.01)},model:'SELECT local_radar, AVG(velocidade_kmh) FROM leituras_radar GROUP BY local_radar;'},
+   {id:'3w3',q:L('Mostre os <b>anos de fabricação</b> que têm <b>4 ou mais</b> veículos no cadastro, com a quantidade.'),check:function(R){return bateGrupos(R,linhasDe('SELECT ano, COUNT(*) AS n FROM veiculos GROUP BY ano HAVING COUNT(*) >= 4'),'ano','n')},model:'SELECT ano, COUNT(*) FROM veiculos GROUP BY ano HAVING COUNT(*) >= 4;'},
+   {id:'3w4',q:L('Quantas transferências do cadastro estão <b>sem descrição</b>? Um número só.'),check:function(R){return R.n===1&&temNumero(R,F.nTransf-F.nComDescricao)},model:'SELECT COUNT(*) FROM transferencias WHERE descricao IS NULL;'}
+  ]});

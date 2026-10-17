@@ -71,9 +71,10 @@ registrarTreino({id:'m1',titulo:'Treinamento',
   "  - Os nomes certos das tabelas e colunas estão no Dicionário de Dados."
  ].join('\n')},
  aoConcluir:function(){
-  S.apps.indexOf('ocorr')<0&&S.apps.push('ocorr');S.apps.indexOf('zap')<0&&S.apps.push('zap');save();renderIcons();buildStart();
-  toast('Programas liberados','SISP Ocorrências e PolíciaZap estão na sua área de trabalho.','warn');
+  S.apps.indexOf('ocorr')<0&&S.apps.push('ocorr');S.apps.indexOf('zap')<0&&S.apps.push('zap');S.apps.indexOf('caderno')<0&&S.apps.push('caderno');save();renderIcons();buildStart();
+  toast('Programas liberados','SISP Ocorrências, PolíciaZap e o seu Caderno estão na área de trabalho.','warn');
   say('celia','Treinamento acabou. Tô aqui no PolíciaZap se precisar, mas não me chama pra besteira. Agora me entrega o relatório no SISP Ocorrências.');
+  setTimeout(function(){say('celia',L('Ah: na tua mesa tem um Caderno. Investigador que não anota esquece. No resultado de uma consulta, o 📌 de cada linha guarda ela no Caderno, e clicar num valor lá cola ele no editor.'))},5000);
   openOcorr();
  }
 });

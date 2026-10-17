@@ -11,7 +11,7 @@ function clausulasSQL(ts){var out=[],d=0;ts.forEach(function(t,i){if(t==='(')d++
 var OPERADORES=['=','==','!=','<>','<','>','<=','>='];
 function semComparacao(c){
   if(c.ts.indexOf('(')>=0)return false;
-  return !c.ts.some(function(t){return OPERADORES.indexOf(t)>=0||['LIKE','IN','BETWEEN','IS','GLOB'].indexOf(U(t))>=0});
+  return !c.ts.some(function(t){return U(t)==='NULL'||OPERADORES.indexOf(t)>=0||['LIKE','IN','BETWEEN','IS','GLOB'].indexOf(U(t))>=0});
 }
 
 // Lista de problemas encontrados (HTML). Vazia se nada óbvio estiver errado.
@@ -33,6 +33,8 @@ function diagnosticarSQL(sql,schema){
   var hv=cl.filter(function(c){return c.k==='HAVING'})[0];
   if(hv&&!cl.some(function(c){return c.k==='GROUP BY'}))probs.push('O <code>HAVING</code> filtra <b>grupos</b>, então precisa de um <code>GROUP BY</code> antes dele: <code>… GROUP BY coluna HAVING COUNT(*) &gt; 1</code>. Para filtrar linhas comuns, use <code>WHERE</code>.');
   if(cond){var conds=splitConds(cond);
+    var cmpNull=conds.filter(function(c){return c.ts.some(function(t,i){return U(t)==='NULL'&&['=','==','!=','<>'].indexOf(c.ts[i-1])>=0})})[0];
+    if(cmpNull)probs.push(L('Com NULL não se usa <code>=</code>: nada é \"igual\" ao vazio, então a condição nunca é verdadeira e o resultado volta vazio. Use <code>IS NULL</code> (ou <code>IS NOT NULL</code>).'));
     var ruim=conds.filter(semComparacao)[0];
     if(ruim)probs.push('Depois do <code>WHERE</code> vem uma comparação completa: <b>coluna</b>, <b>operador</b> e <b>valor</b>, como em <code>WHERE coluna = \'valor\'</code>. Em <code>'+escH(joinToks(ruim.ts))+'</code> falta dizer com qual coluna comparar.');
     var lk=conds.filter(function(c){var u=c.ts.map(U),i=u.indexOf('LIKE');return i===0||(i>0&&c.ts.indexOf('=')>=0)})[0];

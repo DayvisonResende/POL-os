@@ -1,6 +1,7 @@
 /* ---------- window manager ---------- */
 var WINS={}, zTop=10;
-function focusWin(id){var w=WINS[id];if(!w)return;w.el.classList.remove('min');w.el.style.zIndex=++zTop;Object.keys(WINS).forEach(function(k){WINS[k].el.classList.toggle('active',k===id)});renderTasks()}
+function focusWin(id){var w=WINS[id];if(!w)return;var jaAtiva=w.el.classList.contains('active')&&!w.el.classList.contains('min');w.el.classList.remove('min');w.el.style.zIndex=++zTop;Object.keys(WINS).forEach(function(k){WINS[k].el.classList.toggle('active',k===id)});renderTasks();
+  if(id==='zap'&&!jaAtiva&&typeof renderZap==='function'&&S.unread[chatSel])setTimeout(renderZap,0)}   // trouxe o PolíciaZap para frente: o que estava esperando vira lido
 function openWin(id,opts){
   if(WINS[id]){focusWin(id);if(opts.refresh)opts.refresh(WINS[id]);return WINS[id]}
   tele('janela',{app:String(id).split('_')[0]});

@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="css/apps/arquivos.css">
 <link rel="stylesheet" href="css/apps/treinamento.css">
 <link rel="stylesheet" href="css/apps/acadepol.css">
+<link rel="stylesheet" href="css/apps/caderno.css">
 <link rel="stylesheet" href="css/apps/diagnostico.css">
 <link rel="stylesheet" href="css/mobile.css">
 </head>
@@ -32,7 +33,7 @@
         <button class="btn-primary" id="lgBtn" type="submit" disabled data-i18n>Iniciar expediente</button>
         <div id="bootStatus" data-i18n>Carregando base de dados…</div>
       </form>
-      <p class="boot-note" data-i18n>Simulação fictícia para ensino de SQL. Nomes, placas e CPFs foram gerados e não correspondem a pessoas reais. Protótipo: Módulos 1 e 2 (três chamados).</p>
+      <p class="boot-note" data-i18n>Simulação fictícia para ensino de SQL. Nomes, placas e CPFs foram gerados e não correspondem a pessoas reais. Protótipo: Módulos 1 a 3 (cinco chamados).</p>
     </div>
   </div>
 
@@ -76,16 +77,23 @@
 <script src="js/conteudo/personagens.js"></script>
 <script src="js/conteudo/dicionario.js"></script>
 <script src="js/conteudo/termo.js"></script>
+<script src="js/conteudo/dias.js"></script>
+<script src="js/conteudo/pedidos.js"></script>
 <script src="js/conteudo/patentes.js"></script>
 <script src="js/conteudo/arquivos.js"></script>
 <script src="js/conteudo/casos/1001.js"></script>
 <script src="js/conteudo/casos/1002.js"></script>
 <script src="js/conteudo/casos/1003.js"></script>
+<script src="js/conteudo/casos/1004.js"></script>
+<script src="js/conteudo/casos/1005.js"></script>
 <script src="js/conteudo/treinamento/modulo1.js"></script>
 <script src="js/conteudo/treinamento/modulo2-filtros.js"></script>
 <script src="js/conteudo/treinamento/modulo2-intervalos.js"></script>
+<script src="js/conteudo/treinamento/modulo3-agregacao.js"></script>
+<script src="js/conteudo/treinamento/modulo3-nulos.js"></script>
 <script src="js/conteudo/provas/modulo1.js"></script>
 <script src="js/conteudo/provas/modulo2.js"></script>
+<script src="js/conteudo/provas/modulo3.js"></script>
 <!-- Interface base do Pol-OS -->
 <script src="js/ui/dom.js"></script>
 <script src="js/ui/icones.js"></script>
@@ -98,6 +106,7 @@
 <script src="js/ui/telemetria.js"></script>
 <script src="js/ui/backup.js"></script>
 <script src="js/ui/telemetria-remota.js"></script>
+<script src="js/ui/expediente.js"></script>
 <!-- Aplicativos -->
 <script src="js/apps/policiazap.js"></script>
 <script src="js/apps/ocorrencias.js"></script>
@@ -105,10 +114,12 @@
 <script src="js/apps/treinamento.js"></script>
 <script src="js/apps/radar.js"></script>
 <script src="js/apps/arquivos.js"></script>
+<script src="js/apps/caderno.js"></script>
 <script src="js/apps/acadepol.js"></script>
 <script src="js/apps/relatorio.js"></script>
 <!-- História -->
 <script src="js/historia/beto.js"></script>
+<script src="js/historia/pedidos.js"></script>
 <!-- Inicialização (sempre por último) -->
 <script src="js/main.js"></script>
 </body>

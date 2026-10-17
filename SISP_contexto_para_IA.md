@@ -1,4 +1,4 @@
-# SISP — Documento de Continuidade para IA (v3.4)
+# SISP — Documento de Continuidade para IA (v3.5)
 
 > **Para a IA que vai continuar este projeto:** leia este arquivo inteiro antes de mexer no código. Ele descreve o que o jogo é, por que ele é assim, o que já existe no código (`index.html` + pastas `css/` e `js/`), como ele está organizado, quais decisões já foram tomadas (e por quê) e o que falta fazer. A autora do projeto é a May, que fala português, é detalhista e quer **entender** as decisões, não só recebê-las. Dê opinião honesta quando ela pedir, mesmo discordando.
 
@@ -211,13 +211,20 @@ registrarCaso({                     // em js/conteudo/casos/1002.js
 - Painel **Diagnóstico de playtest** no menu iniciar, **só** quando o jogo é aberto com `?teste` no endereço. Mostra tempo, consultas, erros, tropeços e dicas por lugar; destaca lugares com 3+ erros/tropeços ou 5+ minutos; exporta JSON.
 - Ao criar algo novo que o jogador possa errar, chame `tele('tipo', {...})` no ponto do erro.
 
+### 4.6.1 Dias de expediente, pedidos e PolíciaZap
+- **Dias** (`js/conteudo/dias.js` + `js/ui/expediente.js`): cada módulo é um dia. `S.dia` (0 = terça 13/10), `S.diaConcluido`, `S.diaIniciado`. A promoção do fim do módulo chama `concluirDia()`; o Relatório do turno mostra **Encerrar expediente** (se existir o dia seguinte), com transição e recarga. No primeiro login do dia, o **e-mail da manhã** abre antes do treinamento. Casos têm `diaMin`; tabelas têm `diaMin` (acesso provisório) além de `rankMin`.
+- **Pedidos dos colegas** (`registrarPedido` em `js/core/registro.js`, conteúdo em `js/conteudo/pedidos.js`, motor em `js/historia/pedidos.js`): prática opcional pelo PolíciaZap; acerto dá Metas, erro não pune. Primeiro: `jairo-radares` (GROUP BY + ORDER BY), depois do BO 1004.
+- **Tarefas com `aoConcluir`**: fala da história disparada no momento em que o jogador conclui a tarefa (a virada da Denise no BO 1004).
+- **Caderno do Investigador** (`js/apps/caderno.js`, `S.caderno`): uma página "Geral" e uma por BO liberado (casos futuros não aparecem). Anotação livre salva sozinha; o 📌 em cada linha da grade do DB-Investigator fixa a linha (com a consulta) na página do BO em andamento; clicar num valor fixado cola no editor, com aspas se for texto. Liberado com Ocorrências e PolíciaZap; saves antigos ganham automaticamente. Telemetria: `caderno` (`fixar`, `colar`, `nota`), resumida no relatório.
+- **PolíciaZap, lidas e não lidas** (playtest da Mayumi): `S.lidas[contato]`; mensagem só conta como lida com o PolíciaZap em primeiro plano; divisória "N mensagens novas", destaque, botão "↓ Nova mensagem" quando o jogador está lendo mensagens antigas, horário do jogo em cada mensagem.
+
 ### 4.7 Telemetria remota (Supabase)
 - `js/ui/telemetria-remota.js` manda cada evento de `tele()` para a tabela `eventos` do Supabase, **só** se `js/config.js` tiver `url` e `chave` **e** o jogador aceitou o termo (`js/conteudo/termo.js`, guardado em `localStorage['sisp-consentimento']` com `TERMO_VERSAO`). Sem isso, não faz nada.
 - Lotes de 40 eventos, a cada 15 s e ao sair/esconder a aba (`keepalive`); fila em `localStorage['sisp-telemetria-fila']` (até 1000), reenviada depois se a internet cair.
 - Identidade: `sisp-jogador` (código aleatório por navegador) e um código por abertura do jogo. **Nunca** enviar nome, login, senha, contato nem o nome do certificado (há teste).
 - Eventos extras (além dos da 4.6): `sessao` com aparelho em categorias (`faixa`, `navegador`, `sistema`, `idioma`, `toque`, `msBanco`, `versao`), `janela`, `escolha` (opções e peças dos treinamentos), `dilema`, `beto`, `promocao`, `demitido`, `relatorio`, `dica_auto` (dica exibida), `erro_js` (erros técnicos), `pausa`/`volta`/`saida`, `consentimento`, `treino_inicio`/`treino_fim`.
 - Configurações › Privacidade (só aparece se configurado): liga/desliga, mostra o código anônimo e o termo completo.
-- Lado do servidor: `supabase/setup.sql` (tabela só-inserção para `anon`, limites de tamanho, view `sessoes_resumo`). Download e relatório: `npm run telemetria` → `telemetria/` (fora do git). Guia: `docs/telemetria-supabase.md`.
+- Lado do servidor: `supabase/setup.sql` (tabela só-inserção para `anon`, limites de tamanho, view `sessoes_resumo`). Download e relatório: `npm run telemetria` → `telemetria/` (fora do git). Instalação: `docs/telemetria-supabase.md`; comandos e consultas do dia a dia: `docs/telemetria-comandos.md`. **Configurado e no ar desde 17/10/2026** (projeto `hkltzqavgnqfnvxdszgi`).
 - **Testes nunca enviam para o Supabase de verdade:** `abrir()` define `window.SISP_CONFIG_TESTE`, que `js/config.js` usa no lugar da configuração real.
 
 ---
@@ -243,6 +250,8 @@ CREATE TABLE transferencias (id INTEGER PRIMARY KEY AUTOINCREMENT, conta_origem 
 **Tabelas por patente:** `TABELAS` em `js/ui/banco.js` tem `rankMin`/`patente`. Tabela não liberada não aparece no Dicionário nem nas sugestões de erro, e consultá-la (terminal ou prova) dá "Acesso negado… liberada para Inspetor Analítico", **sem** Corregedoria. A promoção chama `atualizarSchema()`.
 
 **Dados financeiros (`seedFinanceiro`):** ~44 contas e 220 transferências aleatórias de 01/09 a 12/10/2026, com **PRNG próprio (seed 2042)**: não mexem nos dados de `buildSeedSQL`. As transferências aleatórias **evitam a faixa de R$ 8.500 a R$ 10.500**, reservada para os depósitos fracionados plantados do caso de lavagem (Sprint 4). Registros plantados devem ser acrescentados **depois** dos aleatórios. Valores em reais com centavos (`REAL`).
+
+**Plantado para o Ato II (Módulo 3):** 8 laranjas (idosos de Piedade e Itu, acrescentados ao fim de `pessoas`), as contas deles (`aberta_em` entre 15/09 e 01/10/2026), a conta da Denise (`48211-6`), 14 depósitos em espécie (`conta_origem` NULL, "DEPÓSITO EM ESPÉCIE") e 14 repasses de R$ 9.000–9.999 para a Denise, todos em 13/10. `contas_bancarias` ganhou `aberta_em`; `conta_origem` aceita NULL. Fatos em `F` (`contaDenise`, `contasLaranja`, `laranjas`, `soma13`, `nSemOrigem`, `somaEspecie`…). Regra: só os plantados caem na faixa de R$ 8.500–10.500, e o padrão HAVING aponta uma conta só (testado).
 
 **Garantia:** `tests/jogo.test.js` guarda a impressão digital (contagem + hash) das quatro tabelas originais. Se ela mudar, alguma alteração no gerador mexeu em dados de que o enredo depende.
 **Mudança em relação ao documento original v2.1:** `veiculos` deixou de ter `proprietario_nome`. Agora aponta para `pessoas` por `cpf_proprietario`. Motivo: com o nome dentro de `veiculos`, o JOIN do Módulo 4 seria opcional e o jogador não entenderia por que ele existe.
@@ -282,6 +291,8 @@ Cada conceito novo passa por um treinamento com a Célia no painel do DB-Investi
 | `m1` | `treinamento/modulo1.js` | BO 1001 | 14 | SELECT, FROM, *, DISTINCT, AS, LIMIT |
 | `m2-filtros` | `treinamento/modulo2-filtros.js` | BO 1002 | 12 | WHERE, aspas simples, ordem das partes, coluna que identifica, Explique, LIKE e %, AND, conferir pista letra por letra |
 | `m2-intervalos` | `treinamento/modulo2-intervalos.js` | BO 1003 | 9 | > < >= <=, BETWEEN (número e data/hora), ORDER BY, IN |
+| `m3-agregacao` | `treinamento/modulo3-agregacao.js` | BO 1004 | 13 | COUNT, SUM, AVG, MIN, MAX, GROUP BY, HAVING |
+| `m3-nulos` | `treinamento/modulo3-nulos.js` | BO 1005 | 6 | NULL, COUNT(coluna), IS NULL, COALESCE |
 
 **Como funciona:**
 - `registrarTreino({id, titulo, passos, aoConcluir})`; o caso declara `treino: 'id'`.
@@ -391,8 +402,8 @@ Jairo Teixeira (investigador impaciente), Marina Okada (perita), Paulo Henrique 
 | — | Refatoração: arquivo único → `css/` + `js/` | ✅ concluído (14/10/2026) |
 | 1 | Consolidar e testar com gente real (Prioridade 1) | ✅ concluído (15/10/2026) |
 | 2 | Escada guiada no Módulo 2 (Prioridade 2) | 🟡 implementado; playtest com profissional de BI (Mayumi, 16/10): fluido, BO 1002 em 2,5 min, "quer muito mais". **Falta validar com iniciante.** |
-| 3 | Infraestrutura do Módulo 3 | 🟡 dados, Explique e diagnóstico prontos (15/10/2026); "dia de expediente" e relógio aguardam decisão |
-| 4 | Conteúdo do Módulo 3 | — |
+| 3 | Infraestrutura do Módulo 3 | ✅ dados, Explique, diagnóstico e "cada módulo é um dia" (17/10/2026). Relógio **não** pressiona por enquanto (decisão: esperar dados de iniciantes) |
+| 4 | Conteúdo do Módulo 3 | ✅ implementado (17/10/2026): treinos `m3-agregacao` e `m3-nulos`, BOs 1004 e 1005, prova 3, Inspetor Analítico, pedido do Jairo; falta playtest |
 | 5 | Módulo 4 (JOIN) | — |
 | 6 | Módulo 5 (escrita, transações) | — |
 | 7 | Módulo 6 (avançado) | — |
@@ -415,6 +426,7 @@ Colocar **2 ou 3 pessoas que nunca programaram** para jogar, sem ajudar, e anota
 | 14/10/2026 | DB-Investigator | Ao selecionar texto no editor, o texto sumia: a seleção da caixa de digitação (camada de cima, texto invisível) era opaca e cobria o texto colorido da camada de baixo. | `--code-sel` virou translúcido. Regra: **a cor de seleção do editor tem que ter transparência.** |
 | 15/10/2026 | BO 1002 (telemetria da sessão do Dayvison, ~49 min no BO) | (1) Com duas consultas no editor e a última vazia (`… 'Preto'`), o jogo mostrava o resultado da **primeira** como se fosse da última; o jogador executou 14 vezes em 6 s achando que nada acontecia, e a dica de minúsculas nunca apareceu. (2) `placa = 'FRT'` voltava vazio sem dica (3×). (3) 6 min parado depois da última dica da tarefa 3, que começava com `… WHERE`. (4) Telemetria: o campo `tipo` do passo do treino sobrescrevia o tipo do evento. | (1) `executarSQL` roda consulta por consulta; o resultado mostrado é sempre o da última, mesmo vazio, com aviso "o editor tem N consultas". Selecionar um trecho e Executar roda só ele. A barra de status mostra a hora da execução e pisca. (2) Dica para `=` com valor parcial (usar LIKE). (3) Última dica de cada tarefa é sempre a consulta completa. (4) Campo renomeado para `degrau`; `tipo` virou reservado. |
 | 15/10/2026 | Treino `m2-intervalos`, passo do BETWEEN com data e hora (Dayvison) | Travou: o passo pedia para escrever as duas pontas inteiras (`'2026-10-12 18:00:00' AND '2026-10-12 20:00:00'`) logo depois de só ter *visto* BETWEEN com números. O conceito pulou do "ver" direto para o "escrever". O erro de `BETWEEN ;` dizia só "o banco se perdeu perto de ;". | Passo novo de **prever** com uma consulta pronta de data e hora. O molde passou a ter **duas lacunas pequenas** (`'2026-10-12 ___'`), só as horas; clicar seleciona a lacuna seguinte. O diagnóstico acusa "BETWEEN sem as duas pontas". Passos alterados entre versões reiniciam ao reabrir o jogo (`tutChavePasso`). |
+| 16/10/2026 | PolíciaZap (Mayumi) | Com a janela aberta, mensagens novas chegavam sem sinal; com várias, não dava para saber onde tinha parado de ler. | Divisória "N mensagens novas", destaque, rolagem até a primeira não lida, botão "↓ Nova mensagem", horário em cada mensagem; lida só em primeiro plano (seção 4.6.1). |
 | 15/10/2026 | Treinamentos (Dayvison) | Não dá para reler as falas anteriores da Célia; quem se perde trava. | **Histórico** no painel da Célia ("Rever falas anteriores", recolhido, só leitura, rótulo = `tema` do passo). **Anotações da Célia**: cada treinamento tem um resumo (`anotacoes`) que aparece em Arquivos › Anotações ao ser concluído, também em saves antigos. Telemetria: `releu` e `anotacoes`. |
 | 16/10/2026 | Jogo completo (Mayumi, `docs/playtest/sessoes/2026-10-17-mayumi`) | (1) `order by desc` sem coluna: o SQLite lê `desc` como coluna e o jogo mandava pôr entre aspas. (2) Consultou a catraca certo e tomou +15% do Beto: formatos como `16h40m12s` eram recusados. | (1) Diagnóstico de ORDER BY sem coluna. (2) Beto aceita qualquer formato do horário certo (`horarioBateBeto`) e a resposta vai para a telemetria. |
 | 14/10/2026 | DB-Investigator | Erro de digitação no início (`SELEC`) era tratado como tentativa de escrita: +5% de Corregedoria. (Achado pela telemetria.) | `isReadOnly` só bloqueia comandos que o SQLite reconhece como escrita; o resto vira erro traduzido. |

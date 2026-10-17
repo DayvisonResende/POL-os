@@ -1,5 +1,7 @@
 # Telemetria remota com Supabase — passo a passo
 
+> Já configurado? Os comandos do dia a dia estão em [telemetria-comandos.md](telemetria-comandos.md).
+
 O jogo pode enviar a telemetria (anônima, só com o consentimento do jogador) para um banco PostgreSQL no Supabase. Você baixa tudo para a pasta do projeto com um comando e recebe um relatório pronto.
 
 Enquanto `js/config.js` estiver com `url` e `chave` vazios, **nada é enviado e o termo de uso nem aparece**. O jogo funciona igual.

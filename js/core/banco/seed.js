@@ -103,9 +103,45 @@ function seedFinanceiro(people){
     tr.push([o.id,d.id,Math.round(v*100)/100,ts,pf(descr)]);
   }
   tr.sort(function(a,b){return a[3]<b[3]?-1:1});
-  var sql=["CREATE TABLE contas_bancarias (id INTEGER PRIMARY KEY, banco TEXT NOT NULL, agencia TEXT NOT NULL, numero TEXT NOT NULL, cpf_titular TEXT NOT NULL REFERENCES pessoas(cpf));",
-           "CREATE TABLE transferencias (id INTEGER PRIMARY KEY AUTOINCREMENT, conta_origem INTEGER NOT NULL REFERENCES contas_bancarias(id), conta_destino INTEGER NOT NULL REFERENCES contas_bancarias(id), valor REAL NOT NULL, data_hora DATETIME NOT NULL, descricao TEXT);"];
-  contas.forEach(function(c){sql.push('INSERT INTO contas_bancarias VALUES ('+c.id+','+[c.banco,c.agencia,c.numero,c.cpf].map(sq).join(',')+');')});
-  tr.forEach(function(x){sql.push('INSERT INTO transferencias (conta_origem,conta_destino,valor,data_hora,descricao) VALUES ('+x[0]+','+x[1]+','+x[2].toFixed(2)+','+sq(x[3])+','+(x[4]==null?'NULL':sq(x[4]))+');')});
+  // Data de abertura das contas aleatórias: PRNG próprio (3042), para não mudar os valores acima.
+  var ra=mulberry32(3042);
+  contas.forEach(function(c){c.aberta=(2008+Math.floor(ra()*17))+'-'+pad(1+Math.floor(ra()*12))+'-'+pad(1+Math.floor(ra()*28))});
+
+  // ---- PLANTADO · Operação Véio, Ato II (docs/historia.md) ----
+  // A carga roubada em 12/10 virou dinheiro em 13/10: depósitos em espécie (sem conta de origem: NULL) em contas
+  // de idosos abertas em setembro (laranjas), repassados em valores logo abaixo de R$ 10 mil para a conta da Denise,
+  // dona do Virtus do furto do shopping (BO 1002). PRNG próprio (4042). Acrescentado DEPOIS dos dados aleatórios.
+  var rp=mulberry32(4042),novasPessoas=[],planta=[];
+  var LARANJAS=[
+    ['Antônio Bezerra Lima','211.304.118-07','1946-03-12','Piedade','Caixa','2026-09-15',2],
+    ['Maria das Dores Faria','287.115.940-32','1949-11-02','Piedade','Bradesco','2026-09-17',2],
+    ['José Carlos Pimentel','305.662.471-90','1944-07-21','Itu','Caixa','2026-09-18',2],
+    ['Benedita Souza Arruda','198.540.336-14','1951-01-30','Piedade','Itaú','2026-09-22',1],
+    ['Sebastião Ramos Godói','240.873.105-55','1942-09-08','Itu','Santander','2026-09-23',2],
+    ['Aparecida Lemos Toledo','332.019.684-21','1953-05-17','Piedade','Caixa','2026-09-25',2],
+    ['Geraldo Nunes Vilela','176.428.903-68','1947-12-25','Itu','Bradesco','2026-09-29',2],
+    ['Lourdes Campos Vieira','263.957.012-49','1950-04-04','Piedade','Itaú','2026-10-01',1]];
+  var denise=people.filter(function(p){return p.nome==='Denise Albuquerque Prado'})[0];
+  var contaDenise={id:contas.length+1,banco:'Banco do Brasil',agencia:'3127',numero:'48211-6',cpf:denise.cpf,aberta:'2019-06-11'};
+  contas.push(contaDenise);
+  var minuto=8*60+12,horaDe=function(m){return '2026-10-13 '+pad(Math.floor(m/60))+':'+pad(m%60)+':'+pad(Math.floor(rp()*60))};
+  LARANJAS.forEach(function(l){
+    novasPessoas.push({cpf:l[1],nome:l[0],nasc:l[2],cidade:l[3]});
+    var c={id:contas.length+1,banco:l[4],agencia:String(1000+Math.floor(rp()*8999)),numero:(10000+Math.floor(rp()*89999))+'-'+Math.floor(rp()*10),cpf:l[1],aberta:l[5]};
+    contas.push(c);
+    for(var k=0;k<l[6];k++){
+      var dep=Math.round((9400+rp()*560)*100)/100;
+      planta.push([null,c.id,dep,horaDe(minuto),'DEPÓSITO EM ESPÉCIE']);
+      planta.push([c.id,contaDenise.id,Math.round((dep-50-rp()*300)*100)/100,horaDe(minuto+240+Math.floor(rp()*200)),rp()<.5?'PIX':'TED']);
+      minuto+=13+Math.floor(rp()*9);
+    }
+  });
+  planta.sort(function(a,b){return a[3]<b[3]?-1:1});
+
+  var sql=["CREATE TABLE contas_bancarias (id INTEGER PRIMARY KEY, banco TEXT NOT NULL, agencia TEXT NOT NULL, numero TEXT NOT NULL, cpf_titular TEXT NOT NULL REFERENCES pessoas(cpf), aberta_em DATE NOT NULL);",
+           "CREATE TABLE transferencias (id INTEGER PRIMARY KEY AUTOINCREMENT, conta_origem INTEGER REFERENCES contas_bancarias(id), conta_destino INTEGER NOT NULL REFERENCES contas_bancarias(id), valor REAL NOT NULL, data_hora DATETIME NOT NULL, descricao TEXT);"];
+  novasPessoas.forEach(function(p){sql.push('INSERT INTO pessoas VALUES ('+[p.cpf,p.nome,p.nasc,p.cidade].map(sq).join(',')+');')});
+  contas.forEach(function(c){sql.push('INSERT INTO contas_bancarias VALUES ('+c.id+','+[c.banco,c.agencia,c.numero,c.cpf,c.aberta].map(sq).join(',')+');')});
+  tr.concat(planta).forEach(function(x){sql.push('INSERT INTO transferencias (conta_origem,conta_destino,valor,data_hora,descricao) VALUES ('+(x[0]==null?'NULL':x[0])+','+x[1]+','+x[2].toFixed(2)+','+sq(x[3])+','+(x[4]==null?'NULL':sq(x[4]))+');')});
   return sql.join('\n');
 }

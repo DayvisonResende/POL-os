@@ -20,6 +20,13 @@ function aggPt(ts){
   if(!a)return null;
   return {SUM:'a <b>soma</b> ',AVG:'a <b>média</b> ',MIN:'o <b>menor valor</b> ',MAX:'o <b>maior valor</b> '}[f]+de(a);
 }
+// COALESCE(coluna, 'valor') → "o valor da coluna, ou 'valor' quando ela estiver vazia (NULL)"
+function coalescePt(ts){
+  if(U(ts[0])!=='COALESCE'||ts[1]!=='('||ts[ts.length-1]!==')')return null;
+  var args=[],cur=[],d=0;ts.slice(2,-1).forEach(function(t){if(t==='(')d++;if(t===')')d--;if(t===','&&d===0){args.push(cur);cur=[]}else cur.push(t)});if(cur.length)args.push(cur);
+  if(args.length<2)return null;
+  return L('{coluna}, ou {troca} quando estiver vazio (NULL)',{coluna:args[0].length===1?colPt(args[0][0]):'<code>'+escH(joinToks(args[0]))+'</code>',troca:valPt(args[args.length-1])});
+}
 var OPPT={'=':'é igual a','==':'é igual a','!=':'é diferente de','<>':'é diferente de','>':'é maior que','<':'é menor que','>=':'é maior ou igual a','<=':'é menor ou igual a'};
 function condPt(ts){
   if(!ts.length||ts[0]==='(')return null;
@@ -52,8 +59,8 @@ function explainSQL(sql){
   var temAg=false;
   var itPt=items.map(function(it){if(!it.length)return '<i>(uma coluna em branco: sobrou uma vírgula?)</i>';var a=-1;it.forEach(function(t,k){if(U(t)==='AS')a=k});var expr=a>=0?it.slice(0,a):it,alias=a>=0?it[a+1]:null;
     if(a<0&&it.length===2&&/^[A-Za-z_]/.test(it[1])&&it[0]!=='*'){expr=[it[0]];alias=it[1]}
-    var ag=aggPt(expr);
-    var e=(expr.length===1&&expr[0]==='*')?'<b>todas as colunas</b>':expr.length===1?colPt(expr[0]):ag?(temAg=true,ag+(idx.GROUP!=null?' <i>em cada grupo</i>':'')):'o cálculo <code>'+escH(joinToks(expr))+'</code>';
+    var ag=aggPt(expr),co=coalescePt(expr);
+    var e=(expr.length===1&&expr[0]==='*')?'<b>todas as colunas</b>':expr.length===1?colPt(expr[0]):ag?(temAg=true,ag+(idx.GROUP!=null?' <i>em cada grupo</i>':'')):co?co:'o cálculo <code>'+escH(joinToks(expr))+'</code>';
     return e+(alias?', com o apelido <b>'+escH(String(alias).replace(/^["']|["']$/g,''))+'</b> no resultado':'')});
   rows.push({code:joinToks(ts.slice(0,selEnd)),pt:items.length?'Mostre '+(distinct?'<b>sem repetir</b> ':'')+listPt(itPt):'Mostre… o quê? Faltam as colunas depois do SELECT.'});
   if(temAg&&idx.GROUP==null)rows.push({code:'(sem GROUP BY)',pt:'Como não tem GROUP BY, cada conta é feita <b>uma vez só</b>, sobre todas as linhas que passarem pelo filtro: o resultado tem uma linha.'});

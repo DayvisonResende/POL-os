@@ -13,7 +13,7 @@ test('todo script referenciado no index.html existe', () => {
 
 test('registro: casos em ordem, arquivos e provas apontam para casos existentes', () => {
   const { T } = J;
-  assert.deepStrictEqual([...T.CASES.map(c => c.id)], ['1001', '1002', '1003']);
+  assert.deepStrictEqual([...T.CASES.map(c => c.id)], ['1001', '1002', '1003', '1004', '1005']);
   for (const f of T.FILES) assert.ok(T.indiceCaso(f.caso) >= 0, f.name);
   for (const m in T.PROVAS) {
     assert.ok(T.indiceCaso(T.PROVAS[m].requer) >= 0, 'prova ' + m);
@@ -34,7 +34,8 @@ test('dados dos BOs 1001–1003 não mudam (impressão digital das tabelas)', ()
   const crypto = require('crypto');
   const esperado = { pessoas: [47, '40efb4e5d6f8d203'], veiculos: [48, 'f9bec12300d28a7b'], leituras_radar: [81, '5c8d9c63d6e0261f'], catraca_acessos: [21, '1f2ef8031675c4d8'] };
   for (const t in esperado) {
-    const r = J.db.exec('SELECT * FROM ' + t + ' ORDER BY rowid')[0];
+    // só as linhas originais: dados plantados depois (Módulo 3 em diante) entram no fim da tabela
+    const r = J.db.exec('SELECT * FROM ' + t + ' ORDER BY rowid LIMIT ' + esperado[t][0])[0];
     assert.deepStrictEqual([r.values.length, crypto.createHash('sha256').update(JSON.stringify(r.values)).digest('hex').slice(0, 16)], esperado[t], t);
   }
 });
@@ -46,9 +47,17 @@ test('Módulo 3: contas e transferências íntegras, sem padrão de lavagem por 
   assert.strictEqual(um('SELECT COUNT(*) FROM contas_bancarias WHERE cpf_titular NOT IN (SELECT cpf FROM pessoas)'), 0);
   assert.strictEqual(um('SELECT COUNT(*) FROM transferencias WHERE conta_origem NOT IN (SELECT id FROM contas_bancarias) OR conta_destino NOT IN (SELECT id FROM contas_bancarias)'), 0);
   assert.strictEqual(um('SELECT COUNT(*) FROM transferencias WHERE conta_origem = conta_destino'), 0);
-  // faixa reservada para os depósitos fracionados do caso de lavagem (Sprint 4)
-  assert.strictEqual(um('SELECT COUNT(*) FROM transferencias WHERE valor BETWEEN 8500 AND 10500'), 0);
-  assert.strictEqual(um("SELECT COUNT(*) FROM transferencias WHERE data_hora NOT BETWEEN '2026-09-01 00:00:00' AND '2026-10-12 23:59:59'"), 0);
+  // a faixa de R$ 8.500 a R$ 10.500 é exclusiva dos dados plantados do caso de lavagem (13/10): nada aleatório cai nela
+  assert.strictEqual(um("SELECT COUNT(*) FROM transferencias WHERE valor BETWEEN 8500 AND 10500 AND data_hora < '2026-10-13'"), 0);
+  assert.strictEqual(um("SELECT COUNT(*) FROM transferencias WHERE data_hora NOT BETWEEN '2026-09-01 00:00:00' AND '2026-10-13 23:59:59'"), 0);
+  // o padrão de lavagem aponta uma conta só, a da Denise (dona do Virtus do BO 1002)
+  const suspeitas = J.db.exec("SELECT conta_destino FROM transferencias WHERE valor BETWEEN 9000 AND 9999.99 GROUP BY conta_destino HAVING COUNT(*) >= 3")[0].values;
+  assert.deepStrictEqual(suspeitas.map(v => v[0]), [J.T.F.contaDenise]);
+  assert.strictEqual(um("SELECT p.nome FROM contas_bancarias c, pessoas p WHERE p.cpf = c.cpf_titular AND c.id = " + J.T.F.contaDenise), 'Denise Albuquerque Prado');
+  // dinheiro sem origem (NULL) só nos depósitos em espécie plantados, todos em contas de laranjas
+  assert.strictEqual(um("SELECT COUNT(*) FROM transferencias WHERE conta_origem IS NULL AND descricao <> 'DEPÓSITO EM ESPÉCIE'"), 0);
+  assert.strictEqual(J.T.F.laranjas.length, 8);
+  assert.ok(J.T.F.aberturaLaranjas[0] >= '2026-09-01', 'contas dos laranjas abertas pouco antes do crime');
 });
 
 test('Explique: agregações, GROUP BY e HAVING em português', () => {
@@ -135,7 +144,7 @@ function respostaDoPasso(T, st) {
 
 test('treinamentos: todo passo que executa aceita a resposta esperada', () => {
   const { T } = J;
-  assert.deepStrictEqual(Object.keys(T.TREINOS).sort(), ['m1', 'm2-filtros', 'm2-intervalos']);
+  assert.deepStrictEqual(Object.keys(T.TREINOS).sort(), ['m1', 'm2-filtros', 'm2-intervalos', 'm3-agregacao', 'm3-nulos']);
   for (const id in T.TREINOS) for (const [k, st] of T.TREINOS[id].passos.entries()) {
     assert.ok(st.tema, `${id} passo ${k + 1}: falta o tema (rótulo do histórico)`);
     if (!st.ok) continue;
@@ -284,4 +293,84 @@ test('Beto aceita o horário certo em qualquer formato comum, e só ele', () => 
     assert.ok(ctx.horarioBateBeto(v), v);
   for (const v of ['18:00', '08:02:51', '16:41', '4:40', '17:55:03', ''])
     assert.ok(!ctx.horarioBateBeto(v), v);
+});
+
+// ---------- Módulo 3 (Operação Véio, Ato II) ----------
+function consultasModulo3(F) {
+  const D13 = "data_hora BETWEEN '2026-10-13 00:00:00' AND '2026-10-13 23:59:59'", FX = 'valor BETWEEN 9000 AND 9999.99';
+  const lar = F.contasLaranja.join(',');
+  return {
+    '1004': [
+      `SELECT SUM(valor) FROM transferencias WHERE ${D13};`,
+      `SELECT COUNT(*) FROM transferencias WHERE ${D13} AND ${FX};`,
+      `SELECT conta_destino, COUNT(*) FROM transferencias WHERE ${D13} AND ${FX} GROUP BY conta_destino;`,
+      `SELECT conta_destino, COUNT(*) FROM transferencias WHERE ${D13} AND ${FX} GROUP BY conta_destino HAVING COUNT(*) >= 5;`,
+      `SELECT nome FROM pessoas WHERE cpf = '${F.cpfDenise}';`,
+      `SELECT * FROM veiculos WHERE cpf_proprietario = '${F.cpfDenise}';`],
+    '1005': [
+      `SELECT DISTINCT conta_origem FROM transferencias WHERE conta_destino = ${F.contaDenise};`,
+      `SELECT * FROM transferencias WHERE conta_destino IN (${lar});`,
+      'SELECT COUNT(*) FROM transferencias WHERE conta_origem IS NULL;',
+      'SELECT SUM(valor) FROM transferencias WHERE conta_origem IS NULL;',
+      `SELECT nome, data_nascimento, cidade FROM pessoas WHERE cpf IN ('${F.cpfsLaranja.join("','")}');`,
+      `SELECT MIN(aberta_em), MAX(aberta_em) FROM contas_bancarias WHERE id IN (${lar});`],
+  };
+}
+
+test('BOs 1004 e 1005: cada tarefa aceita a consulta certa e recusa as trapaças', () => {
+  const { T } = J, C = consultasModulo3(T.F);
+  for (const id of ['1004', '1005']) {
+    const caso = T.CASES[T.indiceCaso(id)];
+    assert.strictEqual(caso.steps.length, C[id].length);
+    caso.steps.forEach((s, k) => {
+      assert.ok(s.ok(J.run(C[id][k])), `${id} tarefa ${k + 1}: ${C[id][k]}`);
+      assert.ok(!s.ok(J.run('SELECT * FROM transferencias')), `${id} tarefa ${k + 1}: SELECT * não pode passar`);
+      assert.strictEqual(s.h.length, 3, `${id} tarefa ${k + 1}: três degraus de dica`);
+    });
+  }
+});
+
+test('BOs 1004 e 1005: o "quase" explica o tropeço comum', () => {
+  const { T } = J, c4 = T.CASES[T.indiceCaso('1004')], c5 = T.CASES[T.indiceCaso('1005')];
+  assert.match(c4.steps[0].quase(J.run('SELECT SUM(valor) FROM transferencias')), /todas/);
+  assert.match(c4.steps[2].quase(J.run("SELECT COUNT(*) FROM transferencias WHERE data_hora BETWEEN '2026-10-13 00:00:00' AND '2026-10-13 23:59:59' AND valor BETWEEN 9000 AND 9999.99")), /GROUP BY conta_destino/);
+  assert.match(c4.steps[3].quase(J.run(consultasModulo3(T.F)['1004'][2])), /HAVING/);
+  assert.match(c4.steps[4].quase(J.run(`SELECT cpf_titular FROM contas_bancarias WHERE id = ${T.F.contaDenise}`)), /pessoas/);
+  // = NULL: o resultado vem zero e o jogo explica
+  assert.match(c5.steps[2].quase(J.run('SELECT COUNT(*) FROM transferencias WHERE conta_origem = NULL')), /IS NULL/);
+  assert.match(T.diagnosticarSQL('SELECT * FROM transferencias WHERE conta_origem = NULL')[0], /IS NULL/);
+  assert.match(c5.steps[0].quase(J.run(`SELECT conta_origem FROM transferencias WHERE conta_destino = ${T.F.contaDenise}`)), /DISTINCT/);
+});
+
+test('BO 1004: o pedido de bloqueio explica cada conta errada', () => {
+  const { T } = J, f = T.CASES[T.indiceCaso('1004')].final;
+  assert.ok(f.check({ conta: String(T.F.contaDenise), titular: 'Denise Albuquerque Prado' }).ok);
+  assert.ok(f.check({ conta: '48211-6', titular: 'denise prado' }).ok, 'aceita o número da conta também');
+  assert.match(f.check({ conta: String(T.F.contasLaranja[0]), titular: 'Denise Albuquerque Prado' }).msg, /empresta o nome/);
+  assert.match(f.check({ conta: '3', titular: 'Denise' }).msg, /padrão/);
+  assert.match(f.check({ conta: '99999', titular: 'Denise' }).msg, /não existe/);
+  assert.match(f.check({ conta: String(T.F.contaDenise), titular: 'Valdemar' }).msg, /nome do titular/);
+});
+
+test('BO 1005: o relatório aceita o total em reais escrito de vários jeitos', () => {
+  const { T } = J, f = T.CASES[T.indiceCaso('1005')].final, s = T.F.somaEspecie;
+  const br = s.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+  for (const total of ['R$ ' + br, br, s.toFixed(2), String(Math.round(s))]) assert.ok(f.check({ n: '8', total }).ok, total);
+  assert.ok(!f.check({ n: '7', total: br }).ok);
+  assert.ok(!f.check({ n: '8', total: '1000' }).ok);
+});
+
+test('Módulo 3: treinamentos não entregam respostas; pedido do Jairo confere o resultado', () => {
+  const { T } = J;
+  const proibido = [/Denise/, /9000/, /9999/, /conta_destino/, /conta_origem/, /2026-10-13/, /13\/10/, /Piedade/, /laranja/i, ...T.F.laranjas.map(n => new RegExp(n))];
+  for (const id of ['m3-agregacao', 'm3-nulos']) {
+    const texto = JSON.stringify(T.TREINOS[id].passos) + T.TREINOS[id].passos.map(p => String(p.ok) + String(p.miss || '')).join('') + T.TREINOS[id].anotacoes.texto;
+    for (const re of proibido) assert.doesNotMatch(texto, re, `${id} contém ${re}`);
+  }
+  const p = T.PEDIDOS.find(x => x.id === 'jairo-radares');
+  const top = J.db.exec('SELECT local_radar, COUNT(*) n FROM leituras_radar GROUP BY local_radar ORDER BY n DESC LIMIT 1')[0].values[0];
+  assert.ok(p.check(`${top[0]}, ${top[1]}`).ok);
+  assert.match(p.check(String(top[1])).msg, /qual radar/);
+  assert.match(p.check(top[0]).msg, /quantas/);
+  assert.ok(!p.check('Rod. Castelo Branco, 3').ok);
 });

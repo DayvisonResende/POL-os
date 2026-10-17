@@ -459,3 +459,170 @@ test('idioma · interface em inglês e troca pelo menu', { skip: !CHROME && 'Chr
     assert.deepStrictEqual(erros, []);
   } finally { await browser.close(); }
 });
+
+// PolíciaZap · lidas e não lidas (playtest da Mayumi: com a janela aberta, não sabia o que já tinha lido).
+test('PolíciaZap · divisória de mensagens novas, destaque e não lidas', { skip: !CHROME && 'Chrome não encontrado (defina CHROME)', timeout: 60000 }, async () => {
+  const { browser, page, erros } = await abrir('index.html', 1366);
+  try {
+    await page.click('#lgBtn');
+    await page.evaluate(() => { S.treino = null; S.treinosFeitos = ['m1']; S.apps = ['db', 'ocorr', 'zap']; Object.keys(WINS).forEach(k => WINS[k].el.remove()); for (const k in WINS) delete WINS[k];
+      for (let i = 1; i <= 12; i++) say('celia', 'Mensagem antiga ' + i); S.lidas.celia = 12; S.unread.celia = 0; openZap(); });
+    assert.strictEqual(await page.$$eval('.novas', e => e.length), 0, 'sem novas, sem divisória');
+    // com a janela aberta e na frente, chegam duas: divisória antes da primeira, as duas destacadas, nada de bolinha
+    await page.evaluate(() => { say('celia', 'Primeira nova'); say('celia', 'Segunda nova'); });
+    assert.match(await page.textContent('.novas'), /2 mensagens novas/);
+    assert.deepStrictEqual(await page.$$eval('.msg.nova', e => e.map(x => x.textContent.replace(/\d\d:\d\d$/, ''))), ['CéliaPrimeira nova', 'CéliaSegunda nova']);
+    assert.strictEqual(await page.evaluate(() => S.unread.celia), 0);
+    assert.match(await page.textContent('.msg.nova'), /\d\d:\d\d/, 'cada mensagem tem a hora do jogo');
+    // lendo mensagens antigas (rolou para cima): chega outra, a tela não pula e aparece o botão
+    await page.evaluate(() => { document.querySelector('.msgs').scrollTop = 0; });
+    await page.evaluate(() => say('celia', 'Terceira nova'));
+    await page.waitForTimeout(50);
+    assert.ok(await page.isVisible('.pular'), 'botão "Nova mensagem" aparece');
+    assert.strictEqual(await page.evaluate(() => document.querySelector('.msgs').scrollTop), 0, 'não pulou para o fim');
+    await page.click('.pular');
+    assert.ok(!(await page.isVisible('.pular')));
+    // outra janela na frente: a mensagem não conta como lida
+    await page.evaluate(() => { openDb(); say('celia', 'Chegou com o terminal na frente'); });
+    assert.strictEqual(await page.evaluate(() => S.unread.celia), 1);
+    assert.ok(await page.isVisible('.contact .badge'));
+    await page.click('.win:has(.zap) .wtb');   // traz o PolíciaZap para frente: vira lida
+    await page.waitForFunction(() => S.unread.celia === 0);
+    // responder ou trocar de conversa limpa a divisória
+    await page.evaluate(() => { chatSel = 'celia'; delete divisoria.celia; say('beto', 'oi'); });
+    await page.click('.contact:has-text("Beto")'); await page.click('.contact:has-text("Célia")');
+    assert.strictEqual(await page.$$eval('.novas', e => e.length), 0);
+    assert.deepStrictEqual(erros, []);
+  } finally { await browser.close(); }
+});
+
+// Módulo 3 inteiro, como o jogador vive: encerra a terça, bate o ponto, lê o e-mail, treina, resolve os BOs 1004 e 1005,
+// faz o pedido opcional do Jairo pelo chat, passa na prova e vira Inspetor Analítico.
+test('Módulo 3 · quarta-feira completa', { skip: !CHROME && 'Chrome não encontrado (defina CHROME)', timeout: 240000 }, async () => {
+  const { chromium } = require('playwright-core');
+  const browser = await chromium.launch({ executablePath: CHROME, headless: true });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1366, height: 800 } });
+    const erros = []; page.on('pageerror', e => erros.push(e.message));
+    await page.route('**/*', r => { const u = r.request().url(); if (u.includes('sql-asm.js')) return r.fulfill({ body: fs.readFileSync(ASM), contentType: 'application/javascript' }); return u.startsWith('file:') ? r.continue() : r.abort(); });
+    const fimDeTerca = { chat: { celia: [], beto: [], jairo: [], marina: [] }, unread: { celia: 0, beto: 0, jairo: 0, marina: 0 }, lidas: {},
+      tut: 0, treino: null, treinosFeitos: ['m1', 'm2-filtros', 'm2-intervalos'], rank: 2, done: true, dia: 0, diaIniciado: 0, diaConcluido: 0,
+      closed: ['1001', '1002', '1003'], caseSel: 2, apps: ['db', 'ocorr', 'zap', 'files', 'prova'], beto: 'done', metas: 90 };
+    await page.addInitScript(s => { window.SISP_CONFIG_TESTE = { url: '', chave: '', contato: '' }; window.SISP_IDIOMA_TESTE = 'pt-BR';
+      if (!sessionStorage.getItem('ok')) { localStorage.setItem('sisp-proto-v2', s); sessionStorage.setItem('ok', '1'); } }, JSON.stringify(fimDeTerca));
+    const entrar = async () => { await page.waitForFunction(() => !document.querySelector('#lgBtn').disabled); await page.click('#lgBtn'); };
+    await page.goto('file://' + path.join(RAIZ, 'index.html'));
+    await entrar();
+    assert.strictEqual(await page.evaluate(() => tabelaBloqueada('SELECT * FROM transferencias') !== null), true, 'na terça, as contas ainda são restritas');
+
+    // fim da terça → quarta-feira
+    await page.evaluate(() => report());
+    await page.click('#rpDia');
+    assert.match(await page.textContent('.dia-card'), /quarta-feira, 14\/10\/2026/);
+    await Promise.all([page.waitForNavigation(), page.click('#diaOk')]);
+    await page.waitForFunction(() => !document.querySelector('#lgBtn').disabled);
+    assert.match(await page.textContent('#bootStatus'), /Expediente de quarta-feira/);
+    await page.click('#lgBtn');
+    assert.match(await page.textContent('.email'), /Operação Véio.*acesso provisório/s);
+    assert.match(await page.textContent('#clock'), /qua 14\/10/);
+    assert.strictEqual(await page.evaluate(() => tutActive()), false, 'o treinamento espera o e-mail');
+    await page.click('#emOk');
+
+    const rodar = async q => { await page.evaluate(q => { openDb(q); }, q); await page.click('#runBtn'); };
+    const C = await page.evaluate(() => ({ F: { contaDenise: F.contaDenise, cpfDenise: F.cpfDenise, contasLaranja: F.contasLaranja, cpfsLaranja: F.cpfsLaranja, somaEspecie: F.somaEspecie } }));
+    const D13 = "data_hora BETWEEN '2026-10-13 00:00:00' AND '2026-10-13 23:59:59'", FX = 'valor BETWEEN 9000 AND 9999.99', lar = C.F.contasLaranja.join(',');
+
+    assert.strictEqual(await jogarTreino(page), 'm3-agregacao');
+    assert.strictEqual(await page.evaluate(() => CASES[S.caseSel].id), '1004');
+    for (const q of [`SELECT SUM(valor) FROM transferencias WHERE ${D13};`, `SELECT COUNT(*) FROM transferencias WHERE ${D13} AND ${FX};`,
+      `SELECT conta_destino, COUNT(*) FROM transferencias WHERE ${D13} AND ${FX} GROUP BY conta_destino;`,
+      `SELECT conta_destino, COUNT(*) FROM transferencias WHERE ${D13} AND ${FX} GROUP BY conta_destino HAVING COUNT(*) >= 5;`,
+      `SELECT nome FROM pessoas WHERE cpf = '${C.F.cpfDenise}';`, `SELECT * FROM veiculos WHERE cpf_proprietario = '${C.F.cpfDenise}';`]) await rodar(q);
+    assert.strictEqual(await page.evaluate(() => S.steps['1004'].length), 6);
+    // a virada chega no momento da descoberta: Célia lembra do Virtus, Jairo confirma a vítima
+    await page.waitForFunction(() => S.chat.jairo.some(m => /Transportadora Central/.test(m.text)), null, { timeout: 15000 });
+    await page.evaluate(() => openOcorr());
+    await entregar(page, { f_1004_conta: String(C.F.contaDenise), f_1004_titular: 'Denise Albuquerque Prado' });
+
+    assert.strictEqual(await jogarTreino(page), 'm3-nulos');
+    await page.waitForFunction(() => S.chat.marina.some(m => /data em que cada conta foi aberta/.test(m.text)), null, { timeout: 15000 });
+    for (const q of [`SELECT DISTINCT conta_origem FROM transferencias WHERE conta_destino = ${C.F.contaDenise};`, `SELECT * FROM transferencias WHERE conta_destino IN (${lar});`,
+      'SELECT COUNT(*) FROM transferencias WHERE conta_origem = NULL;',   // tropeço clássico: o jogo explica
+      'SELECT COUNT(*) FROM transferencias WHERE conta_origem IS NULL;', 'SELECT SUM(valor) FROM transferencias WHERE conta_origem IS NULL;',
+      `SELECT nome FROM pessoas WHERE cpf IN ('${C.F.cpfsLaranja.join("','")}');`, `SELECT MIN(aberta_em), MAX(aberta_em) FROM contas_bancarias WHERE id IN (${lar});`]) {
+      await rodar(q);
+      if (/= NULL/.test(q)) assert.match(await page.textContent('#dbMsg'), /IS NULL/);
+    }
+    assert.strictEqual(await page.evaluate(() => S.steps['1005'].length), 6);
+
+    // pedido opcional do Jairo, respondido pelo PolíciaZap
+    await page.waitForFunction(() => S.pedidos['jairo-radares'] && S.chat.jairo.some(m => /local de radar/.test(m.text)), null, { timeout: 15000 });
+    const resp = await page.evaluate(() => { const t = linhasDe('SELECT local_radar, COUNT(*) AS n FROM leituras_radar GROUP BY local_radar ORDER BY n DESC LIMIT 1')[0]; return t.local_radar + ', ' + t.n; });
+    await page.evaluate(() => { chatSel = 'jairo'; openZap(); });
+    await page.fill('.reply input', resp); await page.click('.reply button');
+    await page.waitForFunction(() => S.pedidos['jairo-radares'].estado === 'feito');
+
+    await page.evaluate(() => openOcorr());
+    await entregar(page, { f_1005_n: '8', f_1005_total: C.F.somaEspecie.toFixed(2) });
+    await page.waitForFunction(() => provaMod() === 3);
+    await prova(page);
+    await page.waitForSelector('.report', { timeout: 5000 });
+    const fim = await page.evaluate(() => ({ rank: S.rank, closed: S.closed, feitos: S.treinosFeitos, dia: S.dia, concl: S.diaConcluido, contas: tabelaBloqueada('SELECT * FROM transferencias') === null }));
+    assert.deepStrictEqual(fim, { rank: 3, closed: ['1001', '1002', '1003', '1004', '1005'], feitos: ['m1', 'm2-filtros', 'm2-intervalos', 'm3-agregacao', 'm3-nulos'], dia: 1, concl: 1, contas: true });
+    assert.match(await page.textContent('.report'), /Inspetor Analítico.*Quinta-feira.*em desenvolvimento/s);
+    assert.strictEqual(await page.$('#rpDia'), null, 'sem quinta-feira ainda, sem botão de encerrar');
+    await page.waitForFunction(() => /uma vez só/.test(S.chat.celia[S.chat.celia.length - 1].text), null, { timeout: 15000 });
+    assert.deepStrictEqual(erros, []);
+  } finally { await browser.close(); }
+});
+
+// Caderno do Investigador: fixar linha da grade, colar valor no editor, anotar, sobreviver à recarga.
+test('Caderno · fixar, colar no editor, anotar e manter depois de recarregar', { skip: !CHROME && 'Chrome não encontrado (defina CHROME)', timeout: 90000 }, async () => {
+  const { chromium } = require('playwright-core');
+  const browser = await chromium.launch({ executablePath: CHROME, headless: true });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1366, height: 800 } });
+    const erros = []; page.on('pageerror', e => erros.push(e.message));
+    await page.route('**/*', r => { const u = r.request().url(); if (u.includes('sql-asm.js')) return r.fulfill({ body: fs.readFileSync(ASM), contentType: 'application/javascript' }); return u.startsWith('file:') ? r.continue() : r.abort(); });
+    // save de antes do Caderno, já na quarta-feira (BO 1004 em andamento)
+    const quarta = { chat: { celia: [], beto: [], jairo: [], marina: [] }, unread: {}, lidas: {}, tut: 0, treino: null, treinosFeitos: ['m1', 'm2-filtros', 'm2-intervalos', 'm3-agregacao'],
+      rank: 2, done: true, dia: 1, diaIniciado: 1, diaConcluido: 0, closed: ['1001', '1002', '1003'], caseSel: 3, apps: ['db', 'ocorr', 'zap', 'files', 'prova'], beto: 'done' };
+    await page.addInitScript(s => { window.SISP_CONFIG_TESTE = { url: '', chave: '', contato: '' }; window.SISP_IDIOMA_TESTE = 'pt-BR';
+      if (!sessionStorage.getItem('ok')) { localStorage.setItem('sisp-proto-v2', s); sessionStorage.setItem('ok', '1'); } }, JSON.stringify(quarta));
+    await page.goto('file://' + path.join(RAIZ, 'index.html'));
+    await page.waitForFunction(() => !document.querySelector('#lgBtn').disabled);
+    await page.click('#lgBtn');
+    assert.ok(await page.isVisible('#ic-caderno'), 'save antigo ganha o Caderno');
+
+    // fixa a linha da conta suspeita e o CPF da titular
+    await page.evaluate(() => { openDb('SELECT id, cpf_titular FROM contas_bancarias WHERE id = ' + F.contaDenise + ';'); });
+    await page.click('#runBtn');
+    await page.click('#dbGrid .pin');
+    assert.match(await page.textContent('#toasts'), /Fixado no Caderno.*BO 1004/s);
+    await page.evaluate(() => openCaderno());
+    assert.match(await page.textContent('.cad-titulo'), /BO 1004/);
+    assert.strictEqual(await page.$$eval('.cad-fix', e => e.length), 1);
+    // clicar no CPF fixado cola no editor, com aspas
+    await page.evaluate(() => { const ta = document.querySelector('#sqlEd'); ta.value = 'SELECT nome FROM pessoas WHERE cpf = '; ta.selectionStart = ta.selectionEnd = ta.value.length; });
+    const cpf = await page.evaluate(() => F.cpfDenise);
+    await page.click(`.cad-valor:has-text("${cpf}")`);
+    assert.strictEqual(await page.inputValue('#sqlEd'), `SELECT nome FROM pessoas WHERE cpf = '${cpf}'`);
+    await page.click('#runBtn');
+    assert.match(await page.textContent('#dbGrid'), /Denise Albuquerque Prado/);
+    // anotação livre
+    await page.evaluate(() => openCaderno());
+    await page.fill('.cad-texto', 'Conta da Denise recebeu 14 depósitos fracionados.');
+    // tudo continua lá depois de recarregar
+    await page.reload();
+    await page.waitForFunction(() => !document.querySelector('#lgBtn').disabled);
+    await page.click('#lgBtn');
+    await page.evaluate(() => openCaderno('1004'));
+    assert.strictEqual(await page.inputValue('.cad-texto'), 'Conta da Denise recebeu 14 depósitos fracionados.');
+    assert.strictEqual(await page.$$eval('.cad-fix', e => e.length), 1);
+    // casos futuros não aparecem como página (não revela o enredo)
+    assert.doesNotMatch(await page.textContent('.cad-pags'), /1005/);
+    await page.click('.cad-x');
+    assert.strictEqual(await page.$$eval('.cad-fix', e => e.length), 0);
+    assert.deepStrictEqual(erros, []);
+  } finally { await browser.close(); }
+});

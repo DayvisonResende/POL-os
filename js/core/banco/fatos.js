@@ -21,6 +21,24 @@ function computeFacts(db){
   F.l1003radar=rows("SELECT * FROM leituras_radar WHERE local_radar LIKE '%Km 18%' AND data_hora BETWEEN '2026-10-12 22:45:00' AND '2026-10-12 23:15:00' AND velocidade_kmh>120");
   F.l1003veic=rows("SELECT * FROM veiculos WHERE placa IN ('KZX9B21','JKL4A12','RTA8K02')");
   F.l1003dono=rows("SELECT * FROM pessoas WHERE cpf='318.442.907-15'");
+  // Módulo 3 (Operação Véio, Ato II). Tudo calculado do banco: textos e validações nunca têm números fixos.
+  var um=function(q){var r=db.exec(q);return r.length?r[0].values[0][0]:null};
+  F.contaDenise=um("SELECT c.id FROM contas_bancarias c, pessoas p WHERE p.cpf=c.cpf_titular AND p.nome='Denise Albuquerque Prado' AND c.numero='48211-6'");
+  F.cpfDenise=um("SELECT cpf FROM pessoas WHERE nome='Denise Albuquerque Prado'");
+  var D13="data_hora BETWEEN '2026-10-13 00:00:00' AND '2026-10-13 23:59:59'",FAIXA='valor BETWEEN 9000 AND 9999.99';
+  F.Q13=D13;F.QFAIXA=FAIXA;
+  F.soma13=um('SELECT SUM(valor) FROM transferencias WHERE '+D13);
+  F.nFaixa13=um('SELECT COUNT(*) FROM transferencias WHERE '+D13+' AND '+FAIXA);
+  F.gruposFaixa13=rows('SELECT conta_destino, COUNT(*) AS n FROM transferencias WHERE '+D13+' AND '+FAIXA+' GROUP BY conta_destino');
+  F.nParaDenise=um('SELECT COUNT(*) FROM transferencias WHERE conta_destino='+F.contaDenise);
+  F.contasLaranja=col('SELECT DISTINCT conta_origem FROM transferencias WHERE conta_destino='+F.contaDenise+' ORDER BY 1');
+  F.cpfsLaranja=col('SELECT cpf_titular FROM contas_bancarias WHERE id IN ('+F.contasLaranja.join(',')+')');
+  F.laranjas=col("SELECT nome FROM pessoas WHERE cpf IN ('"+F.cpfsLaranja.join("','")+"')");
+  F.aberturaLaranjas=[um('SELECT MIN(aberta_em) FROM contas_bancarias WHERE id IN ('+F.contasLaranja.join(',')+')'),um('SELECT MAX(aberta_em) FROM contas_bancarias WHERE id IN ('+F.contasLaranja.join(',')+')')];
+  F.nTransf=um('SELECT COUNT(*) FROM transferencias');
+  F.nSemOrigem=um('SELECT COUNT(*) FROM transferencias WHERE conta_origem IS NULL');
+  F.somaEspecie=um('SELECT SUM(valor) FROM transferencias WHERE conta_origem IS NULL');
+  F.nComDescricao=um('SELECT COUNT(descricao) FROM transferencias');
   return F;
 }
 
@@ -32,3 +50,5 @@ function linhasDe(q){
   return F._cache[q];
 }
 function bate(R,q){return mesmasLinhas(R,linhasDe(q))}
+// Primeiro valor de uma consulta de referência (ex.: valorDe('SELECT MAX(x) FROM t')).
+function valorDe(q){var l=linhasDe(q);if(!l.length)return null;var o=l[0];return o[Object.keys(o)[0]]}

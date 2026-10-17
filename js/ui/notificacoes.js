@@ -9,7 +9,7 @@ function meters(){
   $('#mMetas b').textContent=m+'%';$('#mMetas .fill').style.width=m+'%';
   $('#mCorr b').textContent=c+'%';$('#mCorr .fill').style.width=c+'%';
   var hh=Math.floor(S.clock/60),mm=S.clock%60;
-  $('#clock').innerHTML=String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0')+'<small>'+L('ter 13/10 · treino')+'</small>';
+  $('#clock').innerHTML=String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0')+'<small>'+diaAtual().rotulo+' · '+L('treino')+'</small>';
   if(S.corr>=100&&!S.fired){S.fired=true;save();setTimeout(fired,600)}
 }
 function addCorr(n,why){S.corr+=n;tele('corregedoria',{n:n,motivo:why});meters();toast(L('Corregedoria +{n}%',{n:n}),escH(why),'bad');save()}

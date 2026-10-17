@@ -112,3 +112,16 @@
 .overlay .rb p{margin:0 0 8px}
 .btn-igual{padding:10px 14px;font-weight:600;background:var(--pane);border:1px solid var(--title);color:var(--title)}
 .btn-igual:hover{background:#fff}
+/* dia de expediente: transição e e-mail da manhã */
+.dia-transicao{background:rgba(5,12,14,.92)}
+.dia-card{width:min(460px,100%);text-align:center;display:grid;gap:10px;justify-items:center;color:#e6efed}
+.dia-card h2{margin:0;font-family:var(--f-display);font-size:34px;letter-spacing:.04em;text-transform:capitalize}
+.dia-card p{margin:0;font-family:var(--f-code);font-size:22px;color:#e8b04a}
+.dia-card q{font-style:italic;color:#b8cdd2;line-height:1.5;max-width:40ch}
+.dia-card .eyebrow{color:#9fb6b3}
+.email{flex:1;min-height:0;overflow:auto;background:#fbfcfb;display:flex;flex-direction:column}
+.em-cab{display:grid;gap:4px;padding:12px 16px;border-bottom:1px solid var(--rule);background:var(--pane);font-size:14px}
+.em-cab span{display:inline-block;width:70px;color:var(--ink-3);font-size:12px;text-transform:uppercase;letter-spacing:.08em}
+.em-corpo{padding:14px 18px;font-size:15px;line-height:1.55;max-width:66ch}
+.em-corpo p{margin:0 0 10px}
+.em-acao{padding:4px 18px 18px}

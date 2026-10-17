@@ -110,10 +110,10 @@ function renderGuide(){
   if(st.type==='blocks'){
     var line=h('div',{class:'bline','aria-label':L('Sua consulta')});
     if(!S.tutBlocks.length)line.appendChild(h('span',{class:'ph'},L('clique nas peças abaixo…')));
-    S.tutBlocks.forEach(function(pi,k){var t=st.pool[pi];var b=h('button',{class:'chip'+(/^[A-Z]+$/.test(t)?' kw':''),title:L('Devolver esta peça')},escH(t));
+    S.tutBlocks.forEach(function(pi,k){var t=st.pool[pi];var b=h('button',{class:'chip'+(/^[A-Z][A-Z ]*$/.test(t)?' kw':''),title:L('Devolver esta peça')},escH(t));
       b.onclick=function(){S.tutBlocks.splice(k,1);setEditor('',true);S.tutFb=null;save();renderGuide()};line.appendChild(b)});
     g.appendChild(line);var pool=h('div',{class:'chips'});
-    st.pool.forEach(function(t,pi){if(S.tutBlocks.indexOf(pi)>=0)return;var b=h('button',{class:'chip'+(/^[A-Z]+$/.test(t)?' kw':'')},escH(t));
+    st.pool.forEach(function(t,pi){if(S.tutBlocks.indexOf(pi)>=0)return;var b=h('button',{class:'chip'+(/^[A-Z][A-Z ]*$/.test(t)?' kw':'')},escH(t));
       b.onclick=function(){S.tutBlocks.push(pi);S.tutFb=null;
         if(S.tutBlocks.length===st.pool.length){var seq=S.tutBlocks.map(function(x){return st.pool[x]});
           if(seq.join(' ')===st.answer.join(' ')){setEditor(joinToks(seq),true);tutFeedback('ok',L('Agora sim. Executa.'));return}

@@ -66,6 +66,13 @@ function analisar(linhas) {
     escolhasErradas: contar(ev.filter(e => e.tipo === 'escolha' && !e.dados.certa), e => (e.onde || '') + ' — ' + (e.dados.peca != null ? 'peça ' + e.dados.peca : 'opção ' + e.dados.opcao)).slice(0, 15),
     errosDoJogo: contar(ev.filter(e => e.tipo === 'erro_js'), e => `${e.dados.msg} (${e.dados.arquivo}:${e.dados.linha})`),
     dilemaBeto: contar(ev.filter(e => e.tipo === 'dilema' && e.dados.quem === 'beto'), e => e.dados.escolha),
+    caderno: {
+      jogadores: new Set(ev.filter(e => e.tipo === 'caderno').map(e => e.jogador)).size,
+      fixar: ev.filter(e => e.tipo === 'caderno' && e.dados.acao === 'fixar').length,
+      colar: ev.filter(e => e.tipo === 'caderno' && e.dados.acao === 'colar').length,
+      anotar: ev.filter(e => e.tipo === 'caderno' && e.dados.acao === 'nota').length,
+    },
+    pedidos: contar(ev.filter(e => e.tipo === 'pedido' && e.dados.acao === 'resposta'), e => e.dados.id + (e.dados.ok ? ' ✓' : ' ✗')),
     respostasBeto: contar(ev.filter(e => e.tipo === 'beto'), e => (e.dados.aceita ? '✓ ' : '✗ ') + e.dados.resposta).slice(0, 10),
     aparelhos: { faixa: contar(sessoes, s => s.faixa), navegador: contar(sessoes, s => s.navegador), sistema: contar(sessoes, s => s.sistema) },
     msBancoMediana: Math.round(mediana(sessoes.map(s => s.msBanco).filter(Number.isFinite))),
@@ -92,6 +99,11 @@ ${tab(['Lugar', 'Jogadores', 'Problemas/jogador', 'Min (mediana)', 'Erros', 'Vaz
 ## Onde mais demoram
 
 ${tab(['Lugar', 'Min (mediana)', 'Jogadores'], a.maisDemorados.map(l => [l.onde, l.minutosMediana, l.jogadores]))}${lista('Onde pararam (jogadores que ainda não terminaram)', a.ondeDesistiram)}${lista('Erros de SQL mais comuns', a.errosSql)}${lista('Broncas da Célia mais repetidas', a.tropecos)}${lista('Dicas automáticas mais exibidas', a.dicasAutomaticas)}${lista('Escolhas erradas mais comuns nos treinamentos', a.escolhasErradas)}${lista('Erros técnicos do jogo (corrigir!)', a.errosDoJogo)}${lista('Dilema do Beto', a.dilemaBeto)}${lista('Respostas ao Beto (horário de saída)', a.respostasBeto)}
+## Caderno do Investigador
+
+- Jogadores que usaram: **${a.caderno.jogadores}** de ${a.jogadores}
+- Linhas fixadas: ${a.caderno.fixar} · valores colados no editor: ${a.caderno.colar} · páginas anotadas: ${a.caderno.anotar}
+${lista('Pedidos dos colegas (respostas)', a.pedidos)}
 ## Aparelhos
 
 - Tela: ${a.aparelhos.faixa.map(([k, n]) => `${k} (${n})`).join(', ') || '—'}

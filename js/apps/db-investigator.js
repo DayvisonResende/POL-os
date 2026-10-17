@@ -103,11 +103,13 @@ function runQuery(){
   msg.innerHTML=notas.filter(Boolean).map(function(n){return '<div class="hint0">'+n+'</div>'}).join('');
   tutOnRun(toR(ult));
 }
+var ultimoResultado=null;   // para o 📌 (fixar linha no Caderno)
 function renderGrid(res){
-  var grid=$('#dbGrid'),max=300;
+  var grid=$('#dbGrid'),max=300;ultimoResultado=res;
+  var podeFixar=S.apps.indexOf('caderno')>=0;
   var html='<table><thead><tr><th class="rn">#</th>'+res.columns.map(function(c){return '<th>'+escH(c)+'</th>'}).join('')+'</tr></thead><tbody>';
   res.values.slice(0,max).forEach(function(row,i){
-    html+='<tr><td class="rn">'+(i+1)+'</td>'+row.map(function(v){
+    html+='<tr><td class="rn">'+(podeFixar?'<button class="pin" data-i="'+i+'" title="'+escH(L('Fixar esta linha no Caderno'))+'" aria-label="'+escH(L('Fixar esta linha no Caderno'))+'">📌</button>':'')+(i+1)+'</td>'+row.map(function(v){
       if(v===null)return '<td class="null">NULL</td>';
       var s=String(v);if(/\.jpg$/i.test(s))return '<td><a data-foto="'+escH(s)+'">'+escH(s)+'</a></td>';
       return '<td>'+escH(s)+'</td>'}).join('')+'</tr>'});
@@ -115,4 +117,5 @@ function renderGrid(res){
   if(res.values.length>max)html+='<div class="empty">'+L('Mostrando {max} de {total} linhas. Use LIMIT ou WHERE para enxugar.',{max:max,total:res.values.length})+'</div>';
   grid.innerHTML=html;
   grid.querySelectorAll('a[data-foto]').forEach(function(a){a.onclick=function(){openPhoto(a.getAttribute('data-foto'))}});
+  grid.querySelectorAll('.pin').forEach(function(b){b.onclick=function(){fixarLinha(res,+b.getAttribute('data-i'))}});
 }
