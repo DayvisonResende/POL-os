@@ -1,6 +1,4 @@
 /* ---------- motor do treinamento guiado (passos em js/conteudo/treinamento/) ---------- */
-// {n} = total de veículos, {cores} = cores distintas, {chave} = F.chave (lista vira o tamanho dela)
-function fill(t){return String(t).replace(/\{(\w+)\}/g,function(m,k){var v=k==='n'?F.nVeic:k==='cores'?F.cores.length:F[k];return v==null?m:Array.isArray(v)?v.length:v})}
 function treinoAtual(){return S.treino?TREINOS[S.treino]||null:null}
 function tutPassos(){var t=treinoAtual();return t?t.passos:[]}
 function tutActive(){return S.tut<tutPassos().length}
@@ -36,7 +34,7 @@ function tutEnter(){
   else if(st.type==='blocks'||st.type==='free')setEditor('',st.type==='blocks');
   else setEditor(null,true);
   $('#dbExpl')&&($('#dbExpl').innerHTML='');$('#dbMsg')&&($('#dbMsg').innerHTML='');
-  S.tutEntrou=tutChavePasso();tele('treino_passo',{passo:S.tut+1,degrau:st.type});
+  S.tutEntrou=tutChavePasso();pararVozes();falar('celia',fill(st.text||''));if(st.text2)falar('celia',fill(st.text2));tele('treino_passo',{passo:S.tut+1,degrau:st.type});
   save();renderGuide();
   if(st.type==='mold'||st.type==='free'){var ta=$('#sqlEd');if(ta&&window.innerWidth>760)ta.focus()}
 }
@@ -49,7 +47,7 @@ function tutMarcarLacuna(){
   var i=ta.value.indexOf(LACUNA);if(i>=0)ta.setSelectionRange(i,i+LACUNA.length);
 }
 function tutNext(){S.tut++;if(S.tut>=tutPassos().length){tutFinish();return}tutEnter()}
-function tutComplete(){var st=tutStep();tele('treino_ok',{passo:S.tut+1});S.tutFb=null;if(st.after){S.tutPhase='after';save();renderGuide()}else tutNext()}
+function tutComplete(){var st=tutStep();if(st.after){pararVozes();falar('celia',fill(st.after))}tele('treino_ok',{passo:S.tut+1});S.tutFb=null;if(st.after){S.tutPhase='after';save();renderGuide()}else tutNext()}
 function tutFinish(){
   var T=treinoAtual();S.treinosFeitos.push(T.id);S.treino=null;S.tut=0;tele('treino_fim',{treino:T.id});
   spot(null,null);setEditor(null,false);
@@ -57,7 +55,8 @@ function tutFinish(){
   histAberto=false;save();if(T.aoConcluir)T.aoConcluir();
   if(T.anotacoes&&S.apps.indexOf('files')>=0)setTimeout(function(){toast('Anotações da Célia',L('O resumo do treinamento ficou em Arquivos › Anotações.'),'warn',function(){filesDir='Anotações';openFiles();renderFiles()})},2200);
 }
-function tutFeedback(kind,html){if(kind!=='ok')tele('tropeco',{msg:semTags(html).slice(0,200)});S.tutFb={k:kind,h:html};save();renderGuide()}
+function tutFeedback(kind,html){pararVozes();falar('celia',String(html).split('<div class="gerr">')[0]);   // só a fala da Célia, sem a mensagem de erro (que muda)
+if(kind!=='ok')tele('tropeco',{msg:semTags(html).slice(0,200)});S.tutFb={k:kind,h:html};save();renderGuide()}
 function tutBeforeRun(){
   if(!tutActive()||S.tutPhase!=='doing')return true;var st=tutStep();
   if(st.type==='predict'&&!S.tutPred){tutFeedback('info',L('Calma, apressadinho. Primeiro me diz o que vai sair. Quem chuta sem pensar aqui dentro acaba assinando mandado errado.'));return false}
@@ -93,7 +92,8 @@ function renderGuide(){
   var html='<div class="gh"><span class="av">CM</span><div><b>Célia Moura</b><small>'+L('{treino} · passo {i} de {total}',{treino:escH(treinoAtual().titulo),i:i+1,total:N})+'</small></div></div><div class="gprog"><i style="width:'+Math.round((i+(after?1:0))/N*100)+'%"></i></div>'+histHTML();
   if(after){html+='<div class="gbub after">'+fill(st.after)+'</div><div class="gact"><button class="btn-primary" id="gNext">Continuar</button></div>';g.innerHTML=html;ligarHist(g);$('#gNext').onclick=tutNext;spot('#gNext');return}
   html+='<div class="gbub">'+fill(st.text)+(st.extra||'')+(st.text2||'')+'</div>';
-  g.innerHTML=html;ligarHist(g);var sp=st.spot||null,pl=st.point||null;
+  g.innerHTML=html;ligarHist(g);
+  var ouv=botaoOuvir('celia',fill(st.text||''));if(ouv)g.querySelector('.gbub').appendChild(ouv);var sp=st.spot||null,pl=st.point||null;
   if(st.type==='msg'||st.type==='final'){var a=h('div',{class:'gact'});var b=h('button',{class:'btn-primary',id:'gNext'},escH(st.btn||L('Continuar')));b.onclick=tutNext;a.appendChild(b);g.appendChild(a);sp='#gNext'}
   if(st.type==='predict'){
     g.appendChild(h('div',{class:'gq'},escH(st.q)));var og=h('div',{class:'gopts'});

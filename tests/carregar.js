@@ -11,9 +11,9 @@ function scriptsDoIndex() {
   return [...html.matchAll(/<script src="(js\/[^"]+)"><\/script>/g)].map(m => m[1]);
 }
 
-async function carregarJogo() {
-  const ctx = vm.createContext({ console });
-  for (const arq of scriptsDoIndex().filter(s => /^js\/(core|conteudo|i18n)\//.test(s))) {
+async function carregarJogo(idioma) {
+  const ctx = vm.createContext({ console, window: idioma ? { SISP_IDIOMA_TESTE: idioma } : undefined });
+  for (const arq of scriptsDoIndex().filter(s => /^js\/(core|conteudo|i18n|vozes)\//.test(s))) {
     vm.runInContext(fs.readFileSync(path.join(RAIZ, arq), 'utf8'), ctx, { filename: arq });
   }
   const initSqlJs = require('sql.js/dist/sql-asm.js');

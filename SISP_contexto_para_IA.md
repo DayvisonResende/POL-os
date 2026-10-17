@@ -1,4 +1,4 @@
-# SISP — Documento de Continuidade para IA (v3.5)
+# SISP — Documento de Continuidade para IA (v3.6)
 
 > **Para a IA que vai continuar este projeto:** leia este arquivo inteiro antes de mexer no código. Ele descreve o que o jogo é, por que ele é assim, o que já existe no código (`index.html` + pastas `css/` e `js/`), como ele está organizado, quais decisões já foram tomadas (e por quê) e o que falta fazer. A autora do projeto é a May, que fala português, é detalhista e quer **entender** as decisões, não só recebê-las. Dê opinião honesta quando ela pedir, mesmo discordando.
 
@@ -93,6 +93,7 @@ js/
   core/                     LÓGICA PURA, sem DOM. Roda no navegador e no Node.
     util.js                 mulberry32, sq, escH, toR, has, hasAll, normPlaca, normTxt, esc, rcols, shuffle
     i18n.js                 L('texto em português', {vars}), Lp (plural), escolha de idioma (docs/idiomas.md)
+    vozes.js                idFala, textoFalado, PRONUNCIA, registrarVozes (docs/vozes.md)
     registro.js             CASES, PROVAS, registrarCaso, registrarProva, indiceCaso
     banco/seed.js           buildSeedSQL (dados do jogo)
     banco/fatos.js          F e computeFacts
@@ -104,6 +105,7 @@ js/
     sql/executar.js         executarSQL: resultado de cada consulta do editor, inclusive as vazias
     sql/explicador.js       explainSQL e textos COLDESC/TABDESC
   i18n/                     traduções: <idioma>.js mapeia texto em português → tradução (carregadas antes do conteúdo)
+  vozes/                    manifesto dos áudios gravados por idioma (gerado por npm run vozes -- manifesto)
   conteudo/                 CONTEÚDO DO JOGO, sem DOM. É aqui que o jogo mais cresce.
     casos/<id>.js           um arquivo por BO: registrarCaso({...})
     treinamento/*.js        treinamentos guiados: registrarTreino({id, titulo, passos, aoConcluir}) (ver seção 6)
@@ -132,6 +134,7 @@ tests/                      testes no Node e no navegador (npm test)
 supabase/setup.sql          tabela da telemetria remota (rodar uma vez no Supabase)
 scripts/telemetria*.js      npm run telemetria: baixa do Supabase e gera telemetria/relatorio.md
 scripts/empacotar.js        gera dist/sisp.html, o jogo num arquivo só (npm run empacotar)
+scripts/vozes.js            npm run vozes: roteiro de gravação das falas; "-- manifesto" lista os mp3 gravados (docs/vozes.md)
 docs/playtest.md            roteiro para conduzir sessões de playtest
 ```
 
@@ -226,6 +229,15 @@ registrarCaso({                     // em js/conteudo/casos/1002.js
 - Configurações › Privacidade (só aparece se configurado): liga/desliga, mostra o código anônimo e o termo completo.
 - Lado do servidor: `supabase/setup.sql` (tabela só-inserção para `anon`, limites de tamanho, view `sessoes_resumo`). Download e relatório: `npm run telemetria` → `telemetria/` (fora do git). Instalação: `docs/telemetria-supabase.md`; comandos e consultas do dia a dia: `docs/telemetria-comandos.md`. **Configurado e no ar desde 17/10/2026** (projeto `hkltzqavgnqfnvxdszgi`).
 - **Testes nunca enviam para o Supabase de verdade:** `abrir()` define `window.SISP_CONFIG_TESTE`, que `js/config.js` usa no lugar da configuração real.
+
+### 4.8 Vozes dos personagens (preparado, sem áudios ainda)
+- Guia completo: `docs/vozes.md`. Gravação prevista no ElevenLabs **depois que os textos estabilizarem**.
+- `idFala(personagem, html)` (`js/core/vozes.js`): hash FNV-1a do personagem + texto visível (sem HTML) → `celia-3fa9c21b`. Arquivo: `audio/<idioma>/<id>.mp3`. Mudou o texto, muda o id (o áudio antigo para de tocar e a ferramenta avisa).
+- `js/vozes/<idioma>.js` (manifesto, **gerado** por `npm run vozes -- manifesto`): o jogo só pede os áudios listados. Sem áudio, a fala fica muda, sem erro.
+- `js/ui/vozes.js`: `falar()` com fila, `botaoOuvir()` (🔊), preferência em `localStorage['sisp-vozes']` (desligada por padrão). Menu **Configurações › Som** aparece quando há algum áudio (ou em `?teste`).
+- Ganchos: `say()` do PolíciaZap; balão do guia do treinamento (`tutEnter`, `tutComplete`, `tutFeedback` sem o bloco técnico do erro). `fill()` foi para `js/core/banco/fatos.js` para o roteiro usar o mesmo texto da tela.
+- `npm run vozes` gera `audio/<idioma>/roteiro.csv` e `roteiro-<personagem>.txt` (fora do git), com texto falado (`PRONUNCIA`: `*` → "asterisco"…) e ajustes manuais em `audio/<idioma>/ajustes.json`. Hoje: ~248 falas, ~28 mil caracteres. Falas com valor calculado na hora são marcadas como "dinâmica" e não se gravam.
+- **Nunca** clonar voz de pessoa real sem autorização por escrito.
 
 ---
 
@@ -404,6 +416,7 @@ Jairo Teixeira (investigador impaciente), Marina Okada (perita), Paulo Henrique 
 | 2 | Escada guiada no Módulo 2 (Prioridade 2) | 🟡 implementado; playtest com profissional de BI (Mayumi, 16/10): fluido, BO 1002 em 2,5 min, "quer muito mais". **Falta validar com iniciante.** |
 | 3 | Infraestrutura do Módulo 3 | ✅ dados, Explique, diagnóstico e "cada módulo é um dia" (17/10/2026). Relógio **não** pressiona por enquanto (decisão: esperar dados de iniciantes) |
 | 4 | Conteúdo do Módulo 3 | ✅ implementado (17/10/2026): treinos `m3-agregacao` e `m3-nulos`, BOs 1004 e 1005, prova 3, Inspetor Analítico, pedido do Jairo; falta playtest |
+| — | Vozes dos personagens (base técnica) | ✅ preparado (17/10/2026): tocador, manifesto, roteiro `npm run vozes`; gravar depois (`docs/vozes.md`) |
 | 5 | Módulo 4 (JOIN) | — |
 | 6 | Módulo 5 (escrita, transações) | — |
 | 7 | Módulo 6 (avançado) | — |

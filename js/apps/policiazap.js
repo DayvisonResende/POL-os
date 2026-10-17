@@ -11,6 +11,7 @@ function zapEmPrimeiroPlano(who){var w=WINS.zap;return !!w&&!w.el.classList.cont
 function say(who,text,me){
   S.chat[who].push({me:!!me,sys:me==='sys',text:text,hora:horaJogo()});
   if(me)delete divisoria[who];   // respondeu: leu tudo
+  else if(!me)falar(who,text);
   if(!me&&!zapEmPrimeiroPlano(who)){S.unread[who]++;toast(PEOPLE[who].nome,escH(text.replace(/<[^>]+>/g,'')).slice(0,140),'',function(){chatSel=who;openZap()})}
   save();if(WINS.zap)renderZap();renderIcons();
 }
@@ -35,7 +36,9 @@ function renderZap(){
   conv.forEach(function(m,i){
     if(i===div&&novas){linha=h('div',{class:'novas',role:'status'},Lp(novas,'1 mensagem nova','{n} mensagens novas'));ms.appendChild(linha)}
     var nova=div!=null&&i>=div&&!m.me&&!m.sys,chegou=nova&&i>=lidasAntes;
-    ms.appendChild(h('div',{class:'msg'+(m.sys?' sys':m.me?' me':'')+(nova?' nova':'')+(chegou?' chegou':'')},(m.me||m.sys?'':'<span class="who">'+escH(PEOPLE[chatSel].nome.split(' ')[0])+'</span>')+m.text+(m.hora?'<span class="hora">'+m.hora+'</span>':'')))});
+    var el=h('div',{class:'msg'+(m.sys?' sys':m.me?' me':'')+(nova?' nova':'')+(chegou?' chegou':'')},(m.me||m.sys?'':'<span class="who">'+escH(PEOPLE[chatSel].nome.split(' ')[0])+'</span>')+m.text+(m.hora?'<span class="hora">'+m.hora+'</span>':''));
+    if(!m.me&&!m.sys){var ou=botaoOuvir(chatSel,m.text);if(ou)el.appendChild(ou)}
+    ms.appendChild(el)});
   th.appendChild(ms);
   var pular=h('button',{class:'pular',hidden:''},'&#8595; '+L('Nova mensagem'));
   pular.onclick=function(){ms.scrollTop=ms.scrollHeight;pular.hidden=true};

@@ -626,3 +626,32 @@ test('Caderno · fixar, colar no editor, anotar e manter depois de recarregar', 
     assert.deepStrictEqual(erros, []);
   } finally { await browser.close(); }
 });
+
+// Vozes: desligadas por padrão; 🔊 toca a fala; ligadas, as falas novas tocam sozinhas, em fila. Sem áudio, nada é pedido.
+test('vozes · botão ouvir, ligar nas Configurações e tocar só o que existe', { skip: !CHROME && 'Chrome não encontrado (defina CHROME)', timeout: 60000 }, async () => {
+  const { browser, page, erros } = await abrir('index.html', 1366);
+  try {
+    await page.evaluate(() => {   // alto-falante falso: registra o que seria tocado
+      window.__tocados = [];
+      window.Audio = function (src) { window.__tocados.push(src); this.play = () => Promise.resolve(); setTimeout(() => this.onended && this.onended(), 5); };
+    });
+    await page.click('#lgBtn');
+    // grava (de mentira) a primeira fala da Célia e uma mensagem de chat
+    await page.evaluate(() => { registrarVozes('pt-BR', [idFala('celia', fill(tutStep().text)), idFala('celia', 'Chegou a voz.')]); renderGuide(); buildStart(); });
+    assert.ok(await page.isVisible('.gbub .ouvir'), '🔊 aparece na fala que tem áudio');
+    assert.deepStrictEqual(await page.evaluate(() => __tocados), [], 'desligado por padrão: não toca sozinho');
+    await page.click('.gbub .ouvir');
+    await page.waitForFunction(() => __tocados.length === 1);
+    assert.match(await page.evaluate(() => __tocados[0]), /^audio\/pt-BR\/celia-[0-9a-f]{8}\.mp3$/);
+    // liga em Configurações › Vozes
+    await page.click('#startBtn'); await page.click('#startMenu .sm-abre');
+    await page.click('#startMenu .sm-fly button:has-text("Vozes")');
+    await page.click('.overlay button:has-text("Ligar as vozes")');
+    assert.strictEqual(await page.evaluate(() => VOZ_PREF.ligado), true);
+    await page.evaluate(() => { say('celia', 'Chegou a voz.'); say('celia', 'Esta não foi gravada.'); });
+    await page.waitForFunction(() => __tocados.length === 2);
+    await page.waitForTimeout(100);
+    assert.strictEqual(await page.evaluate(() => __tocados.length), 2, 'fala sem áudio não pede arquivo nenhum');
+    assert.deepStrictEqual(erros, []);
+  } finally { await browser.close(); }
+});

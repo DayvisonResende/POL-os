@@ -52,3 +52,6 @@ function linhasDe(q){
 function bate(R,q){return mesmasLinhas(R,linhasDe(q))}
 // Primeiro valor de uma consulta de referência (ex.: valorDe('SELECT MAX(x) FROM t')).
 function valorDe(q){var l=linhasDe(q);if(!l.length)return null;var o=l[0];return o[Object.keys(o)[0]]}
+
+// {n} = total de veículos, {cores} = cores distintas, {chave} = F.chave (lista vira o tamanho dela)
+function fill(t){return String(t).replace(/\{(\w+)\}/g,function(m,k){var v=k==='n'?F.nVeic:k==='cores'?F.cores.length:F[k];return v==null?m:Array.isArray(v)?v.length:v})}

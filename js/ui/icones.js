@@ -6,6 +6,7 @@ var MENU_ICONS={
  config:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#cfe2dc" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>',
  salvar:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#cfe2dc" stroke-width="1.7"><path d="M12 4v11M7 10l5 5 5-5"/><path d="M4 18v2h16v-2"/></svg>',
  carregar:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#cfe2dc" stroke-width="1.7"><path d="M12 15V4M7 9l5-5 5 5"/><path d="M4 18v2h16v-2"/></svg>',
+ voz:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#cfe2dc" stroke-width="1.7"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/></svg>',
  idioma:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#cfe2dc" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg>',
  reiniciar:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#f0a59e" stroke-width="1.7"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v5h-5"/></svg>'
 };

@@ -30,6 +30,8 @@ function buildStart(){
   item(fly,L('Carregar progresso de arquivo'),MENU_ICONS.carregar,importarProgresso);
   if(remotaConfigurada()){fly.appendChild(h('hr'));fly.appendChild(h('div',{class:'sm-sec'},L('Privacidade')));
     item(fly,remotaLigada()?L('Dados de uso: enviando'):L('Dados de uso: desligado'),MENU_ICONS.diag,abrirPrivacidade)}
+  if(vozesDisponiveis()||teleModo()){fly.appendChild(h('hr'));fly.appendChild(h('div',{class:'sm-sec'},L('Som')));
+    item(fly,VOZ_PREF.ligado?L('Vozes: ligadas'):L('Vozes: desligadas'),MENU_ICONS.voz,abrirVozes)}
   if(idiomasDisponiveis(teleModo()).length>1){fly.appendChild(h('hr'));fly.appendChild(h('div',{class:'sm-sec'},L('Idioma')));
     item(fly,IDIOMAS[idiomaAtual()].nome,MENU_ICONS.idioma,escolherIdiomaMenu)}
   fly.appendChild(h('hr'));

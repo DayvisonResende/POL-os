@@ -11,3 +11,6 @@ telemetria/
 # material do autor: contém o final do jogo (o repositório é público). Ver SISP_contexto_para_IA.md, "Pendências".
 docs/historia.md
 docs/supabaseKeys.md
+
+# roteiro de gravação das vozes: gerado por npm run vozes (os mp3, o ajustes.json e o manifesto vão para o git)
+audio/*/roteiro*

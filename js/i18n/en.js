@@ -269,5 +269,14 @@ registrarIdioma('en',{nome:'English',pronto:false,textos:{
  "Apagar esta linha":"Delete this row",
  "Clique para colar no editor SQL":"Click to paste into the SQL editor",
  "Fixar esta linha no Caderno":"Pin this row to the Notebook",
- "Caderno":"Notebook"
+ "Caderno":"Notebook",
+ "Som":"Sound",
+ "Vozes: ligadas":"Voices: on",
+ "Vozes: desligadas":"Voices: off",
+ "Ouvir":"Listen",
+ "Vozes dos personagens":"Character voices",
+ "As falas dos personagens podem ser lidas em voz alta. O texto continua na tela.":"Character lines can be read aloud. The text stays on screen.",
+ "Volume":"Volume",
+ "Desligar as vozes":"Turn voices off",
+ "Ligar as vozes":"Turn voices on"
 }});
