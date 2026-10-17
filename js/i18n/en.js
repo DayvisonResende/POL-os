@@ -157,7 +157,7 @@ registrarIdioma('en',{nome:'English',pronto:false,textos:{
  "<b>Para quê:</b> só para melhorar o jogo, por exemplo achar onde as pessoas travam e corrigir erros. Os dados não são vendidos nem compartilhados.":"<b>What for:</b> only to improve the game, for example finding where people get stuck and fixing bugs. The data is never sold or shared.",
  "O jogo funciona igual nas duas escolhas, e você pode mudar de ideia quando quiser em <b>SISP › Configurações › Privacidade</b>.":"The game works the same either way, and you can change your mind anytime in <b>SISP › Settings › Privacy</b>.",
  "Quem coleta":"Who collects it",
- "A equipe que desenvolve o SISP, um jogo educativo de SQL. Os dados ficam guardados num banco de dados na nuvem (Supabase).":"The team that develops SISP, an educational SQL game. The data is stored in a cloud database (Supabase).",
+ "A equipe que desenvolve o SISP, um jogo educativo de SQL. Os dados ficam guardados num banco de dados na nuvem.":"The team that develops SISP, an educational SQL game. The data is stored in a cloud database.",
  "Dados coletados":"Data collected",
  "Eventos do jogo: passos do treinamento, chamados, provas, dicas, mensagens de erro, tempo em cada parte, escolhas (por exemplo, nas conversas com personagens).":"Game events: training steps, cases, exams, hints, error messages, time spent in each part, choices (for example, in conversations with characters).",
  "As consultas SQL que você executa no jogo (até 400 caracteres cada). São sobre o banco fictício do jogo.":"The SQL queries you run in the game (up to 400 characters each). They're about the game's fictional database.",

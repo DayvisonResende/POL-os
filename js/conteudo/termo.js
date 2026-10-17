@@ -8,7 +8,7 @@ function termoResumoHTML(){return ''+
  '<p>'+L('<b>Para quê:</b> só para melhorar o jogo, por exemplo achar onde as pessoas travam e corrigir erros. Os dados não são vendidos nem compartilhados.')+'</p>'+
  '<p>'+L('O jogo funciona igual nas duas escolhas, e você pode mudar de ideia quando quiser em <b>SISP › Configurações › Privacidade</b>.')+'</p>'}
 function termoCompletoHTML(){var c=TELEMETRIA_REMOTA.contato;return ''+
- '<h5>'+L('Quem coleta')+'</h5><p>'+L('A equipe que desenvolve o SISP, um jogo educativo de SQL. Os dados ficam guardados num banco de dados na nuvem (Supabase).')+'</p>'+
+ '<h5>'+L('Quem coleta')+'</h5><p>'+L('A equipe que desenvolve o SISP, um jogo educativo de SQL. Os dados ficam guardados num banco de dados na nuvem.')+'</p>'+
  '<h5>'+L('Dados coletados')+'</h5><ul><li>'+L('Eventos do jogo: passos do treinamento, chamados, provas, dicas, mensagens de erro, tempo em cada parte, escolhas (por exemplo, nas conversas com personagens).')+'</li>'+
  '<li>'+L('As consultas SQL que você executa no jogo (até 400 caracteres cada). São sobre o banco fictício do jogo.')+'</li>'+
  '<li>'+L('Informações técnicas: tipo de aparelho, família do navegador e do sistema, idioma, faixa de tamanho da tela, erros técnicos do jogo e versão do jogo.')+'</li>'+
