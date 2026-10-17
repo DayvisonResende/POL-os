@@ -9,7 +9,7 @@ function startDesktop(resumed){
   else if(verificarTreinos()){}
   else if(tutActive()){openDb();if(S.tutEntrou!==tutChavePasso())tutEnter()}
   else{openOcorr();if(S.closed.indexOf('1002')>=0&&S.beto==='none')setTimeout(startBeto,15000)}
-  verificarPedidos();
+  verificarPedidos();agendarServico();
   if(provaMod()&&S.apps.indexOf('prova')<0){S.apps.push('prova');save();renderIcons();buildStart()}
 }
 (function boot(){

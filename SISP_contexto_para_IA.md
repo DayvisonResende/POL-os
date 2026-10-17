@@ -50,7 +50,7 @@ Ponto de entrada: **`index.html`** (o resto está em `css/` e `js/`, ver seção
 4. É liberada a **ACADEPOL** (prova). Aprovado, o jogador é **promovido a Estagiário do Arquivo**, o que libera os **Arquivos** e o **BO 1002**.
 5. **BO 1002 (furto no shopping):** WHERE, AND, LIKE. Desfecho por mandado de busca.
 6. **BO 1003 (assalto na Castelo Branco):** BETWEEN, IN, comparações e o primeiro contato com chave estrangeira (em três consultas, sem JOIN). Desfecho por mandado de prisão (placa + nome).
-7. Durante o BO 1003 chega a **side quest do Beto** (consultar a catraca e depois o pedido de fraude de ponto).
+7. Durante o BO 1003 chega o **dilema do Beto** (consultar a catraca e depois o pedido de fraude de ponto).
 8. **Prova do Módulo 2** → promoção a **Investigador Júnior** → relatório de produtividade do turno.
 
 ### Funcionalidades prontas
@@ -95,6 +95,7 @@ js/
     i18n.js                 L('texto em português', {vars}), Lp (plural), escolha de idioma (docs/idiomas.md)
     vozes.js                idFala, textoFalado, PRONUNCIA, registrarVozes (docs/vozes.md)
     registro.js             CASES, PROVAS, registrarCaso, registrarProva, indiceCaso
+    servicos.js             serviços do Beto: CONCEITOS, SERVICOS, sorteio, conferência da resposta e domínio
     banco/seed.js           buildSeedSQL (dados do jogo)
     banco/fatos.js          F e computeFacts
     sql/lexico.js           KEYWORDS, lev, closest, kwTypo, stripSql, tokSQL, joinToks
@@ -128,7 +129,7 @@ js/
   apps/                     um arquivo por aplicativo do Pol-OS
     db-investigator.js, ocorrencias.js, policiazap.js, arquivos.js, radar.js,
     treinamento.js (motor do TUT), acadepol.js, relatorio.js
-  historia/                 side quests e eventos de enredo (hoje: beto.js)
+  historia/                 dilemas, pedidos e serviços dos colegas (beto.js, pedidos.js, servicos.js; ver Glossário)
   main.js                   boot (sempre o último script)
 tests/                      testes no Node e no navegador (npm test)
 supabase/setup.sql          tabela da telemetria remota (rodar uma vez no Supabase)
@@ -179,7 +180,8 @@ chat{celia[], beto[]}, unread{}, beto ('none'|'asked'|'wrong'|'favor'|'done'),
 writeWarned, queries, errors, editor, hintsSeen{}, fired, done, verdict{},
 treino (id do treinamento ativo ou null), treinosFeitos[ids], tutEntrou ('treino:passo' já iniciado),
 tut (passo dentro do treino ativo), tutPhase ('doing'|'after'), tutPick, tutPred, tutWrong[], tutBlocks[], tutHint,
-tutFb, tutMiss, tutErr, tutBlk, apps[], rank, prova{mod,qs,ord,ans,sql,graded}, provaTries{}
+tutFb, tutMiss, tutErr, tutBlk, apps[], rank, prova{mod,qs,ord,ans,sql,graded}, provaTries{},
+servicos{conceitos{id:{seguidos,acertos,erros,dominado,visto}}, n, ultimo, ultimaVariacao, aberto{id,p,tentativas,chegaEm,entregue}, turno, noTurno, apresentado}
 ```
 **Backup em arquivo** (`js/ui/backup.js`): menu SISP › **Configurações** › *Salvar progresso em arquivo* baixa `sisp-progresso-AAAA-MM-DD-HH-MM.json` = `{jogo:'sisp', formato:SAVE_KEY, salvoEm, patente, encerrados, estado:S}`. *Carregar progresso de arquivo* (só no menu Configurações, depois de entrar; a tela de login não oferece carregar, por decisão do Dayvison) valida `jogo` e `formato`, pede confirmação e grava no `localStorage` antes de recarregar; formatos antigos de `S` passam pela migração normal do `load()`. *Reiniciar turno* pede confirmação e oferece salvar antes. Ao trocar `SAVE_KEY`, decidir se backups antigos devem ser aceitos (hoje são recusados com aviso).
 
@@ -198,7 +200,7 @@ registrarCaso({                     // em js/conteudo/casos/1002.js
   manual:'HTML do Manual do Recruta deste caso',
   rankMin:1,                       // opcional: patente mínima para o caso abrir (índice em RANKS)
   tempo:150,                       // opcional: minutos que o relógio avança ao fechar (padrão 60)
-  aoEncerrar:function(){ … }       // opcional: reação da história (mensagens da Célia, liberar app, side quest)
+  aoEncerrar:function(){ … }       // opcional: reação da história (mensagens da Célia, liberar app, dilema)
 });
 ```
 - **`steps[].ok(R)`** valida pelo resultado, nunca pelo texto.
@@ -217,6 +219,13 @@ registrarCaso({                     // em js/conteudo/casos/1002.js
 ### 4.6.1 Dias de expediente, pedidos e PolíciaZap
 - **Dias** (`js/conteudo/dias.js` + `js/ui/expediente.js`): cada módulo é um dia. `S.dia` (0 = terça 13/10), `S.diaConcluido`, `S.diaIniciado`. A promoção do fim do módulo chama `concluirDia()`; o Relatório do turno mostra **Encerrar expediente** (se existir o dia seguinte), com transição e recarga. No primeiro login do dia, o **e-mail da manhã** abre antes do treinamento. Casos têm `diaMin`; tabelas têm `diaMin` (acesso provisório) além de `rankMin`.
 - **Pedidos dos colegas** (`registrarPedido` em `js/core/registro.js`, conteúdo em `js/conteudo/pedidos.js`, motor em `js/historia/pedidos.js`): prática opcional pelo PolíciaZap; acerto dá Metas, erro não pune. Primeiro: `jairo-radares` (GROUP BY + ORDER BY), depois do BO 1004.
+- **Serviços do Beto ("Tem serviço?")** (ideia do Dayvison, iniciante: "só pratiquei na história e já não lembro tanto"): treino livre e **sem limite** dos conceitos já aprendidos. Lógica pura em `js/core/servicos.js` (testada no Node), conteúdo em `js/conteudo/servicos.js`, motor em `js/historia/servicos.js`, página **Treino com o Beto** no Caderno.
+  - Libera depois do dilema do ponto (`S.beto==='done'`); o Beto se apresenta uma vez. Cada conceito (`registrarConceito`) é liberado pelo treinamento que o ensina.
+  - O jogador pede, o Beto "organiza" por **20 a 60 s** (`SERV_ESPERA`, sorteado; sobrevive a recarregar a página) e manda um serviço. Resposta digitada no chat, conferida pelo **resultado** de uma consulta de referência (`sql(p)`); número com tolerância, texto pelas palavras que importam. Erro: dica, sem punição. "Deixa pra lá": o Beto mostra a consulta (`mostrar(p)`, só com o que o jogador já sabe) e a resposta.
+  - **Metas só nos 3 primeiros de cada turno** (turno = dia + BOs fechados), +5 cada: treinar mais é livre, mas não infla a progressão.
+  - **Domínio:** 3 acertos seguidos de primeira; o selo não cai. **Mistura** (serviço com vários conceitos) só aparece quando cada conceito já está dominado sozinho. O sorteio favorece o não dominado, o errado e o que não aparece há tempo.
+  - Variações vêm do banco (`variar()`), e nada entrega pista da história (lista `SERV_FORA`; há teste). Módulos novos: registrar os conceitos e uns 3 a 5 serviços por conceito, mais misturas com os módulos anteriores.
+  - Telemetria: `servico` (`pedido`, `resposta`, `desistiu`, `dominou`).
 - **Tarefas com `aoConcluir`**: fala da história disparada no momento em que o jogador conclui a tarefa (a virada da Denise no BO 1004).
 - **Caderno do Investigador** (`js/apps/caderno.js`, `S.caderno`): uma página "Geral" e uma por BO liberado (casos futuros não aparecem). Anotação livre salva sozinha; o 📌 em cada linha da grade do DB-Investigator fixa a linha (com a consulta) na página do BO em andamento; clicar num valor fixado cola no editor, com aspas se for texto. Liberado com Ocorrências e PolíciaZap; saves antigos ganham automaticamente. Telemetria: `caderno` (`fixar`, `colar`, `nota`), resumida no relatório.
 - **PolíciaZap, lidas e não lidas** (playtest da Mayumi): `S.lidas[contato]`; mensagem só conta como lida com o PolíciaZap em primeiro plano; divisória "N mensagens novas", destaque, botão "↓ Nova mensagem" quando o jogador está lendo mensagens antigas, horário do jogo em cada mensagem.
@@ -288,7 +297,7 @@ CREATE TABLE transferencias (id INTEGER PRIMARY KEY AUTOINCREMENT, conta_origem 
 | LMB6G55 | Hilux preta, 141 km/h, 21:32 | — | falso positivo (horário) |
 | HBD2D44 | HB20 preto, Av. Dom Aguirre | — | falso positivo (local) |
 
-- **Catraca:** Roberto "Beto" Silva saiu às **16:40:12** em 12/10 (resposta da side quest). Existe uma "Roberta Silva Lima" de propósito, para confundir buscas com LIKE.
+- **Catraca:** Roberto "Beto" Silva saiu às **16:40:12** em 12/10 (resposta do dilema do Beto). Existe uma "Roberta Silva Lima" de propósito, para confundir buscas com LIKE.
 - **Regra do gerador:** radares aleatórios no Km 18 entre 22:40 e 23:20 de 12/10 ficam com no máximo 115 km/h, para não criar suspeitos acidentais. **Ao adicionar dados aleatórios, garanta que eles não quebram nenhum enigma.**
 - **Atenção:** mudar a ordem das chamadas ao PRNG em `buildSeedSQL` muda todos os dados aleatórios. As validações por `F` se adaptam, mas textos que citam números (ex.: "48 veículos") podem ficar errados. Prefira acrescentar novos dados **depois** dos existentes.
 
@@ -384,7 +393,7 @@ Veterana ("macaca velha"), 22 anos de DTI, desconfiada, ensina do jeito dela e d
 6. Ela trata o jogador de "recruta", usa "tu/teu" às vezes, e fala com metáforas de repartição ("tabela é gaveta").
 
 ### Roberto "Beto" Silva, investigador da baia 05
-Malandro simpático que vive pedindo favor. Ele é a fonte das **side quests** e dos **dilemas morais** (ex.: pedir para alterar o ponto). Não deve pisar no espaço da Célia: ele é charmoso e pidão, ela é a autoridade.
+Malandro simpático que vive pedindo favor. Ele é a fonte dos **dilemas morais** (ex.: pedir para alterar o ponto) e dos **serviços** (treino livre, "Tem serviço?"). Não deve pisar no espaço da Célia: ele é charmoso e pidão, ela é a autoridade.
 
 ### Outros já citados
 Jairo Teixeira (investigador impaciente), Marina Okada (perita), Paulo Henrique Dias (delegado, assina ou indefere mandados).
@@ -395,7 +404,7 @@ Jairo Teixeira (investigador impaciente), Marina Okada (perita), Paulo Henrique 
 
 | Medidor | Sobe com | Efeito |
 |---|---|---|
-| Metas | +30 por caso fechado, +10 pela side quest do Beto | hoje só indicador |
+| Metas | +30 por caso fechado, +10 pelo dilema do Beto (horário certo), +10 por pedido de colega, +5 por serviço do Beto (só os 3 primeiros de cada turno) | hoje só indicador |
 | Corregedoria | mandado errado (+15 a +20), resposta errada ao Beto (+15), aceitar fraude de ponto (+15), tentar escrever no banco (+5, só na 1ª vez), relatório errado (+5) | 100% = demissão |
 | Relógio | avança ao fechar casos | modo "treino", não pune |
 
@@ -416,6 +425,7 @@ Jairo Teixeira (investigador impaciente), Marina Okada (perita), Paulo Henrique 
 | 2 | Escada guiada no Módulo 2 (Prioridade 2) | 🟡 implementado; playtest com profissional de BI (Mayumi, 16/10): fluido, BO 1002 em 2,5 min, "quer muito mais". **Falta validar com iniciante.** |
 | 3 | Infraestrutura do Módulo 3 | ✅ dados, Explique, diagnóstico e "cada módulo é um dia" (17/10/2026). Relógio **não** pressiona por enquanto (decisão: esperar dados de iniciantes) |
 | 4 | Conteúdo do Módulo 3 | ✅ implementado (17/10/2026): treinos `m3-agregacao` e `m3-nulos`, BOs 1004 e 1005, prova 3, Inspetor Analítico, pedido do Jairo; falta playtest |
+| — | Serviços do Beto (treino livre com domínio por conceito) | ✅ implementado (17/10/2026): Módulos 1–3, 12 conceitos, 21 serviços (118 variações); falta playtest |
 | — | Vozes dos personagens (base técnica) | ✅ preparado (17/10/2026): tocador, manifesto, roteiro `npm run vozes`; gravar depois (`docs/vozes.md`) |
 | 5 | Módulo 4 (JOIN) | — |
 | 6 | Módulo 5 (escrita, transações) | — |
@@ -471,6 +481,7 @@ Colocar **2 ou 3 pessoas que nunca programaram** para jogar, sem ajudar, e anota
 - Mostrar ao jogador que as 3 consultas do BO 1003 viram **uma só**.
 - `explainSQL` **não entende JOIN** ainda; precisa ser estendido. `translateError` já trata `ambiguous column`.
 - Considerar um mini diagrama de tabelas (ERD) no Dicionário de Dados.
+- **★ A soma que infla no JOIN** (1 para N): pergunta de entrevista mais comum de agregação com JOIN. Tarefa em que o total "impossível" denuncia o erro (ver `docs/historia.md`, seção 11).
 
 ### Prioridade 5 — Módulo 5 (INSERT, UPDATE, DELETE, transações)
 - A promoção a Perito Forense libera a escrita: mudar `isReadOnly` para depender da patente.
@@ -481,6 +492,7 @@ Colocar **2 ou 3 pessoas que nunca programaram** para jogar, sem ajudar, e anota
 
 ### Prioridade 6 — Módulo 6 (texto, datas, CASE, subqueries, CTE, window functions)
 Limpeza de dados sujos (`TRIM`, `UPPER`, `REPLACE` em placas com traço e nomes com espaços), reconstituição de rota com `LAG`/`LEAD` em antenas de celular, dossiê final com CTEs.
+Lacunas de entrevista do módulo (★): `NOT IN` com NULL × `NOT EXISTS`, e `CASE WHEN` dentro do `SUM`/`COUNT` (linhas viram colunas).
 
 ### Prioridade 7 — Prova final e certificado
 **Pedido do Dayvison (15/10/2026):** no fim do jogo, o jogador gera um **certificado** de que sabe SQL, com **o nome dele**, em duas versões: uma **para imprimir** e uma **imagem para redes sociais**. Só libera depois de **concluir o treinamento** e passar num **teste mais difícil**, que mostre que ele sabe o que está fazendo.
@@ -497,7 +509,7 @@ Requisitos:
 - **Certificados por nível**, em vez de um só no fim: Nível 1 (consultas e filtros, Módulos 1–2), Nível 2 (agregação e JOIN, 3–4), Nível 3 (escrita e avançado, 5–6). Dá valor desde já, porque hoje o jogo só vai até o Módulo 2.
 - **Código de verificação** no certificado, conferível numa página do jogo. Limite honesto: sem servidor, qualquer verificação local pode ser forjada por quem souber programar; o código serve contra erro de digitação, não contra fraude.
 - **Caderno de consultas**: exportar as consultas que o jogador escreveu para resolver os casos, como portfólio para mostrar em entrevista. Prova mais que um certificado.
-- **Ponte para o mercado** na prova final: mostrar a mesma consulta em PostgreSQL e SQL Server (base: `comparativo_de_dialetos_sql_do_jogo_ao_postgresql_e_sql_server.md`).
+- **Ponte para o mercado** na prova final: mostrar a mesma consulta em PostgreSQL e SQL Server (base: `docs/dialetos-sql.md`).
 
 ### Arte dos personagens
 Imagens em `Images/Arco1/` (14/10/2026), estilo quadrinho noir, 1254×1254 PNG (~2,4 MB cada): Beto, Estagiária e Estagiário Analista de Dados. Ajustes combinados para o futuro:
@@ -522,7 +534,9 @@ Imagens em `Images/Arco1/` (14/10/2026), estilo quadrinho noir, 1254×1254 PNG (
 - **Corregedoria suspendendo promoção:** se o medidor estiver alto na prova, exigir um "chamado de redenção" limpo antes de promover. Precisa de conteúdo extra.
 - **Banco de questões maior** na ACADEPOL (hoje 5 de múltipla escolha + 3 de escrever por módulo).
 - **Áudio das escutas** com Web Audio API (ruído de linha telefônica) + SpeechSynthesis, como previsto no documento original. Hoje a escuta é um .txt.
-- **Quadro de Pistas** (fixar linhas do resultado para comparar suspeitos).
+- ~~**Quadro de Pistas**~~: feito como Caderno do Investigador (seção 4.6.1).
+- **Dicas de mercado** (SQLite × PostgreSQL × SQL Server): bloco "FORA DAQUI (no trabalho)" no fim das anotações da Célia. Feito nos Módulos 1 e 2 (17/10/2026); no Módulo 3 nada muda. Novos módulos: seguir a tabela de `docs/dialetos-sql.md`, seção 4, e só quando houver diferença.
+- **Filtro de dia inteiro:** decidido manter o `BETWEEN '… 00:00:00' AND '… 23:59:59'` nas tarefas (é o que o jogador aprendeu no Módulo 2 e está certo no jogo). A forma de mercado (`>= 'dia' AND < 'dia seguinte'`) fica como dica nas anotações dos intervalos; como a correção é pelo resultado, as duas formas são aceitas.
 - ~~**Telemetria local**~~: feita (seção 4.6).
 
 ---
@@ -604,4 +618,8 @@ Joga o jogo inteiro (treinamento errando de propósito em cada degrau, BO 1001, 
 - **Corregedoria:** órgão que fiscaliza policiais; aqui, o medidor de risco.
 - **Diegético:** que existe dentro do mundo do jogo (uma janela do Pol-OS) e não como menu externo.
 - **Scaffolding / escada:** apoio que diminui à medida que o jogador aprende.
+- **Dilema:** escolha moral com consequência na história (ex.: o Beto pede para alterar o ponto). Acontece uma vez e pode voltar mais tarde no enredo. Código: `js/historia/beto.js`.
+- **Pedido:** favor de um colega ligado a um momento da história, que pede uma consulta (ex.: o Jairo e os radares). Acontece uma vez. Código: `registrarPedido`, `js/historia/pedidos.js`.
+- **Serviço:** treino livre e repetível com o Beto ("Tem serviço?"), sem enredo, para não esquecer o que aprendeu. Código: `registrarServico`, `js/historia/servicos.js`.
+- Evite "side quest" no texto: diga qual dos três é.
 - **Recordset:** o conjunto de linhas e colunas devolvido por uma consulta.

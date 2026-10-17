@@ -68,7 +68,12 @@ registrarTreino({id:'m1',titulo:'Treinamento',
   "",
   "TRAVOU?",
   "  - Clica em \"Explique esta consulta\": ele traduz pra português.",
-  "  - Os nomes certos das tabelas e colunas estão no Dicionário de Dados."
+  "  - Os nomes certos das tabelas e colunas estão no Dicionário de Dados.",
+  "",
+  "FORA DAQUI (no trabalho)",
+  "  Este banco é SQLite. Nas empresas, quase sempre é PostgreSQL ou SQL Server.",
+  "  Tudo acima funciona igual nos três. Só o LIMIT muda no SQL Server, e vai logo depois do SELECT:",
+  "  SELECT TOP (5) * FROM pessoas;"
  ].join('\n')},
  aoConcluir:function(){
   S.apps.indexOf('ocorr')<0&&S.apps.push('ocorr');S.apps.indexOf('zap')<0&&S.apps.push('zap');S.apps.indexOf('caderno')<0&&S.apps.push('caderno');save();renderIcons();buildStart();

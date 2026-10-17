@@ -278,5 +278,19 @@ registrarIdioma('en',{nome:'English',pronto:false,textos:{
  "As falas dos personagens podem ser lidas em voz alta. O texto continua na tela.":"Character lines can be read aloud. The text stays on screen.",
  "Volume":"Volume",
  "Desligar as vozes":"Turn voices off",
- "Ligar as vozes":"Turn voices on"
+ "Ligar as vozes":"Turn voices on",
+ "Tem serviço?":"Got any work?",
+ "Deixa pra lá":"Never mind",
+ "O Beto está separando o serviço…":"Beto is sorting out a task…",
+ "Resposta ao serviço do Beto":"Answer to Beto's task",
+ "Treino com o Beto":"Practice with Beto",
+ "Conceito":"Concept",
+ "Situação":"Status",
+ "Acertos":"Correct",
+ "Dominado":"Mastered",
+ "Praticando":"Practicing",
+ "Ainda não treinou":"Not practiced yet",
+ "Conceito dominado":"Concept mastered",
+ "{nome}: três acertos seguidos de primeira. Veja no Caderno, página Treino.":"{nome}: three first-try answers in a row. See the Notebook, Practice page.",
+ "Peça serviço ao Beto no PolíciaZap (\"Tem serviço?\"). Um conceito fica dominado com três acertos seguidos de primeira. Quando você domina as partes, ele começa a mandar serviços que misturam.":"Ask Beto for work on PolíciaZap (\"Got any work?\"). A concept is mastered after three first-try answers in a row. Once you master the parts, he starts sending tasks that mix them."
 }});

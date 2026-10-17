@@ -71,7 +71,7 @@ function replyBox(){
   }else if(chatSel==='beto'&&S.beto==='favor'){
     [[L('Não dá, Beto. Pede pro RH corrigir.'),'no'],[L('Deixa comigo, ninguém vai ver.'),'yes']].forEach(function(o){
       var b=h('button',{class:'opt'},escH(o[0]));b.onclick=function(){say('beto',escH(o[0]),true);favorBeto(o[1])};box.appendChild(b)});
-  }else box.appendChild(h('span',{class:'muted'},L('Nenhuma resposta pendente.')));
+  }else if(!(chatSel==='beto'&&caixaServico(box)))box.appendChild(h('span',{class:'muted'},L('Nenhuma resposta pendente.')));
   return box;
 }
 

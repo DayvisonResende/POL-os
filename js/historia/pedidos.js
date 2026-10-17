@@ -2,6 +2,7 @@
    Conteúdo em js/conteudo/pedidos.js (registrarPedido). Acerto dá Metas; erro não pune: é treino.
    Aparecem quando quando() fica verdadeiro (verificado ao entrar, ao fechar casos e ao ser promovido). */
 function verificarPedidos(){
+  apresentarServicos();
   PEDIDOS.forEach(function(p){
     if(S.pedidos[p.id]||!p.quando())return;
     S.pedidos[p.id]={estado:'aberto',tentativas:0};save();tele('pedido',{id:p.id,acao:'recebido'});

@@ -655,3 +655,65 @@ test('vozes · botão ouvir, ligar nas Configurações e tocar só o que existe'
     assert.deepStrictEqual(erros, []);
   } finally { await browser.close(); }
 });
+
+// Serviços do Beto: pedir, esperar, errar (dica), acertar (Metas), desistir (o Beto mostra a consulta), Caderno › Treino.
+test('serviços do Beto · "Tem serviço?" do pedido ao domínio', { skip: !CHROME && 'Chrome não encontrado (defina CHROME)', timeout: 90000 }, async () => {
+  const { chromium } = require('playwright-core');
+  const browser = await chromium.launch({ executablePath: CHROME, headless: true });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1366, height: 800 } });
+    const erros = []; page.on('pageerror', e => erros.push(e.message));
+    await page.route('**/*', r => { const u = r.request().url(); if (u.includes('sql-asm.js')) return r.fulfill({ body: fs.readFileSync(ASM), contentType: 'application/javascript' }); return u.startsWith('file:') ? r.continue() : r.abort(); });
+    // terça, depois do BO 1002 e do dilema do Beto: Módulos 1 e 2 aprendidos
+    const terca = { chat: { celia: [], beto: [{ me: false, text: 'Valeu mesmo assim.' }], jairo: [], marina: [] }, unread: {}, lidas: {}, tut: 0, treino: null,
+      treinosFeitos: ['m1', 'm2-filtros', 'm2-intervalos'], rank: 1, done: true, dia: 0, diaIniciado: 0, closed: ['1001', '1002'], caseSel: 2, apps: ['db', 'ocorr', 'zap', 'files', 'caderno'], beto: 'done', metas: 0 };
+    await page.addInitScript(s => { window.SISP_CONFIG_TESTE = { url: '', chave: '', contato: '' }; window.SISP_IDIOMA_TESTE = 'pt-BR';
+      if (!sessionStorage.getItem('ok')) { localStorage.setItem('sisp-proto-v2', s); sessionStorage.setItem('ok', '1'); } }, JSON.stringify(terca));
+    await page.goto('file://' + path.join(RAIZ, 'index.html'));
+    await page.waitForFunction(() => !document.querySelector('#lgBtn').disabled);
+    await page.click('#lgBtn');
+    // o Beto conta que tem serviço (uma vez só)
+    await page.waitForFunction(() => S.chat.beto.some(m => /me pede serviço/.test(m.text)));
+    await page.evaluate(() => { SERV_ESPERA = [0, 0]; chatSel = 'beto'; openZap(); });
+    const resposta = () => page.evaluate(() => { const a = S.servicos.aberto, s = servicoDe(a.id), r = respostaServico(s, a.p); return typeof r === 'number' ? String(Math.round(r * 100) / 100).replace('.', ',') : String(r); });
+    const pedir = async () => {
+      await page.click('.reply .servico-pedir');
+      assert.match(await page.textContent('.reply'), /separando o serviço/);
+      await page.waitForSelector('.reply input', { timeout: 5000 });
+      assert.ok(await page.evaluate(() => S.servicos.aberto.id && SERVICOS.find(s => s.id === S.servicos.aberto.id).conceitos.length === 1), 'antes de dominar, nada de mistura');
+    };
+    const enviar = async v => { const n = await page.evaluate(() => S.chat.beto.length); await page.fill('.reply input', v); await page.press('.reply input', 'Enter'); await page.waitForFunction(k => S.chat.beto.length >= k + 2, n); };
+
+    // 1º: erra, recebe dica, acerta → Metas, mas não conta como "de primeira"
+    await pedir();
+    await enviar('xyz 99999');
+    assert.match(await page.evaluate(() => S.chat.beto.at(-1).text), /não bate/);
+    await enviar(await resposta());
+    assert.strictEqual(await page.evaluate(() => S.metas), 5);
+    assert.ok(await page.evaluate(() => { const v = Object.values(S.servicos.conceitos).filter(e => e.visto >= 0); return v.length >= 1 && v.every(e => e.seguidos === 0 && e.erros === 1 && e.acertos === 0); }), 'acertou depois de errar: não conta como de primeira');
+    // 2º: desiste → o Beto mostra a consulta e a resposta
+    await pedir();
+    await page.click('.reply button:has-text("Deixa pra lá")');
+    await page.waitForFunction(() => /Fiz assim: <code>SELECT/.test(S.chat.beto.at(-1).text));
+    // depois do 3º do turno, treina sem ganhar Metas
+    await page.evaluate(() => { S.servicos.noTurno = 3; });
+    await pedir();
+    assert.match(await page.evaluate(() => S.chat.beto.at(-2).text), /fome|De novo/);
+    await enviar(await resposta());
+    assert.strictEqual(await page.evaluate(() => S.metas), 5, 'sem Metas depois do 3º do turno');
+    // recarregar no meio da espera: o serviço chega mesmo assim
+    await page.evaluate(() => { SERV_ESPERA = [3, 3]; });
+    await page.click('.reply .servico-pedir');
+    await page.reload();
+    await page.waitForFunction(() => !document.querySelector('#lgBtn').disabled);
+    await page.click('#lgBtn');
+    await page.waitForFunction(() => S.servicos.aberto && S.servicos.aberto.entregue, null, { timeout: 8000 });
+    // Caderno › Treino mostra a situação de cada conceito aprendido (e nenhum do Módulo 3)
+    await page.evaluate(() => openCaderno('treino'));
+    const t = await page.textContent('.cad-treino');
+    assert.match(t, /WHERE com texto/); assert.match(t, /Ainda não treinou|Praticando/);
+    assert.doesNotMatch(t, /GROUP BY/);
+    assert.match(await page.textContent('.cad-pags'), /Treino com o Beto/);
+    assert.deepStrictEqual(erros, []);
+  } finally { await browser.close(); }
+});

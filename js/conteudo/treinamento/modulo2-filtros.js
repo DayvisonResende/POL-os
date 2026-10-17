@@ -126,7 +126,11 @@ registrarTreino({id:'m2-filtros',titulo:'Filtros',
   "TRAVOU?",
   "  1. Explique esta consulta.",
   "  2. Relê o relato do BO: cada coisa que a testemunha viu vira um filtro.",
-  "  3. Só então pede dica."
+  "  3. Só então pede dica.",
+  "",
+  "FORA DAQUI (no trabalho)",
+  "  No PostgreSQL, o LIKE diferencia maiúscula de minúscula: 'ro%' não acha Rodrigo.",
+  "  Lá se usa ILIKE:   WHERE nome ILIKE 'ro%'"
  ].join('\n')},
  aoConcluir:function(){
   S.caseSel=indiceCaso('1002');save();openOcorr();renderOcorr();

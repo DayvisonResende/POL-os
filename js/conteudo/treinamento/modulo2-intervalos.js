@@ -95,7 +95,12 @@ registrarTreino({id:'m2-intervalos',titulo:'Intervalos',
   "",
   "UMA TABELA NÃO SABE TUDO",
   "  O radar só tem a placa. Modelo e cor ficam em veiculos. O dono fica em pessoas.",
-  "  veiculos.cpf_proprietario aponta pra pessoas.cpf: segue a pista de tabela em tabela."
+  "  veiculos.cpf_proprietario aponta pra pessoas.cpf: segue a pista de tabela em tabela.",
+  "",
+  "FORA DAQUI (no trabalho): O DIA INTEIRO",
+  "  Aqui, BETWEEN '... 00:00:00' AND '... 23:59:59' funciona. Banco de empresa guarda fração de segundo,",
+  "  e o que aconteceu às 23:59:59,5 fica de fora. O costume de quem trabalha com isso:",
+  "  WHERE data_hora >= '2026-10-12' AND data_hora < '2026-10-13'      (tudo do dia 12, nada do 13)"
  ].join('\n')},
  aoConcluir:function(){
   S.caseSel=indiceCaso('1003');save();openOcorr();renderOcorr();

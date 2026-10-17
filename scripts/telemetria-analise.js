@@ -73,6 +73,7 @@ function analisar(linhas) {
       anotar: ev.filter(e => e.tipo === 'caderno' && e.dados.acao === 'nota').length,
     },
     pedidos: contar(ev.filter(e => e.tipo === 'pedido' && e.dados.acao === 'resposta'), e => e.dados.id + (e.dados.ok ? ' ✓' : ' ✗')),
+    servicos: contar(ev.filter(e => e.tipo === 'servico' && e.dados.acao !== 'pedido'), e => e.dados.id + ' · ' + (e.dados.acao === 'resposta' ? (e.dados.ok ? '✓' : '✗') : e.dados.acao === 'dominou' ? 'dominou ' + e.dados.conceito : 'desistiu')),
     respostasBeto: contar(ev.filter(e => e.tipo === 'beto'), e => (e.dados.aceita ? '✓ ' : '✗ ') + e.dados.resposta).slice(0, 10),
     aparelhos: { faixa: contar(sessoes, s => s.faixa), navegador: contar(sessoes, s => s.navegador), sistema: contar(sessoes, s => s.sistema) },
     msBancoMediana: Math.round(mediana(sessoes.map(s => s.msBanco).filter(Number.isFinite))),
@@ -104,6 +105,7 @@ ${tab(['Lugar', 'Min (mediana)', 'Jogadores'], a.maisDemorados.map(l => [l.onde,
 - Jogadores que usaram: **${a.caderno.jogadores}** de ${a.jogadores}
 - Linhas fixadas: ${a.caderno.fixar} · valores colados no editor: ${a.caderno.colar} · páginas anotadas: ${a.caderno.anotar}
 ${lista('Pedidos dos colegas (respostas)', a.pedidos)}
+${lista('Serviços do Beto (respostas, desistências e conceitos dominados)', a.servicos)}
 ## Aparelhos
 
 - Tela: ${a.aparelhos.faixa.map(([k, n]) => `${k} (${n})`).join(', ') || '—'}

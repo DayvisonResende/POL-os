@@ -1,4 +1,4 @@
-/* Side quest do Beto (catraca e pedido de fraude de ponto). */
+/* Dilema do Beto (catraca e pedido de fraude de ponto). Glossário: dilema × pedido × serviço em SISP_contexto_para_IA.md. */
 function startBeto(){
   if(S.beto!=='none')return;S.beto='asked';
   say('beto','Irmão, salva minha vida. Esqueci se bati o ponto na saída ontem (12/10). Dá uma olhada na <code>catraca_acessos</code> e me fala o horário de saída que tá lá? Meu nome tá como Roberto Silva.');
@@ -21,5 +21,5 @@ function favorBeto(c){
   if(c==='no'){say('beto','Tá certo, tá certo. Não custava tentar. Valeu mesmo assim.')}
   else{say('beto','Sabia que podia contar contigo!');addCorr(15,'Pedido de alteração de ponto registrado no seu login.');
     setTimeout(function(){say('celia','Recruta, a Corregedoria registrou uma conversa sobre alteração de ponto no teu login. Teu perfil nem tem permissão de escrita, e mesmo se tivesse: não se mete nisso. O Beto é gente boa, mas já me rendeu duas sindicâncias.')},2500)}
-  save();
+  save();setTimeout(apresentarServicos,c==='no'?3000:6000);
 }
