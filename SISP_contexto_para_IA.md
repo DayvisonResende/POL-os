@@ -232,6 +232,7 @@ registrarCaso({                     // em js/conteudo/casos/1002.js
 
 ### 4.7 Telemetria remota (Supabase)
 - `js/ui/telemetria-remota.js` manda cada evento de `tele()` para a tabela `eventos` do Supabase, **só** se `js/config.js` tiver `url` e `chave` **e** o jogador aceitou o termo (`js/conteudo/termo.js`, guardado em `localStorage['sisp-consentimento']` com `TERMO_VERSAO`). Sem isso, não faz nada.
+- **Termos de uso (v2, 17/10/2026):** `js/conteudo/termo.js` é um contrato completo em duas partes: (1) termos do jogo, aceitos nas duas escolhas: jogo de simulação, ensino de SQL, obra de ficção (personagens, casos, placas e CPFs inventados), **sem relação com a polícia ou órgãos públicos**, sem garantias, progresso local; (2) coleta de dados de uso **opcional** (LGPD: responsável identificado só pelo e-mail de contato, por decisão do Dayvison; base legal consentimento, retenção de até 5 anos, direitos e contato). Não cita o fornecedor do banco (há teste). Tradução completa para o inglês. **Recomendado:** revisão por advogado antes de publicar nas lojas.
 - Lotes de 40 eventos, a cada 15 s e ao sair/esconder a aba (`keepalive`); fila em `localStorage['sisp-telemetria-fila']` (até 1000), reenviada depois se a internet cair.
 - Identidade: `sisp-jogador` (código aleatório por navegador) e um código por abertura do jogo. **Nunca** enviar nome, login, senha, contato nem o nome do certificado (há teste).
 - Eventos extras (além dos da 4.6): `sessao` com aparelho em categorias (`faixa`, `navegador`, `sistema`, `idioma`, `toque`, `msBanco`, `versao`), `janela`, `escolha` (opções e peças dos treinamentos), `dilema`, `beto`, `promocao`, `demitido`, `relatorio`, `dica_auto` (dica exibida), `erro_js` (erros técnicos), `pausa`/`volta`/`saida`, `consentimento`, `treino_inicio`/`treino_fim`.
@@ -511,6 +512,13 @@ Requisitos:
 - **Caderno de consultas**: exportar as consultas que o jogador escreveu para resolver os casos, como portfólio para mostrar em entrevista. Prova mais que um certificado.
 - **Ponte para o mercado** na prova final: mostrar a mesma consulta em PostgreSQL e SQL Server (base: `docs/dialetos-sql.md`).
 
+### Logo
+`pol-os.png` (raiz, original 1254×1254 com fundo transparente, ~3 MB): escudo "POL·OS · Sistema de Operações e Investigações", lema "Analisar | Investigar | Esclarecer". O jogo usa versões leves em `img/` (17/10/2026):
+- `img/logo.webp` (360 px de altura, ~35 KB): tela de login, acima de "SISP · ESTAÇÃO DTI-04". O `npm run empacotar` embute como `data:`.
+- `img/compartilhar.jpg` (1200×630, ~80 KB): prévia do link no WhatsApp/LinkedIn (`og:image`, com endereço absoluto do GitHub Pages; **trocar se o domínio mudar**).
+- O favicon continua o escudo em SVG: o texto da logo não se lê em 16–32 px. Ícones de loja/PWA (512 px), quando chegar a hora, usam só o escudo central, sem texto.
+- Nome: a logo diz **POL·OS** (com ponto); a interface diz POL-OS/Pol-OS. Padronizar quando definir o nome de loja.
+
 ### Arte dos personagens
 Imagens em `Images/Arco1/` (14/10/2026), estilo quadrinho noir, 1254×1254 PNG (~2,4 MB cada): Beto, Estagiária e Estagiário Analista de Dados. Ajustes combinados para o futuro:
 - **Beto:** o distintivo diz "DETECTIVE BETO" (inglês; o cargo é *Investigador*). O fundo diz "7º DP" (no jogo ele é do DTI, em Sorocaba).
@@ -529,6 +537,7 @@ Imagens em `Images/Arco1/` (14/10/2026), estilo quadrinho noir, 1254×1254 PNG (
 - **Vários idiomas** — ✅ estrutura pronta (17/10/2026): ver `docs/idiomas.md` e a seção 12, regra 12. Interface migrada e traduzida para inglês (`pronto:false`, só com `?idioma=en`). **Falta migrar o conteúdo** (casos, treinamentos, provas, falas, mensagens de SQL) e criar um explicador por idioma.
 
 ### Outras melhorias pendentes
+- **Domínio próprio (`polos.useconectai.com.br`), adiado (17/10/2026):** o progresso fica no navegador **por endereço**; trocar o domínio faz quem já joga recomeçar do zero (e o endereço antigo passa a redirecionar, sem chance de salvar antes). Antes de ativar: avisar no jogo, com antecedência, para salvar o progresso em arquivo (SISP › Configurações) e carregar no endereço novo; depois de ativar, ligar **Enforce HTTPS** no GitHub Pages. Trocar de domínio uma vez só.
 - **Caminho para quem já sabe SQL** (ideia do playtest da Mayumi, profissional de BI): prova de nivelamento no início, que pula os treinamentos dos módulos que a pessoa já domina. O público "do mercado" quer a história e os casos, não o tutorial.
 - **Cada módulo como um dia de expediente:** a tela de login abre com data nova, patente nova e um e-mail da chefia com as permissões. Isso substitui a ideia de "fase".
 - **Corregedoria suspendendo promoção:** se o medidor estiver alto na prova, exigir um "chamado de redenção" limpo antes de promover. Precisa de conteúdo extra.

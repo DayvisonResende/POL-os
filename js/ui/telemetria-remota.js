@@ -51,18 +51,19 @@ window.addEventListener('unhandledrejection',function(e){registrarErroJs('promes
 
 /* Termo de uso: no primeiro login (se a telemetria remota estiver configurada) e em Configurações › Privacidade. */
 function mostrarTermo(depois){
-  confirmar(L('Termo de uso do Pol-OS'),
-    termoResumoHTML()+'<details class="termo"><summary>'+L('Ler o termo completo')+'</summary>'+termoCompletoHTML()+'</details>',
-    // os dois botões com o mesmo peso: consentimento não pode ser empurrado (boa prática de LGPD)
-    [[L('Aceito enviar dados anônimos'),function(){decidirConsentimento(true);if(depois)depois()},'btn-igual'],
-     [L('Não enviar'),function(){decidirConsentimento(false);if(depois)depois()},'btn-igual']]);
+  confirmar(L('Termos de uso'),
+    termoResumoHTML()+'<details class="termo"><summary>'+L('Ler os termos completos')+'</summary>'+termoCompletoHTML()+'</details>',
+    // os termos do jogo valem nas duas escolhas; só a coleta muda. Botões com o mesmo peso:
+    // consentimento não pode ser empurrado (LGPD)
+    [[L('Aceito os termos e envio dados anônimos'),function(){decidirConsentimento(true);if(depois)depois()},'btn-igual'],
+     [L('Aceito os termos, sem enviar dados'),function(){decidirConsentimento(false);if(depois)depois()},'btn-igual']]);
 }
 function abrirPrivacidade(){
   var lig=remotaLigada();
   confirmar(L('Privacidade'),
     '<p>'+(lig?L('Envio de dados anônimos de uso: <b>ligado</b>.'):L('Envio de dados anônimos de uso: <b>desligado</b>.'))+'</p>'+
     '<p>'+L('Seu código anônimo neste navegador:')+' <code>'+escH(jogadorId())+'</code><br><span class="muted">'+L('Use este código se quiser pedir a exclusão dos dados já enviados.')+'</span></p>'+
-    '<details class="termo"><summary>'+L('Ler o termo completo')+'</summary>'+termoCompletoHTML()+'</details>',
+    '<details class="termo"><summary>'+L('Ler os termos completos')+'</summary>'+termoCompletoHTML()+'</details>',
     [[lig?L('Desligar o envio'):L('Ligar o envio'),function(){decidirConsentimento(!lig);toast(L('Privacidade'),lig?L('Envio de dados desligado.'):L('Envio de dados ligado. Obrigado por ajudar!'),'ok')},'btn-primary'],
      [L('Fechar'),null,'tb-btn']]);
 }

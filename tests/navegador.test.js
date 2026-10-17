@@ -383,8 +383,11 @@ test('telemetria remota · termo de uso e envio anônimo', { skip: !CHROME && 'C
   try {
     await page.click('#lgBtn');
     await page.waitForSelector('.overlay [role=dialog]');
-    assert.match(await page.textContent('.overlay'), /Termo de uso do Pol-OS.*nunca é enviado/s);
-    await page.click('.overlay button:has-text("Não enviar")');
+    assert.match(await page.textContent('.overlay'), /Termos de uso.*jogo de simulação.*ensinar SQL.*obra de ficção.*não tem nenhuma relação com a polícia.*nunca é enviado/s);
+    const completo = await page.textContent('.overlay .termo');
+    for (const re of [/Sem relação com a polícia/, /Obra de ficção/, /Coleta de dados de uso \(opcional\)/, /Lei 13\.709/, /equipe@exemplo\.com/]) assert.match(completo, re);
+    assert.doesNotMatch(completo, /supabase/i, 'o termo não cita o fornecedor do banco');
+    await page.click('.overlay button:has-text("sem enviar dados")');
     assert.ok(await page.isVisible('#guide'), 'jogo começa normalmente');
     await page.click('#gNext'); await page.click('#gNext');
     await page.evaluate(() => enviarFila());
@@ -397,7 +400,7 @@ test('telemetria remota · termo de uso e envio anônimo', { skip: !CHROME && 'C
   ({ browser, page, erros } = await preparar());
   try {
     await page.click('#lgBtn');
-    await page.click('.overlay button:has-text("Aceito")');
+    await page.click('.overlay button:has-text("Aceito os termos e envio")');
     await page.click('#gNext'); await page.click('#gNext'); await page.click('#runBtn');
     await page.evaluate(() => enviarFila());
     await page.waitForFunction(() => true);

@@ -5,8 +5,8 @@
 #boot{position:absolute;inset:0;z-index:9000;display:grid;place-items:center;padding:16px;
   background:radial-gradient(120% 90% at 30% 20%,#25454f 0%,var(--wall-2) 70%);color:var(--wall-ink)}
 .boot-card{width:min(420px,100%);display:grid;gap:18px}
-.crest{display:flex;align-items:center;gap:14px}
-.crest svg{flex:none}
+.crest{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.crest .logo{display:block;height:180px;width:auto;filter:drop-shadow(0 6px 18px rgba(0,0,0,.45))}
 .brand{font-family:var(--f-display);font-weight:700;font-size:44px;letter-spacing:.04em;line-height:.9;color:#eef3f1}
 .brand small{display:block;font-size:15px;letter-spacing:.18em;color:#9fb6b3;font-weight:600;margin-top:6px}
 .boot-form{background:rgba(8,20,24,.55);border:1px solid #3c5a62;padding:18px;display:grid;gap:12px}
@@ -109,6 +109,10 @@
 .overlay .termo summary{cursor:pointer;color:#1d5b8f;text-decoration:underline}
 .overlay .termo h5{margin:10px 0 2px;font-size:13.5px}
 .overlay .termo ul{margin:2px 0;padding-left:20px}
+.overlay .termo h4{margin:10px 0 0;font-size:15px}
+.overlay .termo p{margin:2px 0 6px}
+.overlay .termo-pontos{margin:0 0 10px;padding-left:20px}
+.overlay .termo-pontos li{margin:3px 0}
 .overlay .rb p{margin:0 0 8px}
 .btn-igual{padding:10px 14px;font-weight:600;background:var(--pane);border:1px solid var(--title);color:var(--title)}
 .btn-igual:hover{background:#fff}
