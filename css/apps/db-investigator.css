@@ -34,7 +34,9 @@
 .dict .note{padding:0 10px 4px 18px;font-size:11.5px;color:var(--ink-3);line-height:1.35}
 
 .ed.locked::after{content:"somente leitura";position:absolute;right:8px;bottom:6px;font-family:var(--f-code);font-size:10.5px;color:var(--code-com);pointer-events:none}
-.explain{flex:none;margin:8px;border:1px solid #b6cdd3;background:#f2f8f9;max-height:45%;overflow:auto}
+/* Tradução e mensagens nunca encolhem: com pouco espaço, a coluna rola (antes eram espremidas até sumir) */
+#dbExpl,#dbMsg{flex:none}
+.explain{flex:none;margin:8px;border:1px solid #b6cdd3;background:#f2f8f9;max-height:min(45vh,420px);overflow:auto}
 .explain .exh{display:flex;align-items:center;gap:8px;padding:6px 10px;background:#dbe9ee;font-size:12px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:var(--title);position:sticky;top:0}
 .explain .exh button{margin-left:auto;border:0;background:none;color:var(--title);font-size:13px;text-decoration:underline;text-transform:none;letter-spacing:0}
 .explain table{border-collapse:collapse;width:100%}
@@ -44,3 +46,14 @@
 .err .probs,.hint0 .probs{margin:6px 0 0;padding-left:20px;display:grid;gap:4px}
 .status.flash{animation:stflash .7s ease-out}
 @keyframes stflash{from{background:var(--accent-soft)}to{background:var(--win)}}
+.dict-dica{margin:0;padding:6px 10px;font-size:12px;line-height:1.35;color:var(--ink-3);border-bottom:1px solid var(--rule)}
+.grid td.colar{cursor:copy;position:relative}
+.copiado-tag{position:absolute;right:4px;top:50%;transform:translateY(-50%);padding:1px 6px;background:var(--ok,#2e7d4f);color:#fff;font-family:var(--f-ui);font-size:11px;font-weight:600;white-space:nowrap;pointer-events:none;animation:copiado 1.2s ease-out forwards}
+.copiado-tag.falhou{background:var(--danger)}
+@keyframes copiado{0%{opacity:0}12%{opacity:1}75%{opacity:1}100%{opacity:0}}
+.grid td.colar:hover{background:var(--accent-soft);outline:1px solid var(--accent);outline-offset:-1px}
+.sugest{flex:none;display:flex;flex-wrap:wrap;gap:4px;align-items:center;padding:3px 10px;background:#1a2a30;border-bottom:1px solid #000;font-family:var(--f-code);font-size:12.5px}
+.sugest .muted{color:var(--code-com);margin-right:4px}
+.sugest button{border:1px solid #3c5a62;background:transparent;color:var(--code-ink);padding:1px 8px;font:inherit;cursor:pointer}
+.sugest button.prim{border-color:var(--accent);color:#fff}
+.sugest button:hover{background:#25454f}

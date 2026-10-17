@@ -5,19 +5,28 @@ function caseWaitsDay(i){return i>0&&caseDone(i-1)&&S.dia<(CASES[i].diaMin||0)}
 function caseDone(i){return S.closed.indexOf(CASES[i].id)>=0}
 function caseActive(){for(var k=0;k<CASES.length;k++)if(caseUnlocked(k)&&!caseDone(k))return k;return -1}
 function openOcorr(){openWin('ocorr',{title:nomeApp('ocorr'),w:760,h:540,x:110,y:14,build:function(){renderOcorr()},refresh:function(){renderOcorr()}})}
+// O que o jogador digitou no desfecho sobrevive ao redesenho (cada consulta redesenha a janela para marcar
+// as tarefas; antes, os campos voltavam vazios: playtest de 17/10).
+var rascunhoBO={};
 function renderOcorr(){
   var r=WINS.ocorr;if(!r)return;var scroll=r.body.querySelector('.ocdetail');var st=scroll?scroll.scrollTop:0;
+  r.body.querySelectorAll('form.final input').forEach(function(i){rascunhoBO[i.id]=i.value});
   r.body.innerHTML='';var wrap=h('div',{class:'oc'}),list=h('div',{class:'oclist'});
   CASES.forEach(function(c,i){
     var un=caseUnlocked(i),dn=caseDone(i);
-    var b=h('button',{class:'ocitem'+(i===S.caseSel?' sel':'')},'<span class="no">'+L('BO 2026/{id} · Módulo {m}',{id:c.id,m:c.modulo})+'</span><span class="tt">'+escH(c.titulo)+'</span><span class="pill '+(dn?'p-done':un?'p-open':'p-lock')+'">'+(dn?L('Encerrado'):un?L('Em análise'):(caseWaitsRank(i)?L('Aguarda promoção'):caseWaitsDay(i)?L('Próximo expediente'):L('Pendente')))+'</span>');
+    var b=h('button',{class:'ocitem'+(i===S.caseSel?' sel':'')},'<span class="no">'+L('BO 2026/{id} · Módulo {m}',{id:c.id,m:c.modulo})+'</span><span class="tt">'+escH(c.titulo)+'</span><span class="pill '+(dn?'p-done':un?'p-open':'p-lock')+'">'+(dn?L('Encerrado'):un?L('Em análise'):(caseWaitsRank(i)?(provaMod()!=null?L('Aguarda a prova'):L('Aguarda promoção')):caseWaitsDay(i)?L('Próximo expediente'):L('Pendente')))+'</span>');
     if(!un)b.disabled=true;b.onclick=function(){S.caseSel=i;save();renderOcorr()};list.appendChild(b)});
   wrap.appendChild(list);
   var c=CASES[S.caseSel],d=h('div',{class:'ocdetail'});
+  // Prova pendente: aviso fixo (antes era só uma notificação de 6 s; quem voltava ao jogo não sabia o que fazer)
+  var pm=provaMod(),avisoProva=null;
+  if(pm!=null&&S.apps.indexOf('prova')>=0){var av=h('div',{class:'oc-proximo',role:'status'},'<b>'+L('Próximo passo')+'</b><span>'+L('Faça a <b>prova do Módulo {m}</b> no app ACADEPOL. Os próximos BOs só abrem depois da promoção.',{m:pm})+'</span>');
+    var ab=h('button',{class:'btn-primary'},L('Abrir a prova'));ab.onclick=openProva;av.appendChild(ab);avisoProva=av}
   var done=caseDone(S.caseSel),stp=S.steps[c.id]||[];
   d.innerHTML='<div class="eyebrow">'+L('Boletim nº 2026/{id}',{id:c.id})+'</div><h2>'+escH(c.titulo)+'</h2>'+
    '<div class="bohead"><div><span>'+L('Natureza')+'</span>'+escH(c.natureza)+'</div><div><span>'+L('Data e hora')+'</span>'+c.quando+'</div><div><span>'+L('Local')+'</span>'+escH(c.local)+'</div><div><span>'+L('Solicitante')+'</span>'+escH(c.solicitante)+'</div></div>'+
    '<h3>'+L('Relato')+'</h3><p class="relato">'+c.relato+'</p><h3>'+L('Tarefas da investigação')+'</h3>';
+  if(avisoProva)d.insertBefore(avisoProva,d.firstChild);
   var ul=h('ul',{class:'steps'});
   c.steps.forEach(function(s,k){
     var ok=done||stp.indexOf(k)>=0,hk=c.id+':'+k,lvl=S.hintsSeen[hk]||0;
@@ -43,6 +52,7 @@ function renderOcorr(){
       if(res.ok){closeCase(S.caseSel,res.msg)}else{fin.querySelector('.vslot').innerHTML='<div class="verdict bad">'+escH(res.msg)+'</div>';addCorr(res.pen,res.msg)}});
   }
   d.appendChild(fin);wrap.appendChild(d);r.body.appendChild(wrap);
+  fin.querySelectorAll('input').forEach(function(i){if(rascunhoBO[i.id])i.value=rascunhoBO[i.id];i.addEventListener('input',function(){rascunhoBO[i.id]=i.value})});
   d.scrollTop=st;
 }
 function closeCase(i,msg){

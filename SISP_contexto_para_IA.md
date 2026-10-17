@@ -105,6 +105,8 @@ js/
     sql/permissao.js        isReadOnly
     sql/executar.js         executarSQL: resultado de cada consulta do editor, inclusive as vazias
     sql/explicador.js       explainSQL e textos COLDESC/TABDESC
+    sql/formatar.js         formatarSQL: botão Organizar (uma parte por linha, palavras do SQL em maiúsculas)
+    sql/sugerir.js          sugerirSQL: autocompletar só de nomes (tabelas, colunas, palavras do SQL)
   i18n/                     traduções: <idioma>.js mapeia texto em português → tradução (carregadas antes do conteúdo)
   vozes/                    manifesto dos áudios gravados por idioma (gerado por npm run vozes -- manifesto)
   conteudo/                 CONTEÚDO DO JOGO, sem DOM. É aqui que o jogo mais cresce.
@@ -229,6 +231,14 @@ registrarCaso({                     // em js/conteudo/casos/1002.js
 - **Tarefas com `aoConcluir`**: fala da história disparada no momento em que o jogador conclui a tarefa (a virada da Denise no BO 1004).
 - **Caderno do Investigador** (`js/apps/caderno.js`, `S.caderno`): uma página "Geral" e uma por BO liberado (casos futuros não aparecem). Anotação livre salva sozinha; o 📌 em cada linha da grade do DB-Investigator fixa a linha (com a consulta) na página do BO em andamento; clicar num valor fixado cola no editor, com aspas se for texto. Liberado com Ocorrências e PolíciaZap; saves antigos ganham automaticamente. Telemetria: `caderno` (`fixar`, `colar`, `nota`), resumida no relatório.
 - **PolíciaZap, lidas e não lidas** (playtest da Mayumi): `S.lidas[contato]`; mensagem só conta como lida com o PolíciaZap em primeiro plano; divisória "N mensagens novas", destaque, botão "↓ Nova mensagem" quando o jogador está lendo mensagens antigas, horário do jogo em cada mensagem.
+
+### 4.6.2 Ajustes do playtest de 17/10/2026 (jogadora experiente)
+- **Editor:** inserções do jogo usam `editorDigitar` (`execCommand('insertText')`) para o **Ctrl+Z** funcionar; **autocompletar** em faixa abaixo do editor (Tab aceita, Esc esconde; desligado no celular e só com nomes, nunca a consulta); botão **Organizar** (fora do treinamento); clicar num **valor do resultado** copia (sem aspas, com aviso discreto "Copiado"; fora do treinamento; `copiarTexto` tenta a API moderna e cai no jeito antigo); números com no máximo 2 casas (`numTela`).
+- **Ocorrências:** o que foi digitado no desfecho sobrevive ao redesenho (`rascunhoBO`); **aviso fixo de prova pendente** ("Próximo passo") e "!" no ícone da ACADEPOL; pílula "Aguarda a prova".
+- **Dicionário:** tabelas fechadas por padrão (`S.dictAbertas` lembra), dica fixa no topo. `COLNOTES` só em `js/conteudo/dicionario.js` (havia cópia em `db-investigator.js` que apagava as notas das contas). Contas: `id` × `numero` explicado; dicas do BO 1005 falam em **id**.
+- **Erros de outros bancos** (`DIALETOS` em `js/core/sql/erros.js`): `::`, `TOP`, `ILIKE`, `NOW()`/`GETDATE()`, `ISNULL`, `LEN`, `DATEDIFF`, `CONCAT`, `EXTRACT`.
+- **Conteúdo:** passo "prever" do COALESCE antes do molde; "boas manias" nas anotações do Módulo 3 (AS, uma parte por linha, executar só o trecho selecionado).
+- **Notificações:** somem descendo; "Som de mensagem" opcional (SISP › Configurações › Som, desligado por padrão, gerado com Web Audio).
 
 ### 4.7 Telemetria remota (Supabase)
 - `js/ui/telemetria-remota.js` manda cada evento de `tele()` para a tabela `eventos` do Supabase, **só** se `js/config.js` tiver `url` e `chave` **e** o jogador aceitou o termo (`js/conteudo/termo.js`, guardado em `localStorage['sisp-consentimento']` com `TERMO_VERSAO`). Sem isso, não faz nada.

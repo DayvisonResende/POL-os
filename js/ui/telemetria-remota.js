@@ -39,10 +39,13 @@ function enviarFila(saindo){
   },function(){enviandoFila=false});
 }
 setInterval(function(){enviarFila()},15000);
+// pausa, volta e saída só de quem entrou no jogo: recarregar a tela de login não é uma sessão (era 70% do barulho)
+function entrouNoJogo(){return TELE.sessoes>0}
 document.addEventListener('visibilitychange',function(){
+  if(!entrouNoJogo())return;
   if(document.visibilityState==='hidden'){tele('pausa');enviarFila(true)}else tele('volta');
 });
-window.addEventListener('pagehide',function(){tele('saida');enviarFila(true)});
+window.addEventListener('pagehide',function(){if(entrouNoJogo()){tele('saida');enviarFila(true)}});
 // Erros técnicos do próprio jogo: o tipo de problema que só aparece no aparelho dos outros.
 var dentroDoErro=false;
 function registrarErroJs(msg,arq,linha){if(dentroDoErro)return;dentroDoErro=true;try{tele('erro_js',{msg:String(msg).slice(0,200),arquivo:String(arq||'').split('/').slice(-2).join('/'),linha:linha||0})}catch(e){}dentroDoErro=false}

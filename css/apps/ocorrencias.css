@@ -43,3 +43,8 @@
 .verdict.ok{background:var(--ok-soft);border-left:4px solid var(--ok)}
 .verdict.bad{background:var(--danger-soft);border-left:4px solid var(--danger)}
 .stamp{display:inline-block;transform:rotate(-4deg);border:3px solid var(--ok);color:var(--ok);font-family:var(--f-display);font-weight:700;font-size:26px;letter-spacing:.12em;padding:2px 12px;margin:6px 0}
+/* Próximo passo: prova pendente na ACADEPOL (aviso fixo no topo do BO) */
+.oc-proximo{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0 0 12px;padding:10px 12px;background:var(--accent-soft);border:1px solid var(--accent);border-left-width:4px;font-size:14px;line-height:1.4}
+.oc-proximo>b:first-child{display:block;width:100%;font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:#8a5a06}
+.oc-proximo .btn-primary{padding:6px 12px}
+.oc-proximo>span{flex:1 1 260px}

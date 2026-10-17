@@ -37,7 +37,7 @@ function renderProva(){
       if(!g){var tb=h('button',{class:'tb-btn',type:'button'},'&#9654; '+L('Testar consulta'));tb.onclick=function(){
           var x=runSafe(ta.value);tele('consulta',{onde:'Prova Módulo '+mod,questao:id,sql:ta.value.slice(0,400),res:x.err?'erro':x.raw?'ok':'vazio',erro:x.rawErr});if(x.err){prev.innerHTML='<div class="err" style="margin:0">'+x.err+'</div>';return}
           var raw=x.raw;if(!raw){prev.innerHTML=L('A consulta rodou e não trouxe nenhuma linha.');return}
-          prev.innerHTML=Lp(raw.values.length,'1 linha','{n} linhas')+' · '+L('colunas: {lista}',{lista:raw.columns.map(escH).join(', ')})+'<table><tr>'+raw.columns.map(function(c){return '<th>'+escH(c)+'</th>'}).join('')+'</tr>'+raw.values.slice(0,3).map(function(row){return '<tr>'+row.map(function(v){return '<td>'+escH(v===null?'NULL':v)+'</td>'}).join('')+'</tr>'}).join('')+'</table>'+(raw.values.length>3?'…':'')};
+          prev.innerHTML=Lp(raw.values.length,'1 linha','{n} linhas')+' · '+L('colunas: {lista}',{lista:raw.columns.map(escH).join(', ')})+'<table><tr>'+raw.columns.map(function(c){return '<th>'+escH(c)+'</th>'}).join('')+'</tr>'+raw.values.slice(0,3).map(function(row){return '<tr>'+row.map(function(v){return '<td>'+escH(v===null?'NULL':numTela(v))+'</td>'}).join('')+'</tr>'}).join('')+'</table>'+(raw.values.length>3?'…':'')};
         var ac=h('div',{class:'pfoot'});ac.appendChild(tb);box.appendChild(ac)}
       box.appendChild(prev);
     }

@@ -83,7 +83,10 @@
 .toast{background:#f7f9f8;color:var(--ink);border:1px solid var(--edge);border-left:4px solid var(--title);padding:10px 12px;box-shadow:0 8px 24px rgba(0,0,0,.35);font-size:14px;line-height:1.35;cursor:pointer;animation:tin .25s ease-out}
 .toast b{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);margin-bottom:2px}
 .toast.ok{border-left-color:var(--ok)} .toast.bad{border-left-color:var(--danger)} .toast.warn{border-left-color:var(--accent)}
-@keyframes tin{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
+@keyframes tin{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+.toast.sai{animation:tout .3s ease-in forwards}
+@keyframes tout{to{transform:translateY(24px);opacity:0}}
+@media (prefers-reduced-motion:reduce){.toast,.toast.sai{animation:none}}
 
 /* ---------- overlays ---------- */
 .overlay{position:absolute;inset:0;z-index:9500;display:grid;place-items:center;padding:16px;background:rgba(5,12,14,.72)}

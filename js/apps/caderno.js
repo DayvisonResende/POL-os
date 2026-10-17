@@ -55,7 +55,7 @@ function renderCaderno(){
     var tb=h('table',{class:'minitab'});
     tb.innerHTML='<tr>'+f.cols.map(function(c){return '<th>'+escH(c)+'</th>'}).join('')+'</tr>';
     var tr=h('tr');
-    f.row.forEach(function(v){var td=h('td',{class:'cad-valor',title:L('Clique para colar no editor SQL')},v===null?'<i>NULL</i>':escH(String(v)));td.onclick=function(){colarNoEditor(v)};tr.appendChild(td)});
+    f.row.forEach(function(v){var td=h('td',{class:'cad-valor',title:L('Clique para colar no editor SQL')},v===null?'<i>NULL</i>':escH(numTela(v)));td.onclick=function(){colarNoEditor(v)};tr.appendChild(td)});
     tb.appendChild(tr);box.appendChild(tb);dir.appendChild(box);
   });
   wrap.appendChild(lista);wrap.appendChild(dir);r.body.appendChild(wrap);

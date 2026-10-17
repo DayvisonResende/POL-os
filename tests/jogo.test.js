@@ -374,3 +374,53 @@ test('Módulo 3: treinamentos não entregam respostas; pedido do Jairo confere o
   assert.match(p.check(top[0]).msg, /quantas/);
   assert.ok(!p.check('Rod. Castelo Branco, 3').ok);
 });
+
+// Telemetria de 17/10/2026: jogador experiente escreveu data_hora::date (PostgreSQL) e ouviu "aspas abertas";
+// copiou 133841.68000000002 da tela para a resposta do BO 1005.
+test('playtest 17/10: :: do PostgreSQL explicado e números sem lixo de arredondamento', () => {
+  const { T } = J;
+  const schema = { tables: T.TABELAS ? T.TABELAS.map(t => t.nome) : ['transferencias'], cols: ['data_hora', 'valor'] };
+  const q = "SELECT SUM(valor) FROM transferencias WHERE data_hora::date = '2026-10-13'";
+  let msg; try { J.db.exec(q); } catch (e) { msg = T.translateError(e.message, q, schema); }
+  assert.match(msg, /PostgreSQL/); assert.match(msg, /CAST/); assert.doesNotMatch(msg, /aspas abertas/);
+  const q2 = "SELECT * FROM veiculos WHERE cor = 'prata";
+  let m2; try { J.db.exec(q2); } catch (e) { m2 = T.translateError(e.message, q2, schema); }
+  assert.match(m2, /aspas|terminou no meio/);
+  assert.strictEqual(T.numTela(133841.68000000002), '133841.68');
+  assert.strictEqual(T.numTela(67.428571), '67.43');
+  assert.strictEqual(T.numTela(48), '48');
+  assert.strictEqual(T.numTela('FTR7A93'), 'FTR7A93');
+  const c = T.CASES.find(x => x.id === '1005');
+  assert.match(c.final.campos.find(x => x.id === 'total').label, /sem conta de origem/);
+});
+
+test('outros bancos: TOP, ILIKE, NOW, ISNULL, LEN, CONCAT, EXTRACT e :: explicados', () => {
+  const { T } = J;
+  const schema = { tables: ['veiculos', 'pessoas'], cols: ['placa', 'cor', 'ano', 'nome'] };
+  const erro = q => { try { J.db.exec(q); return 'rodou'; } catch (e) { return T.translateError(e.message, q, schema); } };
+  assert.match(erro('SELECT TOP 5 * FROM veiculos'), /SQL Server.*LIMIT/s);
+  assert.match(erro("SELECT * FROM pessoas WHERE nome ILIKE 'r%'"), /PostgreSQL.*LIKE/s);
+  assert.match(erro('SELECT NOW()'), /datetime/);
+  assert.match(erro("SELECT ISNULL(cor, 'x') FROM veiculos"), /COALESCE/);
+  assert.match(erro('SELECT LEN(placa) FROM veiculos'), /LENGTH/);
+  assert.match(erro("SELECT CONCAT(placa, cor) FROM veiculos"), /\|\|/);
+  assert.match(erro('SELECT EXTRACT(YEAR FROM ano) FROM veiculos'), /strftime/);
+  assert.match(erro('SELECT ano::text FROM veiculos'), /PostgreSQL.*CAST/s);
+  // dentro de texto não conta: 'top' numa string não é o TOP do SQL Server
+  assert.doesNotMatch(T.translateError('no such column: x', "SELECT x FROM veiculos WHERE cor = 'top'", schema), /SQL Server/);
+  assert.match(erro('SELECT FOO(placa) FROM veiculos'), /não tem a função/);
+});
+
+test('autocompletar: só nomes, na ordem certa, nunca dentro de texto', () => {
+  const { T } = J;
+  const sc = { tables: ['veiculos', 'pessoas', 'leituras_radar'], info: { veiculos: [{ name: 'placa' }, { name: 'cor' }, { name: 'ano' }], pessoas: [{ name: 'cpf' }, { name: 'nome' }, { name: 'cidade' }], leituras_radar: [{ name: 'placa' }, { name: 'velocidade_kmh' }] } };
+  const op = a => { const s = T.sugerirSQL(a, sc); return s ? Array.from(s.opcoes) : []; };
+  assert.strictEqual(op('SELECT * FROM ve')[0], 'veiculos', 'depois do FROM, tabela primeiro');
+  assert.strictEqual(op('select * from veiculos where co')[0], 'cor', 'coluna da tabela citada primeiro');
+  assert.ok(op('select * from veiculos where co').includes('count'), 'palavra do SQL no mesmo caso que a pessoa digitou');
+  assert.ok(op('SELECT * FROM veiculos GR').includes('GROUP BY'));
+  assert.deepStrictEqual(op("select * from pessoas where nome = 'Co"), [], 'dentro de aspas não sugere');
+  assert.deepStrictEqual(op('select c'), [], 'uma letra só não sugere');
+  assert.deepStrictEqual(op('select * from veiculos'), [], 'palavra completa não sugere ela mesma');
+  assert.ok(op('select * from veiculos where co').length <= 5);
+});

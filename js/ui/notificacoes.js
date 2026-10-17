@@ -1,8 +1,10 @@
 /* ---------- toasts & meters ---------- */
 function toast(title,text,kind,onclick){
   var t=h('div',{class:'toast '+(kind||''),role:'status'},'<b>'+escH(title)+'</b>'+text);
+  // sobe ao chegar e some descendo (antes sumia de repente e passava despercebida: playtest de 17/10)
+  var sair=function(){if(t.classList.contains('sai'))return;t.classList.add('sai');setTimeout(function(){t.remove()},300)};
   t.onclick=function(){t.remove();if(onclick)onclick()};
-  var tc=$('#toasts');tc.appendChild(t);while(tc.children.length>3)tc.firstChild.remove();setTimeout(function(){t.remove()},6500);
+  var tc=$('#toasts');tc.appendChild(t);while(tc.children.length>3)tc.firstChild.remove();setTimeout(sair,6500);
 }
 function meters(){
   var m=Math.max(0,Math.min(100,S.metas)),c=Math.max(0,Math.min(100,S.corr));

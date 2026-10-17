@@ -720,3 +720,95 @@ test('serviços do Beto · "Tem serviço?" do pedido ao domínio', { skip: !CHRO
     assert.deepStrictEqual(erros, []);
   } finally { await browser.close(); }
 });
+
+// Playtest de 17/10 (jogadora experiente): Ctrl+Z, formulário que se apagava, prova pendente sem aviso,
+// dicionário todo aberto, colar valor do resultado, botão Organizar e a nota id × número das contas.
+test('playtest 17/10 · editor, formulário, prova pendente, dicionário e resultado', { skip: !CHROME && 'Chrome não encontrado (defina CHROME)', timeout: 90000 }, async () => {
+  const { chromium } = require('playwright-core');
+  const browser = await chromium.launch({ executablePath: CHROME, headless: true });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1366, height: 800 } });
+    const erros = []; page.on('pageerror', e => erros.push(e.message));
+    await page.route('**/*', r => { const u = r.request().url(); if (u.includes('sql-asm.js')) return r.fulfill({ body: fs.readFileSync(ASM), contentType: 'application/javascript' }); return u.startsWith('file:') ? r.continue() : r.abort(); });
+    // quarta-feira, BO 1004 em andamento
+    const quarta = { chat: { celia: [], beto: [], jairo: [], marina: [] }, unread: {}, lidas: {}, tut: 0, treino: null, treinosFeitos: ['m1', 'm2-filtros', 'm2-intervalos', 'm3-agregacao'],
+      rank: 2, done: true, dia: 1, diaIniciado: 1, diaConcluido: 0, closed: ['1001', '1002', '1003'], caseSel: 3, apps: ['db', 'ocorr', 'zap', 'files', 'prova', 'caderno'], beto: 'done' };
+    await page.addInitScript(s => { window.SISP_CONFIG_TESTE = { url: '', chave: '', contato: '' }; window.SISP_IDIOMA_TESTE = 'pt-BR';
+      if (!sessionStorage.getItem('ok')) { localStorage.setItem('sisp-proto-v2', s); sessionStorage.setItem('ok', '1'); } }, JSON.stringify(quarta));
+    await page.goto('file://' + path.join(RAIZ, 'index.html'));
+    await page.waitForFunction(() => !document.querySelector('#lgBtn').disabled);
+    await page.click('#lgBtn');
+
+    // formulário do desfecho sobrevive às consultas
+    await page.evaluate(() => openOcorr());
+    await page.fill('form.final input[name="titular"]', 'Fulana de Tal');
+    await page.evaluate(() => openDb('SELECT * FROM veiculos;'));
+    await page.click('#runBtn');
+    assert.strictEqual(await page.inputValue('form.final input[name="titular"]'), 'Fulana de Tal', 'o que foi digitado no BO não some');
+
+    // dicionário: tabelas fechadas, dica no topo, nota id × número nas contas
+    assert.match(await page.textContent('#dict .dict-dica'), /Clique num nome para inserir/);
+    assert.strictEqual(await page.$$eval('#dict details[open]', e => e.length), 0, 'tabelas fechadas por padrão');
+    await page.click('#dict summary:has-text("contas_bancarias")');
+    assert.match(await page.textContent('#dict'), /as transferências NÃO usam este/);
+    assert.strictEqual(await page.evaluate(() => S.dictAbertas.contas_bancarias), true, 'lembra o que foi aberto');
+
+    // Ctrl+Z desfaz o que entrou pelo dicionário
+    await page.evaluate(() => { const ta = document.querySelector('#sqlEd'); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); });
+    await page.click('#dict button[title="Inserir numero"]');
+    assert.match(await page.inputValue('#sqlEd'), /numero$/);
+    await page.focus('#sqlEd'); await page.keyboard.press('Control+z');
+    assert.strictEqual(await page.inputValue('#sqlEd'), 'SELECT * FROM veiculos;', 'Ctrl+Z desfez a inserção');
+
+    // clicar num valor do resultado copia (sem aspas), mostra "Copiado" e não mexe no editor
+    await page.context().grantPermissions(['clipboard-read', 'clipboard-write']).catch(() => {});
+    const antes = await page.inputValue('#sqlEd');
+    const placa = await page.textContent('#dbGrid tbody tr:first-child td:nth-child(2)');
+    await page.click('#dbGrid tbody tr:first-child td:nth-child(2)');
+    await page.waitForSelector('#dbGrid .copiado-tag');
+    assert.match(await page.textContent('#dbGrid .copiado-tag'), /Copiado/);
+    assert.strictEqual(await page.evaluate(() => navigator.clipboard.readText()), placa);
+    assert.strictEqual(await page.inputValue('#sqlEd'), antes, 'o editor não muda');
+    // navegador recusou o jeito moderno (arquivo aberto do disco): o jeito antigo copia mesmo assim
+    await page.evaluate(() => { navigator.clipboard.writeText = () => Promise.reject(new Error('negado')); });
+    const cor = await page.textContent('#dbGrid tbody tr:nth-child(2) td:nth-child(4)');
+    await page.click('#dbGrid tbody tr:nth-child(2) td:nth-child(4)');
+    await page.waitForSelector('#dbGrid tbody tr:nth-child(2) .copiado-tag');
+    assert.match(await page.textContent('#dbGrid tbody tr:nth-child(2) .copiado-tag'), /Copiado/);
+    await page.waitForFunction(c => navigator.clipboard.readText().then(t => t === c), cor, { timeout: 3000 });
+
+    // Organizar: uma parte por linha
+    await page.evaluate(() => { const ta = document.querySelector('#sqlEd'); ta.value = "select cor, count(*) as total from veiculos where ano >= 2018 group by cor"; S.editor = ta.value; });
+    await page.click('#orgBtn');
+    assert.strictEqual(await page.inputValue('#sqlEd'), 'SELECT cor, COUNT(*) AS total\nFROM veiculos\nWHERE ano >= 2018\nGROUP BY cor;');
+
+    // autocompletar: Tab completa o nome da tabela, e o Ctrl+Z continua funcionando
+    await page.evaluate(() => { const ta = document.querySelector('#sqlEd'); ta.value = ''; S.editor = ''; ta.focus(); });
+    await page.keyboard.type('SELECT * FROM ve');
+    assert.match(await page.textContent('#sugest'), /veiculos/);
+    await page.keyboard.press('Tab');
+    assert.strictEqual(await page.inputValue('#sqlEd'), 'SELECT * FROM veiculos');
+    assert.ok(await page.isHidden('#sugest'));
+
+    // prova pendente: aviso fixo em Ocorrências e "!" no ícone da ACADEPOL
+    await page.evaluate(() => { S.closed.push('1004', '1005'); S.caseSel = 4; save(); renderIcons(); renderOcorr(); });
+    assert.match(await page.textContent('.oc-proximo'), /prova do Módulo 3/);
+    assert.ok(await page.isVisible('#ic-prova .badge'));
+    assert.deepStrictEqual(erros, []);
+  } finally { await browser.close(); }
+});
+
+// Telas grandes ou pequenas: a tradução da consulta e a mensagem de erro nunca são espremidas até sumir.
+test('DB-Investigator · tradução e erro aparecem inteiros', { skip: !CHROME && 'Chrome não encontrado (defina CHROME)', timeout: 60000 }, async () => {
+  const { browser, page, erros } = await abrir('index.html', 1366);
+  try {
+    await page.click('#lgBtn');
+    await page.evaluate(() => { S.treino = null; openDb("select cor, count(*) from veiculos where count(*) > 3 group by cor"); });
+    await page.click('#runBtn'); await page.click('#explBtn');
+    const [expl, msg] = await page.evaluate(() => [document.querySelector('#dbExpl').offsetHeight, document.querySelector('#dbMsg').offsetHeight]);
+    assert.ok(expl > 150, 'tradução com altura de verdade: ' + expl);
+    assert.ok(msg > 40, 'mensagem de erro visível: ' + msg);
+    assert.ok(await page.evaluate(() => document.querySelector('#dbMsg').getBoundingClientRect().top < document.querySelector('#dbExpl').getBoundingClientRect().top), 'erro antes da tradução');
+    assert.deepStrictEqual(erros, []);
+  } finally { await browser.close(); }
+});

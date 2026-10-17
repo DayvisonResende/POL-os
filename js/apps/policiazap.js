@@ -12,7 +12,7 @@ function say(who,text,me){
   S.chat[who].push({me:!!me,sys:me==='sys',text:text,hora:horaJogo()});
   if(me)delete divisoria[who];   // respondeu: leu tudo
   else if(!me)falar(who,text);
-  if(!me&&!zapEmPrimeiroPlano(who)){S.unread[who]++;toast(PEOPLE[who].nome,escH(text.replace(/<[^>]+>/g,'')).slice(0,140),'',function(){chatSel=who;openZap()})}
+  if(!me&&!zapEmPrimeiroPlano(who)){S.unread[who]++;tocarAviso();toast(PEOPLE[who].nome,escH(text.replace(/<[^>]+>/g,'')).slice(0,140),'',function(){chatSel=who;openZap()})}
   save();if(WINS.zap)renderZap();renderIcons();
 }
 function openZap(){openWin('zap',{title:nomeApp('zap'),w:560,h:440,x:null,onClose:function(){divisoria={}},build:function(r){renderZap()},refresh:function(){renderZap()}});}

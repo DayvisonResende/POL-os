@@ -46,9 +46,16 @@ async function main() {
       JSON.stringify({ exportado: new Date().toISOString(), sessao, jogador: lista[0].jogador, versao: lista[0].versao, eventos }, null, 1));
   });
 
-  const a = analisar(todos);
+  // Fora do relatório: os códigos de TELEMETRIA_IGNORAR no .env (os seus navegadores de teste; o código aparece em
+  // SISP › Configurações › Privacidade; vale o começo do código) e sessões que nunca passaram da tela de login.
+  const ignorar = ['teste-configuracao', ...(process.env.TELEMETRIA_IGNORAR || '').split(',').map(s => s.trim()).filter(Boolean)];
+  const entrou = new Set(todos.filter(e => e.tipo === 'sessao').map(e => e.sessao));
+  const usados = todos.filter(e => !ignorar.some(p => e.jogador.startsWith(p)) && (entrou.has(e.sessao) || e.tipo === 'erro_js'));
+  const a = analisar(usados);
+  a.ignorados = { eventos: todos.length - usados.length, jogadores: new Set(todos.filter(e => ignorar.some(p => e.jogador.startsWith(p))).map(e => e.jogador)).size };
   fs.writeFileSync(path.join(PASTA, 'relatorio.md'), relatorioMarkdown(a));
   console.log(`${novos} evento(s) novo(s). Total: ${todos.length} eventos, ${a.sessoes} sessão(ões), ${a.jogadores} jogador(es).`);
+  console.log(`Fora do relatório: ${a.ignorados.eventos} evento(s) (${a.ignorados.jogadores} jogador(es) de TELEMETRIA_IGNORAR e sessões que não passaram do login).`);
   console.log('Relatório: telemetria/relatorio.md · Sessões: telemetria/sessoes/');
 }
 

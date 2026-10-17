@@ -20,6 +20,14 @@ Baixa só o que é novo e gera tudo na pasta **`telemetria/`** (fora do git, por
 
 Precisa do arquivo `.env` na raiz com `SUPABASE_URL` e `SUPABASE_SERVICE_KEY` (a chave secreta). **Nunca** commitar o `.env`.
 
+### Tirar os seus próprios testes do relatório
+
+Seus testes misturados com os dos jogadores distorcem tudo. Em cada navegador onde você joga, abra **SISP › Configurações › Privacidade › Dados de uso** e copie o **código anônimo**. Depois, no `.env`:
+```
+TELEMETRIA_IGNORAR=3d343ac5,1c03dde7
+```
+Separe os códigos por vírgula; basta o começo de cada um (os 8 primeiros caracteres). Os dados continuam baixados em `eventos.jsonl`, só não entram no relatório. O relatório também deixa de fora as aberturas que não passaram da tela de login.
+
 Para baixar tudo de novo do zero:
 ```bash
 rm -rf telemetria && npm run telemetria

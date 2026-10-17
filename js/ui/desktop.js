@@ -4,7 +4,7 @@ function nomeApp(id){return {ocorr:L('SISP Ocorrências'),db:'DB-Investigator',z
 function renderIcons(){
   var el=$('#icons');el.innerHTML='';var unread=Object.keys(S.unread).reduce(function(t,k){return t+(S.unread[k]||0)},0);
   [['ocorr',nomeApp('ocorr'),openOcorr],['db',nomeApp('db'),function(){openDb()}],['zap',nomeApp('zap'),openZap],['files',nomeApp('files'),openFiles],['caderno',nomeApp('caderno'),function(){openCaderno()}],['prova',nomeApp('prova'),openProva]].filter(function(a){return S.apps.indexOf(a[0])>=0}).forEach(function(a){
-    var b=h('button',{class:'dicon',id:'ic-'+a[0]},'<span class="ico">'+ICONS[a[0]]+(a[0]==='zap'&&unread?'<span class="badge">'+unread+'</span>':'')+'</span><span>'+a[1]+'</span>');
+    var b=h('button',{class:'dicon',id:'ic-'+a[0]},'<span class="ico">'+ICONS[a[0]]+(a[0]==='zap'&&unread?'<span class="badge">'+unread+'</span>':a[0]==='prova'&&provaMod()!=null?'<span class="badge" title="'+escH(L('Prova pendente'))+'">!</span>':'')+'</span><span>'+a[1]+'</span>');
     b.ondblclick=a[2];b.onkeydown=function(e){if(e.key==='Enter')a[2]()};b.onclick=function(){if(window.matchMedia('(pointer:coarse)').matches||window.innerWidth<=760)a[2]()};
     el.appendChild(b)});
 }
@@ -30,8 +30,9 @@ function buildStart(){
   item(fly,L('Carregar progresso de arquivo'),MENU_ICONS.carregar,importarProgresso);
   if(remotaConfigurada()){fly.appendChild(h('hr'));fly.appendChild(h('div',{class:'sm-sec'},L('Privacidade')));
     item(fly,remotaLigada()?L('Dados de uso: enviando'):L('Dados de uso: desligado'),MENU_ICONS.diag,abrirPrivacidade)}
-  if(vozesDisponiveis()||teleModo()){fly.appendChild(h('hr'));fly.appendChild(h('div',{class:'sm-sec'},L('Som')));
-    item(fly,VOZ_PREF.ligado?L('Vozes: ligadas'):L('Vozes: desligadas'),MENU_ICONS.voz,abrirVozes)}
+  fly.appendChild(h('hr'));fly.appendChild(h('div',{class:'sm-sec'},L('Som')));
+  item(fly,VOZ_PREF.aviso?L('Som de mensagem: ligado'):L('Som de mensagem: desligado'),MENU_ICONS.voz,alternarAviso);
+  if(vozesDisponiveis()||teleModo())item(fly,VOZ_PREF.ligado?L('Vozes: ligadas'):L('Vozes: desligadas'),MENU_ICONS.voz,abrirVozes);
   if(idiomasDisponiveis(teleModo()).length>1){fly.appendChild(h('hr'));fly.appendChild(h('div',{class:'sm-sec'},L('Idioma')));
     item(fly,IDIOMAS[idiomaAtual()].nome,MENU_ICONS.idioma,escolherIdiomaMenu)}
   fly.appendChild(h('hr'));

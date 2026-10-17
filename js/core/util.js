@@ -38,3 +38,6 @@ function normTxt(s){return String(s||'').toLowerCase().normalize('NFD').replace(
 function esc(k,arr){return arr[Math.min(k,arr.length-1)]}
 function rcols(R){return R.cols.slice().sort().join(',')}
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+// Número para a tela: no máximo 2 casas decimais. Some com o "lixo" de arredondamento do computador
+// (133841.68000000002 vira 133841.68). Só a exibição: o valor de verdade continua exato.
+function numTela(v){return typeof v==='number'&&!Number.isInteger(v)?String(Math.round(v*100)/100):String(v)}

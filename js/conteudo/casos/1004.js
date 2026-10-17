@@ -47,7 +47,7 @@ registrarCaso({id:'1004',titulo:L('Siga o dinheiro'),modulo:3,natureza:L('Lavage
      setTimeout(function(){say('jairo',L('Recruta, liguei agora pra vítima do furto do shopping. Sabe onde ela trabalha? Transportadora Central. É coordenadora de logística. O notebook tinha a escala dos caminhões da semana: rota, horário, placa.'))},4500);
      setTimeout(function(){say('celia',L('O furtinho de terça foi o primeiro passo do assalto, e você pegou as duas pontas sem saber. Agora pede o bloqueio dessa conta antes que o dinheiro suma.'))},9000)}}
   ],
-  final:{tipo:'mandado',titulo:L('Pedido de bloqueio de conta'),campos:[{id:'conta',label:L('Conta (número no sistema)')},{id:'titular',label:L('Nome do titular')}],
+  final:{tipo:'mandado',titulo:L('Pedido de bloqueio de conta'),campos:[{id:'conta',label:L('Conta (id ou número)')},{id:'titular',label:L('Nome do titular')}],
     check:function(v){
       var bruto=String(v.conta).trim(),id=parseInt(bruto.replace(/\D/g,''),10),n=normTxt(v.titular);
       var certa=id===F.contaDenise||bruto.replace(/\s/g,'')===valorDe('SELECT numero FROM contas_bancarias WHERE id = '+F.contaDenise);
