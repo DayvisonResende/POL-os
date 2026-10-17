@@ -3,6 +3,7 @@ function translateError(msg,sql,schema){
   var m,tables=schema.tables,cols=schema.cols;
   if((m=msg.match(/no such table: (\S+)/))){var s=closest(m[1].split('.').pop(),tables,3);return 'A tabela <b>'+escH(m[1])+'</b> não existe.'+(s?' Você quis dizer <code>'+s+'</code>?':'')+' Os nomes certos estão no Dicionário de Dados, à direita.'}
   if((m=msg.match(/no such column: (\S+)/))){var nm=m[1],base=nm.split('.').pop(),s2=closest(base,cols);
+    if(/^(asc|desc)$/i.test(base)){var po=diagnosticarSQL(sql,schema);if(po.length)return juntarProblemas(po)}
     if(s2)return 'Não existe coluna chamada <b>'+escH(nm)+'</b>. Você quis dizer <code>'+s2+'</code>?';
     return 'Não existe coluna chamada <b>'+escH(nm)+'</b>. Se <b>'+escH(base)+'</b> é um valor de texto, e não o nome de uma coluna, coloque entre aspas simples: <code>\''+escH(base)+'\'</code>.'}
   if((m=msg.match(/near "([^"]+)": syntax error/))){var tok=m[1],up=tok.toUpperCase();

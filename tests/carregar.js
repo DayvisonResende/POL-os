@@ -13,7 +13,7 @@ function scriptsDoIndex() {
 
 async function carregarJogo() {
   const ctx = vm.createContext({ console });
-  for (const arq of scriptsDoIndex().filter(s => /^js\/(core|conteudo)\//.test(s))) {
+  for (const arq of scriptsDoIndex().filter(s => /^js\/(core|conteudo|i18n)\//.test(s))) {
     vm.runInContext(fs.readFileSync(path.join(RAIZ, arq), 'utf8'), ctx, { filename: arq });
   }
   const initSqlJs = require('sql.js/dist/sql-asm.js');

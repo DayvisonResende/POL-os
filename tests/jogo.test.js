@@ -86,6 +86,21 @@ test('diagnóstico de agregação: erros explicados, "por sorte" avisado, consul
   }
 });
 
+test('história: pistas plantadas para os próximos atos (docs/historia.md, seção 8)', () => {
+  const { T } = J;
+  const c2 = T.CASES[T.indiceCaso('1002')];
+  assert.match(c2.relato, /coordenadora de logística/);
+  assert.doesNotMatch(c2.relato, /Transportadora/, 'a ligação com o BO 1003 é o jogador quem faz, no Ato II');
+  const escuta = T.FILES.find(f => f.name === 'escuta_grampo_04.txt').body;
+  assert.match(escuta, /até sexta\.\n\[trecho inaudível — 00:41\]\n\n\[fim do trecho\]$/, 'o trecho que a Marina cortou fica logo antes do fim');
+  assert.match(escuta, /Transcrição \(perita Marina Okada\)/);
+  // o celular da Marina (Ato V, antenas) não pode ser o alvo da escuta
+  assert.match(T.PEOPLE.marina.cargo, /\(15\)\s9\s9731-4420/);
+  assert.doesNotMatch(escuta, /9731/);
+  // o recruta anterior (Ato IV) continua sendo dono do Kwid FTR9B50, falso positivo do BO 1002
+  assert.strictEqual(J.db.exec("SELECT p.nome FROM veiculos v JOIN pessoas p ON p.cpf = v.cpf_proprietario WHERE v.placa = 'FTR9B50'")[0].values[0][0], 'Lucas Ferraz Tavares');
+});
+
 test('BO 1002: solução passa, SELECT * não passa, falsos positivos explicados', () => {
   const c = J.T.CASES[J.T.indiceCaso('1002')];
   assert.ok(c.steps[2].ok(J.run("SELECT * FROM veiculos WHERE cor='prata' AND placa LIKE 'FTR%'")));
@@ -187,6 +202,13 @@ test('diagnóstico: aponta erros de estrutura sem entregar a resposta', () => {
   assert.throws(() => J.db.exec(q3));
   assert.match(T.translateError('near ";": syntax error', q3, schema), /duas pontas/);
   assert.match(T.diagnosticarSQL("SELECT * FROM veiculos WHERE ano BETWEEN 2020", schema)[0], /duas pontas/);
+  // jogada real do playtest (Mayumi, treino Intervalos): ORDER BY sem a coluna
+  const q4 = 'select placa, ano from veiculos where ano >= 2022 order by desc';
+  let m4; try { J.db.exec(q4); } catch (e) { m4 = e.message; }
+  assert.match(m4, /no such column: desc/);
+  const tr4 = T.translateError(m4, q4, schema);
+  assert.match(tr4, /Faltou a <b>coluna<\/b> depois do <code>ORDER BY/);
+  assert.doesNotMatch(tr4, /aspas/, 'não pode mandar pôr DESC entre aspas');
   // "funcionou por sorte": aspas duplas em valor; aspas duplas em nome de coluna são corretas
   assert.match(T.avisoSQL('SELECT * FROM veiculos WHERE cor = "prata"', schema), /por sorte/);
   assert.strictEqual(T.avisoSQL('SELECT "cor" FROM veiculos', schema), null);
@@ -252,4 +274,14 @@ test('SQL: somente leitura, tradução de erro e explicador', () => {
   const schema = { tables: ['veiculos', 'pessoas'], cols: ['placa', 'cor'] };
   assert.match(T.translateError('near "FORM": syntax error', 'SELECT * FORM veiculos', schema), /FROM/);
   assert.ok(T.explainSQL("SELECT placa FROM veiculos WHERE cor = 'prata' LIMIT 5;").rows.length >= 4);
+});
+
+test('Beto aceita o horário certo em qualquer formato comum, e só ele', () => {
+  const vm = require('vm'), fs = require('fs'), path = require('path');
+  const ctx = vm.createContext({});
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js/historia/beto.js'), 'utf8'), ctx);
+  for (const v of ['16:40:12', '16:40', '16h40', '16h40m12s', '16 40 12', '16.40.12', '1640', 'saiu 16:40:12'])
+    assert.ok(ctx.horarioBateBeto(v), v);
+  for (const v of ['18:00', '08:02:51', '16:41', '4:40', '17:55:03', ''])
+    assert.ok(!ctx.horarioBateBeto(v), v);
 });

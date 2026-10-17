@@ -16,7 +16,7 @@ const ASM = path.join(RAIZ, 'node_modules/sql.js/dist/sql-asm.js');
 // O index.html sempre; a versão empacotada só se já tiver sido gerada (npm run empacotar).
 const ALVOS = ['index.html', 'dist/sisp.html'].filter(f => fs.existsSync(path.join(RAIZ, f)));
 
-async function abrir(arquivo, largura, query = '') {
+async function abrir(arquivo, largura, query = '', config = { url: '', chave: '', contato: '' }, idioma = 'pt-BR') {
   const { chromium } = require('playwright-core');
   const browser = await chromium.launch({ executablePath: CHROME, headless: true });
   const page = await browser.newPage({ viewport: { width: largura, height: 800 } });
@@ -29,6 +29,8 @@ async function abrir(arquivo, largura, query = '') {
     if (u.includes('sql-asm.js')) return r.fulfill({ body: fs.readFileSync(ASM), contentType: 'application/javascript' });
     return u.startsWith('file:') ? r.continue() : r.abort();
   });
+  await page.addInitScript(c => { window.SISP_CONFIG_TESTE = c; }, config);   // nunca envia para o Supabase de verdade
+  if (idioma) await page.addInitScript(i => { window.SISP_IDIOMA_TESTE = i; }, idioma);   // os testes não dependem do idioma do navegador
   await page.goto('file://' + path.join(RAIZ, arquivo) + query);
   await page.waitForFunction(() => !document.querySelector('#lgBtn').disabled);
   return { browser, page, erros };
@@ -186,10 +188,14 @@ for (const alvo of ALVOS) for (const largura of [1366, 400]) {
       await page.waitForFunction(() => provaMod() === 2);
       await prova(page);
       await page.waitForSelector('.report', { timeout: 5000 });
+      // gancho do fim do Ato I: Jairo conta do Valdemar; Célia marca o dia seguinte
+      await page.waitForFunction(() => S.chat.jairo.length === 1 && /Amanhã às 8/.test(S.chat.celia[S.chat.celia.length - 1].text), null, { timeout: 12000 });
 
       const S = await page.evaluate(() => JSON.parse(JSON.stringify(S)));
       assert.deepStrictEqual(S.closed, ['1001', '1002', '1003']);
       assert.deepStrictEqual(S.treinosFeitos, ['m1', 'm2-filtros', 'm2-intervalos']);
+      assert.strictEqual(S.chat.marina.length, 1, 'Marina se apresenta uma vez (escuta ou fim do BO 1003)');
+      assert.match(S.chat.marina[0].text, /pedaços que nem dava pra entender/);
       assert.strictEqual(S.rank, 2);
       assert.strictEqual(S.done, true);
       assert.strictEqual(S.corr, 25);   // relatório errado (+5) + mandado errado (+20)
@@ -239,12 +245,14 @@ for (const c of CASOS_SAVE) {
       const page = await browser.newPage({ viewport: { width: 1366, height: 800 } });
       const erros = []; page.on('pageerror', e => erros.push(e.message));
       await page.route('**/*', r => { const u = r.request().url(); if (u.includes('sql-asm.js')) return r.fulfill({ body: fs.readFileSync(ASM), contentType: 'application/javascript' }); return u.startsWith('file:') ? r.continue() : r.abort(); });
+      await page.addInitScript(() => { window.SISP_CONFIG_TESTE = { url: '', chave: '', contato: '' }; window.SISP_IDIOMA_TESTE = 'pt-BR'; });
       await page.addInitScript(s => { if (!sessionStorage.getItem('ok')) { localStorage.setItem('sisp-proto-v2', s); sessionStorage.setItem('ok', '1'); } }, SAVE_ANTIGO(c.save));
       await page.goto('file://' + path.join(RAIZ, 'index.html'));
       await page.waitForFunction(() => !document.querySelector('#lgBtn').disabled);
       await page.click('#lgBtn');
       await page.waitForTimeout(300);
-      const S = await page.evaluate(() => ({ treino: S.treino, tut: S.tut, feitos: S.treinosFeitos, guia: !!document.querySelector('#guide'), passo: (document.querySelector('.gh small') || {}).textContent }));
+      const S = await page.evaluate(() => ({ treino: S.treino, tut: S.tut, feitos: S.treinosFeitos, guia: !!document.querySelector('#guide'), passo: (document.querySelector('.gh small') || {}).textContent, contatos: Object.keys(S.chat).sort().join(',') }));
+      assert.strictEqual(S.contatos, 'beto,celia,jairo,marina', 'save antigo ganha as conversas dos contatos novos');
       assert.strictEqual(S.treino, c.espera.treino);
       assert.strictEqual(S.tut, c.espera.tut);
       assert.deepStrictEqual(S.feitos, c.espera.feitos);
@@ -351,6 +359,103 @@ test('backup · salvar, reiniciar e carregar o progresso', { skip: !CHROME && 'C
     const S = await page.evaluate(() => ({ rank: S.rank, closed: S.closed, feitos: S.treinosFeitos, metas: S.metas }));
     assert.deepStrictEqual(S, { rank: 1, closed: ['1001'], feitos: ['m1', 'm2-filtros'], metas: 30 });
     assert.match(await page.textContent('#bootStatus'), /progresso foi mantido/);
+    assert.deepStrictEqual(erros, []);
+  } finally { await browser.close(); }
+});
+
+// Telemetria remota contra um Supabase simulado: termo no primeiro login, nada sai sem "sim",
+// eventos anônimos em lote, envio para quando o jogador desliga.
+test('telemetria remota · termo de uso e envio anônimo', { skip: !CHROME && 'Chrome não encontrado (defina CHROME)', timeout: 90000 }, async () => {
+  const URL_SUPA = 'https://teste-sisp.supabase.co';
+  const recebidos = [];
+  const preparar = async () => {
+    const r = await abrir('index.html', 1366, '', { url: URL_SUPA, chave: 'chave-publica-teste', contato: 'equipe@exemplo.com' });
+    await r.page.route(URL_SUPA + '/**', async rota => {
+      const req = rota.request();
+      recebidos.push({ url: req.url(), headers: req.headers(), corpo: JSON.parse(req.postData() || '[]') });
+      await rota.fulfill({ status: 201, body: '' });
+    });
+    return r;
+  };
+
+  // 1) recusa: o jogo segue normal e nada é enviado
+  let { browser, page, erros } = await preparar();
+  try {
+    await page.click('#lgBtn');
+    await page.waitForSelector('.overlay [role=dialog]');
+    assert.match(await page.textContent('.overlay'), /Termo de uso do Pol-OS.*nunca é enviado/s);
+    await page.click('.overlay button:has-text("Não enviar")');
+    assert.ok(await page.isVisible('#guide'), 'jogo começa normalmente');
+    await page.click('#gNext'); await page.click('#gNext');
+    await page.evaluate(() => enviarFila());
+    await page.waitForTimeout(300);
+    assert.strictEqual(recebidos.length, 0, 'sem consentimento, nada sai do navegador');
+    assert.deepStrictEqual(erros, []);
+  } finally { await browser.close(); }
+
+  // 2) aceite: eventos anônimos chegam em lote, com os campos certos e sem dado pessoal
+  ({ browser, page, erros } = await preparar());
+  try {
+    await page.click('#lgBtn');
+    await page.click('.overlay button:has-text("Aceito")');
+    await page.click('#gNext'); await page.click('#gNext'); await page.click('#runBtn');
+    await page.evaluate(() => enviarFila());
+    await page.waitForFunction(() => true);
+    await page.waitForTimeout(500);
+    assert.ok(recebidos.length >= 1, 'enviou');
+    const req = recebidos[0];
+    assert.match(req.url, /\/rest\/v1\/eventos$/);
+    assert.strictEqual(req.headers['apikey'], 'chave-publica-teste');
+    const ev = recebidos.flatMap(r => r.corpo);
+    const tipos = ev.map(e => e.tipo);
+    for (const t of ['consentimento', 'sessao', 'treino_passo', 'consulta']) assert.ok(tipos.includes(t), 'faltou o evento ' + t);
+    for (const e of ev) {
+      assert.deepStrictEqual(Object.keys(e).sort(), ['dados', 'jogador', 'onde', 'sessao', 't', 'tipo', 'versao']);
+      assert.ok(e.jogador.length >= 8 && e.sessao.length >= 8);
+    }
+    const sessao = ev.find(e => e.tipo === 'sessao').dados;
+    for (const k of ['faixa', 'navegador', 'sistema', 'versao', 'msBanco']) assert.ok(k in sessao, 'sessão sem ' + k);
+    const tudo = JSON.stringify(ev);
+    assert.doesNotMatch(tudo, /recruta\.dti04|cafe-frio|equipe@exemplo/, 'nada de login, senha ou contato nos eventos');
+
+    // 3) desligar em Configurações › Privacidade: para de enviar
+    await page.click('#startBtn'); await page.click('#startMenu .sm-abre');
+    await page.click('#startMenu .sm-fly button:has-text("Dados de uso")');
+    assert.match(await page.textContent('.overlay'), /ligado.*código anônimo/s);
+    await page.click('.overlay button:has-text("Desligar o envio")');
+    const antes = recebidos.length;
+    await page.click('#gNext').catch(() => {});
+    await page.evaluate(() => { tele('teste_depois_de_desligar'); enviarFila(); });
+    await page.waitForTimeout(400);
+    assert.strictEqual(recebidos.length, antes, 'depois de desligar, nada mais é enviado');
+    assert.deepStrictEqual(erros, []);
+  } finally { await browser.close(); }
+});
+
+// Idiomas: o jogo inteiro em inglês com ?idioma=en (interface traduzida; conteúdo ainda em português cai no original).
+test('idioma · interface em inglês e troca pelo menu', { skip: !CHROME && 'Chrome não encontrado (defina CHROME)', timeout: 60000 }, async () => {
+  const { browser, page, erros } = await abrir('index.html', 1366, '?idioma=en&teste', undefined, null);
+  try {
+    assert.strictEqual(await page.evaluate(() => document.documentElement.lang), 'en');
+    assert.strictEqual((await page.textContent('#lgBtn')).trim(), 'Start shift');
+    assert.match(await page.textContent('#bootStatus'), /Database loaded: 48 vehicles on record\./);
+    await page.click('#lgBtn');
+    assert.match(await page.textContent('#runBtn'), /Run/);
+    assert.match(await page.textContent('#explBtn'), /Explain this query/);
+    assert.match(await page.textContent('.gh small'), /step 1 of 14/);
+    await page.click('#gNext'); await page.click('#gNext'); await page.click('#runBtn');
+    assert.match(await page.textContent('#dbStatus'), /48 rows · 5 columns/);
+    await page.click('#startBtn');
+    assert.match(await page.textContent('#startMenu'), /Programs.*Shift report.*Settings/s);
+    // com ?teste o menu oferece também idiomas incompletos; escolher português recarrega em português
+    await page.click('#startMenu .sm-abre');
+    await page.click('#startMenu .sm-fly button:has-text("English")');
+    assert.match(await page.textContent('.overlay'), /Choose the game's language/);
+    await page.evaluate(() => { delete window.SISP_IDIOMA_TESTE; });
+    await Promise.all([page.waitForNavigation(), page.click('.overlay button:has-text("Português")')]);
+    await page.waitForFunction(() => !document.querySelector('#lgBtn').disabled);
+    assert.strictEqual(await page.evaluate(() => idiomaAtual()), 'pt-BR');
+    assert.strictEqual((await page.textContent('#lgBtn')).trim(), 'Iniciar expediente');
     assert.deepStrictEqual(erros, []);
   } finally { await browser.close(); }
 });

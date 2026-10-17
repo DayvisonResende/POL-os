@@ -3,39 +3,39 @@ function caseUnlocked(i){if(S.rank<(CASES[i].rankMin||0))return false;return i==
 function caseWaitsRank(i){return i>0&&caseDone(i-1)&&S.rank<(CASES[i].rankMin||0)}
 function caseDone(i){return S.closed.indexOf(CASES[i].id)>=0}
 function caseActive(){for(var k=0;k<CASES.length;k++)if(caseUnlocked(k)&&!caseDone(k))return k;return -1}
-function openOcorr(){openWin('ocorr',{title:'SISP Ocorrências',w:760,h:540,x:110,y:14,build:function(){renderOcorr()},refresh:function(){renderOcorr()}})}
+function openOcorr(){openWin('ocorr',{title:nomeApp('ocorr'),w:760,h:540,x:110,y:14,build:function(){renderOcorr()},refresh:function(){renderOcorr()}})}
 function renderOcorr(){
   var r=WINS.ocorr;if(!r)return;var scroll=r.body.querySelector('.ocdetail');var st=scroll?scroll.scrollTop:0;
   r.body.innerHTML='';var wrap=h('div',{class:'oc'}),list=h('div',{class:'oclist'});
   CASES.forEach(function(c,i){
     var un=caseUnlocked(i),dn=caseDone(i);
-    var b=h('button',{class:'ocitem'+(i===S.caseSel?' sel':'')},'<span class="no">BO 2026/'+c.id+' · Módulo '+c.modulo+'</span><span class="tt">'+escH(c.titulo)+'</span><span class="pill '+(dn?'p-done':un?'p-open':'p-lock')+'">'+(dn?'Encerrado':un?'Em análise':(caseWaitsRank(i)?'Aguarda promoção':'Pendente'))+'</span>');
+    var b=h('button',{class:'ocitem'+(i===S.caseSel?' sel':'')},'<span class="no">'+L('BO 2026/{id} · Módulo {m}',{id:c.id,m:c.modulo})+'</span><span class="tt">'+escH(c.titulo)+'</span><span class="pill '+(dn?'p-done':un?'p-open':'p-lock')+'">'+(dn?L('Encerrado'):un?L('Em análise'):(caseWaitsRank(i)?L('Aguarda promoção'):L('Pendente')))+'</span>');
     if(!un)b.disabled=true;b.onclick=function(){S.caseSel=i;save();renderOcorr()};list.appendChild(b)});
   wrap.appendChild(list);
   var c=CASES[S.caseSel],d=h('div',{class:'ocdetail'});
   var done=caseDone(S.caseSel),stp=S.steps[c.id]||[];
-  d.innerHTML='<div class="eyebrow">Boletim nº 2026/'+c.id+'</div><h2>'+escH(c.titulo)+'</h2>'+
-   '<div class="bohead"><div><span>Natureza</span>'+escH(c.natureza)+'</div><div><span>Data e hora</span>'+c.quando+'</div><div><span>Local</span>'+escH(c.local)+'</div><div><span>Solicitante</span>'+escH(c.solicitante)+'</div></div>'+
-   '<h3>Relato</h3><p class="relato">'+c.relato+'</p><h3>Tarefas da investigação</h3>';
+  d.innerHTML='<div class="eyebrow">'+L('Boletim nº 2026/{id}',{id:c.id})+'</div><h2>'+escH(c.titulo)+'</h2>'+
+   '<div class="bohead"><div><span>'+L('Natureza')+'</span>'+escH(c.natureza)+'</div><div><span>'+L('Data e hora')+'</span>'+c.quando+'</div><div><span>'+L('Local')+'</span>'+escH(c.local)+'</div><div><span>'+L('Solicitante')+'</span>'+escH(c.solicitante)+'</div></div>'+
+   '<h3>'+L('Relato')+'</h3><p class="relato">'+c.relato+'</p><h3>'+L('Tarefas da investigação')+'</h3>';
   var ul=h('ul',{class:'steps'});
   c.steps.forEach(function(s,k){
     var ok=done||stp.indexOf(k)>=0,hk=c.id+':'+k,lvl=S.hintsSeen[hk]||0;
     var li=h('li',{class:'step'+(ok?' done':'')},'<span class="chk" aria-hidden="true">'+(ok?'&#10003;':'')+'</span><span class="st">'+s.t+'</span>');
-    for(var q=0;q<lvl;q++)li.appendChild(h('div',{class:'hint'},(q===s.h.length-1&&q>0?'<b>Quase a resposta:</b> ':'')+s.h[q]));
-    if(!ok&&lvl<s.h.length){var hb=h('button',{class:'hb'},lvl===0?'Pedir dica':lvl===s.h.length-1?'Ainda travado? Ver a consulta':'Mais uma dica');hb.onclick=function(){S.hintsSeen[hk]=lvl+1;tele('dica',{caso:c.id,tarefa:k+1,nivel:lvl+1});save();renderOcorr()};li.appendChild(hb)}
+    for(var q=0;q<lvl;q++)li.appendChild(h('div',{class:'hint'},(q===s.h.length-1&&q>0?'<b>'+L('Quase a resposta:')+'</b> ':'')+s.h[q]));
+    if(!ok&&lvl<s.h.length){var hb=h('button',{class:'hb'},lvl===0?L('Pedir dica'):lvl===s.h.length-1?L('Ainda travado? Ver a consulta'):L('Mais uma dica'));hb.onclick=function(){S.hintsSeen[hk]=lvl+1;tele('dica',{caso:c.id,tarefa:k+1,nivel:lvl+1});save();renderOcorr()};li.appendChild(hb)}
     ul.appendChild(li)});
   d.appendChild(ul);
-  d.appendChild(h('h3',null,'Manual do recruta'));
+  d.appendChild(h('h3',null,L('Manual do recruta')));
   var man=h('details',{class:'manual'},'<summary>Comandos deste módulo</summary><div class="mb">'+c.manual+'</div>');
   if(!stp.length&&!done)man.open=true;
   d.appendChild(man);
-  d.appendChild(h('h3',null,c.final.tipo==='mandado'?'Desfecho':'Entrega'));
+  d.appendChild(h('h3',null,c.final.tipo==='mandado'?L('Desfecho'):L('Entrega')));
   var fin=h('form',{class:'final'});
-  if(done){fin.innerHTML='<div class="ft">'+escH(c.final.titulo)+'</div><span class="stamp">'+(c.final.tipo==='mandado'?'DEFERIDO':'ACEITO')+'</span><div class="verdict ok">'+escH(S.verdict[c.id]||'Chamado encerrado.')+'</div>'}
+  if(done){fin.innerHTML='<div class="ft">'+escH(c.final.titulo)+'</div><span class="stamp">'+(c.final.tipo==='mandado'?L('DEFERIDO'):L('ACEITO'))+'</span><div class="verdict ok">'+escH(S.verdict[c.id]||L('Chamado encerrado.'))+'</div>'}
   else{
     fin.innerHTML='<div class="ft">'+escH(c.final.titulo)+'</div><div class="row">'+c.final.campos.map(function(f){return '<label for="f_'+c.id+'_'+f.id+'">'+escH(f.label)+'<input id="f_'+c.id+'_'+f.id+'" name="'+f.id+'" autocomplete="off"></label>'}).join('')+'</div>'+
-      (c.final.tipo==='mandado'?'<div class="muted" style="font-size:13px">Mandado errado custa caro: o delegado indefere e a Corregedoria anota.</div>':'')+
-      '<div><button class="btn-primary" type="submit">'+(c.final.tipo==='mandado'?'Assinar e enviar ao delegado':'Enviar relatório')+'</button></div><div class="vslot"></div>';
+      (c.final.tipo==='mandado'?'<div class="muted" style="font-size:13px">'+L('Mandado errado custa caro: o delegado indefere e a Corregedoria anota.')+'</div>':'')+
+      '<div><button class="btn-primary" type="submit">'+(c.final.tipo==='mandado'?L('Assinar e enviar ao delegado'):L('Enviar relatório'))+'</button></div><div class="vslot"></div>';
     fin.addEventListener('submit',function(e){e.preventDefault();var v={};c.final.campos.forEach(function(f){v[f.id]=fin.elements[f.id].value});
       if(c.final.campos.some(function(f){return !String(v[f.id]).trim()}))return;
       var res=c.final.check(v);tele('desfecho',{caso:c.id,ok:!!res.ok,valores:v});
@@ -47,13 +47,13 @@ function renderOcorr(){
 function closeCase(i,msg){
   var c=CASES[i];if(caseDone(i))return;
   S.closed.push(c.id);S.verdict[c.id]=msg;S.clock+=c.tempo||60;addMetas(30);
-  toast('Chamado encerrado','BO 2026/'+c.id+': '+escH(c.titulo),'ok');
+  toast(L('Chamado encerrado'),L('BO 2026/{id}: {titulo}',{id:c.id,titulo:escH(c.titulo)}),'ok');
   if(c.aoEncerrar)c.aoEncerrar();
   setTimeout(verificarTreinos,2500);   // o próximo caso pode ter treinamento
   if(i<CASES.length-1&&caseUnlocked(i+1))S.caseSel=i+1;
   save();renderOcorr();renderFiles();
 }
-function unlockToast(){toast('Novo chamado','Um novo BO foi atribuído a você no SISP Ocorrências.','warn',openOcorr)}
+function unlockToast(){toast(L('Novo chamado'),L('Um novo BO foi atribuído a você no SISP Ocorrências.'),'warn',openOcorr)}
 
 function checkSteps(res){
   var R=toR(res),i=S.caseSel;
@@ -67,5 +67,5 @@ function checkSteps(res){
   // Nenhuma tarefa marcou, mas a consulta chegou perto de uma: diz o que falta em vez de ficar calado.
   if(feitas||!quase)return null;
   tele('quase',{caso:c.id,tarefa:quase.k+1});
-  return '<b>Quase lá</b> (tarefa '+(quase.k+1)+'): '+quase.msg;
+  return L('<b>Quase lá</b> (tarefa {n}): {msg}',{n:quase.k+1,msg:quase.msg});
 }

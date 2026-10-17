@@ -28,6 +28,8 @@ function diagnosticarSQL(sql,schema){
       probs.push('Falta o <code>WHERE</code>. Todo filtro começa com ele, logo depois do nome da tabela: <code>FROM tabela WHERE coluna = \'valor\'</code>.');cond=resto}}
   var temAgreg=function(t){return t.some(function(x,i){return AGREGACOES.indexOf(U(x))>=0&&t[i+1]==='('})};
   if(w&&temAgreg(cond))probs.push('<code>COUNT</code>, <code>SUM</code>, <code>AVG</code>, <code>MIN</code> e <code>MAX</code> não vão no <code>WHERE</code>. O WHERE olha <b>uma linha de cada vez</b>, e essas contas são de um <b>grupo</b> de linhas. Para filtrar pelo resultado da conta, use <code>HAVING</code> depois do <code>GROUP BY</code>: <code>GROUP BY coluna HAVING COUNT(*) &gt; 3</code>.');
+  var ob=cl.filter(function(c){return c.k==='ORDER BY'})[0];
+  if(ob&&['ASC','DESC'].indexOf(U(ts[ob.i+2]))>=0)probs.push('Faltou a <b>coluna</b> depois do <code>ORDER BY</code>: ele precisa saber <i>pelo quê</i> ordenar. O formato é <code>ORDER BY coluna DESC</code>, por exemplo <code>ORDER BY ano DESC</code>.');
   var hv=cl.filter(function(c){return c.k==='HAVING'})[0];
   if(hv&&!cl.some(function(c){return c.k==='GROUP BY'}))probs.push('O <code>HAVING</code> filtra <b>grupos</b>, então precisa de um <code>GROUP BY</code> antes dele: <code>… GROUP BY coluna HAVING COUNT(*) &gt; 1</code>. Para filtrar linhas comuns, use <code>WHERE</code>.');
   if(cond){var conds=splitConds(cond);

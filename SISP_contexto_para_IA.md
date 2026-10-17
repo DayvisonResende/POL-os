@@ -20,6 +20,9 @@ Pessoas **sem nenhuma experiência em programação**. Essa é a decisão mais i
 ### Inspirações
 Hypnospace Outlaw, Hacknet, Her Story, Papers, Please, SQL Murder Mystery.
 
+### História
+O arco completo do Módulo 1 ao 6 e o **currículo** de cada ato (seção 11) ("Operação Véio": elenco com segredos, as viradas de cada ato, o mapa de pistas e o final) está em **`docs/historia.md`**. **Leia antes de escrever qualquer caso, fala, evidência ou dado plantado.** Contém spoilers: não mostrar a playtesters.
+
 ---
 
 ## 2. Pilares de design (não quebrar)
@@ -31,7 +34,7 @@ Hypnospace Outlaw, Hacknet, Her Story, Papers, Please, SQL Murder Mystery.
 5. **Andaime que diminui aos poucos (scaffolding).** Cada conceito novo passa por uma escada: ver → prever → trocar uma peça → montar com blocos → completar um molde → escrever do zero. O apoio diminui conforme o jogador avança.
 6. **O jogador sempre sabe qual é a próxima ação**, mesmo quando ainda não sabe a resposta.
 7. **Foco em DQL e DML.** Sem `CREATE TABLE` nem teoria de normalização. O jogador é analista, não arquiteto de banco.
-8. **100% no navegador, sem build.** HTML + CSS + JS em arquivos separados por responsabilidade, carregados por tags `<link>`/`<script>` comuns. Abrir o `index.html` direto no navegador já roda o jogo. Banco SQLite em memória via `sql.js`. Custo de infraestrutura zero.
+8. **100% no navegador, sem build.** HTML + CSS + JS em arquivos separados por responsabilidade, carregados por tags `<link>`/`<script>` comuns. Abrir o `index.html` direto no navegador já roda o jogo. Banco SQLite em memória via `sql.js`. Custo de infraestrutura zero. **Única exceção:** a telemetria remota opcional (Supabase, plano grátis), que só envia com consentimento e, se falhar, não afeta o jogo.
 9. **Tom:** repartição pública brasileira, burocrática e sarcástica, com colegas estressados e medo constante da Corregedoria.
 
 ---
@@ -89,6 +92,7 @@ css/
 js/
   core/                     LÓGICA PURA, sem DOM. Roda no navegador e no Node.
     util.js                 mulberry32, sq, escH, toR, has, hasAll, normPlaca, normTxt, esc, rcols, shuffle
+    i18n.js                 L('texto em português', {vars}), Lp (plural), escolha de idioma (docs/idiomas.md)
     registro.js             CASES, PROVAS, registrarCaso, registrarProva, indiceCaso
     banco/seed.js           buildSeedSQL (dados do jogo)
     banco/fatos.js          F e computeFacts
@@ -99,6 +103,7 @@ js/
     sql/permissao.js        isReadOnly
     sql/executar.js         executarSQL: resultado de cada consulta do editor, inclusive as vazias
     sql/explicador.js       explainSQL e textos COLDESC/TABDESC
+  i18n/                     traduções: <idioma>.js mapeia texto em português → tradução (carregadas antes do conteúdo)
   conteudo/                 CONTEÚDO DO JOGO, sem DOM. É aqui que o jogo mais cresce.
     casos/<id>.js           um arquivo por BO: registrarCaso({...})
     treinamento/*.js        treinamentos guiados: registrarTreino({id, titulo, passos, aoConcluir}) (ver seção 6)
@@ -124,6 +129,8 @@ js/
   historia/                 side quests e eventos de enredo (hoje: beto.js)
   main.js                   boot (sempre o último script)
 tests/                      testes no Node e no navegador (npm test)
+supabase/setup.sql          tabela da telemetria remota (rodar uma vez no Supabase)
+scripts/telemetria*.js      npm run telemetria: baixa do Supabase e gera telemetria/relatorio.md
 scripts/empacotar.js        gera dist/sisp.html, o jogo num arquivo só (npm run empacotar)
 docs/playtest.md            roteiro para conduzir sessões de playtest
 ```
@@ -203,6 +210,15 @@ registrarCaso({                     // em js/conteudo/casos/1002.js
 - Tipos: `sessao`, `consulta` (`res`: ok, vazio, erro, bloqueada; `consultas`: quantas havia no editor), `treino_passo` (`degrau`: tipo do passo), `quase`, `treino_ok`, `tropeco` (toda bronca da Célia que não é de acerto), `dica`, `explique`, `tarefa`, `desfecho`, `prova`, `corregedoria`.
 - Painel **Diagnóstico de playtest** no menu iniciar, **só** quando o jogo é aberto com `?teste` no endereço. Mostra tempo, consultas, erros, tropeços e dicas por lugar; destaca lugares com 3+ erros/tropeços ou 5+ minutos; exporta JSON.
 - Ao criar algo novo que o jogador possa errar, chame `tele('tipo', {...})` no ponto do erro.
+
+### 4.7 Telemetria remota (Supabase)
+- `js/ui/telemetria-remota.js` manda cada evento de `tele()` para a tabela `eventos` do Supabase, **só** se `js/config.js` tiver `url` e `chave` **e** o jogador aceitou o termo (`js/conteudo/termo.js`, guardado em `localStorage['sisp-consentimento']` com `TERMO_VERSAO`). Sem isso, não faz nada.
+- Lotes de 40 eventos, a cada 15 s e ao sair/esconder a aba (`keepalive`); fila em `localStorage['sisp-telemetria-fila']` (até 1000), reenviada depois se a internet cair.
+- Identidade: `sisp-jogador` (código aleatório por navegador) e um código por abertura do jogo. **Nunca** enviar nome, login, senha, contato nem o nome do certificado (há teste).
+- Eventos extras (além dos da 4.6): `sessao` com aparelho em categorias (`faixa`, `navegador`, `sistema`, `idioma`, `toque`, `msBanco`, `versao`), `janela`, `escolha` (opções e peças dos treinamentos), `dilema`, `beto`, `promocao`, `demitido`, `relatorio`, `dica_auto` (dica exibida), `erro_js` (erros técnicos), `pausa`/`volta`/`saida`, `consentimento`, `treino_inicio`/`treino_fim`.
+- Configurações › Privacidade (só aparece se configurado): liga/desliga, mostra o código anônimo e o termo completo.
+- Lado do servidor: `supabase/setup.sql` (tabela só-inserção para `anon`, limites de tamanho, view `sessoes_resumo`). Download e relatório: `npm run telemetria` → `telemetria/` (fora do git). Guia: `docs/telemetria-supabase.md`.
+- **Testes nunca enviam para o Supabase de verdade:** `abrir()` define `window.SISP_CONFIG_TESTE`, que `js/config.js` usa no lugar da configuração real.
 
 ---
 
@@ -333,6 +349,8 @@ Cada passo é um objeto com `type`:
 
 ## 8. Personagens e voz
 
+> Segredos e arcos de cada personagem: `docs/historia.md`, seção 3. A Célia **nunca** é a vilã (regra 4 da bíblia).
+
 ### Célia Moura, supervisora do DTI
 Veterana ("macaca velha"), 22 anos de DTI, desconfiada, ensina do jeito dela e dá esporro. Regras de escrita, **obrigatórias**:
 1. **Bronca na atitude, nunca na ignorância.** Ela pega no pé de quem chuta, pula instrução ou tenta atalho. Para quem não sabe, ela ensina, mesmo resmungando.
@@ -372,7 +390,7 @@ Jairo Teixeira (investigador impaciente), Marina Okada (perita), Paulo Henrique 
 |---|---|---|
 | — | Refatoração: arquivo único → `css/` + `js/` | ✅ concluído (14/10/2026) |
 | 1 | Consolidar e testar com gente real (Prioridade 1) | ✅ concluído (15/10/2026) |
-| 2 | Escada guiada no Módulo 2 (Prioridade 2) | 🟡 implementado (15/10/2026); falta playtest |
+| 2 | Escada guiada no Módulo 2 (Prioridade 2) | 🟡 implementado; playtest com profissional de BI (Mayumi, 16/10): fluido, BO 1002 em 2,5 min, "quer muito mais". **Falta validar com iniciante.** |
 | 3 | Infraestrutura do Módulo 3 | 🟡 dados, Explique e diagnóstico prontos (15/10/2026); "dia de expediente" e relógio aguardam decisão |
 | 4 | Conteúdo do Módulo 3 | — |
 | 5 | Módulo 4 (JOIN) | — |
@@ -398,6 +416,7 @@ Colocar **2 ou 3 pessoas que nunca programaram** para jogar, sem ajudar, e anota
 | 15/10/2026 | BO 1002 (telemetria da sessão do Dayvison, ~49 min no BO) | (1) Com duas consultas no editor e a última vazia (`… 'Preto'`), o jogo mostrava o resultado da **primeira** como se fosse da última; o jogador executou 14 vezes em 6 s achando que nada acontecia, e a dica de minúsculas nunca apareceu. (2) `placa = 'FRT'` voltava vazio sem dica (3×). (3) 6 min parado depois da última dica da tarefa 3, que começava com `… WHERE`. (4) Telemetria: o campo `tipo` do passo do treino sobrescrevia o tipo do evento. | (1) `executarSQL` roda consulta por consulta; o resultado mostrado é sempre o da última, mesmo vazio, com aviso "o editor tem N consultas". Selecionar um trecho e Executar roda só ele. A barra de status mostra a hora da execução e pisca. (2) Dica para `=` com valor parcial (usar LIKE). (3) Última dica de cada tarefa é sempre a consulta completa. (4) Campo renomeado para `degrau`; `tipo` virou reservado. |
 | 15/10/2026 | Treino `m2-intervalos`, passo do BETWEEN com data e hora (Dayvison) | Travou: o passo pedia para escrever as duas pontas inteiras (`'2026-10-12 18:00:00' AND '2026-10-12 20:00:00'`) logo depois de só ter *visto* BETWEEN com números. O conceito pulou do "ver" direto para o "escrever". O erro de `BETWEEN ;` dizia só "o banco se perdeu perto de ;". | Passo novo de **prever** com uma consulta pronta de data e hora. O molde passou a ter **duas lacunas pequenas** (`'2026-10-12 ___'`), só as horas; clicar seleciona a lacuna seguinte. O diagnóstico acusa "BETWEEN sem as duas pontas". Passos alterados entre versões reiniciam ao reabrir o jogo (`tutChavePasso`). |
 | 15/10/2026 | Treinamentos (Dayvison) | Não dá para reler as falas anteriores da Célia; quem se perde trava. | **Histórico** no painel da Célia ("Rever falas anteriores", recolhido, só leitura, rótulo = `tema` do passo). **Anotações da Célia**: cada treinamento tem um resumo (`anotacoes`) que aparece em Arquivos › Anotações ao ser concluído, também em saves antigos. Telemetria: `releu` e `anotacoes`. |
+| 16/10/2026 | Jogo completo (Mayumi, `docs/playtest/sessoes/2026-10-17-mayumi`) | (1) `order by desc` sem coluna: o SQLite lê `desc` como coluna e o jogo mandava pôr entre aspas. (2) Consultou a catraca certo e tomou +15% do Beto: formatos como `16h40m12s` eram recusados. | (1) Diagnóstico de ORDER BY sem coluna. (2) Beto aceita qualquer formato do horário certo (`horarioBateBeto`) e a resposta vai para a telemetria. |
 | 14/10/2026 | DB-Investigator | Erro de digitação no início (`SELEC`) era tratado como tentativa de escrita: +5% de Corregedoria. (Achado pela telemetria.) | `isReadOnly` só bloqueia comandos que o SQLite reconhece como escrita; o resto vira erro traduzido. |
 
 ### Prioridade 2 — escada guiada no Módulo 2
@@ -464,7 +483,16 @@ Imagens em `Images/Arco1/` (14/10/2026), estilo quadrinho noir, 1254×1254 PNG (
 - **Onde usar:** avatares do PolíciaZap, cabeçalho do treinamento (Célia), login, menu iniciar, tela de promoção, relatório e certificado.
 - **Decisão pendente:** ter estagiário e estagiária sugere escolha de personagem. Opções: (1) escolha no login com texto flexionado em tudo; (2) escolha só da imagem, com falas neutras; (3) um personagem só. Hoje os textos estão no masculino ("Estagiário do Arquivo", "Investigador Júnior", "sozinho").
 
+### Pendências guardadas para depois (16/10/2026)
+- **Bíblia da história no repositório público:** `docs/historia.md` contém o final do jogo e o repositório do GitHub parece público (é a fonte do GitHub Pages). Decidir: deixar fora do repositório (`.gitignore`), mover para um repositório privado ou aceitar o risco de spoiler. **Até decidir, não commitar `docs/historia.md`.**
+- **Nomes reais nos relatórios de playtest** (`docs/playtest/sessoes/`): decidir se troca por apelidos ("jogadora-02"). Nunca registrar empregador ou dados pessoais de playtesters.
+- **Revisão profissional:** pedir à Mayumi (profissional de BI) uma opinião sobre o currículo (`docs/historia.md`, seção 11) e o realismo do caso de lavagem do Módulo 3, sem mostrar a bíblia inteira.
+- **Playtest com iniciante absoluto** para validar a meta do Sprint 2.
+- **Lojas (Flathub, Microsoft Store e outras)** — pedido do Dayvison (17/10/2026). Caminho sugerido: (1) transformar o jogo em **PWA** (manifest + service worker: instalável e offline); a Microsoft Store aceita PWA via PWABuilder; (2) empacotar com **Tauri** (app nativo leve) para o Flathub e outras lojas de desktop. Pré-requisitos: o `sql.js` precisa vir junto do jogo (hoje vem do cdnjs, e loja exige funcionar offline); política de privacidade em página pública (base: `js/conteudo/termo.js`); ícones e capturas; classificação indicativa.
+- **Vários idiomas** — ✅ estrutura pronta (17/10/2026): ver `docs/idiomas.md` e a seção 12, regra 12. Interface migrada e traduzida para inglês (`pronto:false`, só com `?idioma=en`). **Falta migrar o conteúdo** (casos, treinamentos, provas, falas, mensagens de SQL) e criar um explicador por idioma.
+
 ### Outras melhorias pendentes
+- **Caminho para quem já sabe SQL** (ideia do playtest da Mayumi, profissional de BI): prova de nivelamento no início, que pula os treinamentos dos módulos que a pessoa já domina. O público "do mercado" quer a história e os casos, não o tutorial.
 - **Cada módulo como um dia de expediente:** a tela de login abre com data nova, patente nova e um e-mail da chefia com as permissões. Isso substitui a ideia de "fase".
 - **Corregedoria suspendendo promoção:** se o medidor estiver alto na prova, exigir um "chamado de redenção" limpo antes de promover. Precisa de conteúdo extra.
 - **Banco de questões maior** na ACADEPOL (hoje 5 de múltipla escolha + 3 de escrever por módulo).
@@ -501,6 +529,7 @@ Imagens em `Images/Arco1/` (14/10/2026), estilo quadrinho noir, 1254×1254 PNG (
 9. Ao mudar o formato do estado de forma incompatível, **trocar `SAVE_KEY`**.
 10. Para distribuir como arquivo único: `npm run empacotar` gera `dist/sisp.html` (não versionado).
 11. Se publicar como artifact do Claude: só scripts externos de cdnjs, jsDelivr ou unpkg; nada de `fetch` externo, `alert()`, `confirm()` ou `window.print()`. Publicar o `index.html` como página e todos os arquivos de `css/` e `js/` como arquivos de apoio (parâmetro `files`), mantendo os mesmos caminhos.
+12. **Idiomas:** todo texto visível passa por `L('texto em português')`, com valores em `{marcadores}` (nunca concatenar frases) e plural por `Lp()`. Conteúdo novo já nasce assim. `npm run i18n` mostra a cobertura; `npm test` barra `L()` sem literal, traduções órfãs e marcadores diferentes. Guia: `docs/idiomas.md`.
 
 ---
 

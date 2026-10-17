@@ -19,8 +19,8 @@ function openDb(sql){
 }
 function buildDb(r){
   var b=r.body;if(tutActive())dictOpen=false;
-  b.innerHTML='<div class="toolbar"><button class="tb-btn run" id="runBtn">&#9654; Executar <span class="kbd">Ctrl+Enter</span></button><button class="tb-btn" id="clrBtn">Limpar</button><button class="tb-btn" id="explBtn" title="Traduz a consulta do editor para português">Explique esta consulta</button><span style="flex:1"></span><button class="tb-btn" id="dictBtn" aria-pressed="'+dictOpen+'">Dicionário de Dados</button></div>'+
-   '<div class="dbwrap'+(tutActive()?' tut':'')+'">'+(tutActive()?'<div class="guide" id="guide" aria-live="polite"></div>':'')+'<div class="dbmain"><div class="ed"><pre aria-hidden="true" id="sqlHl"></pre><textarea id="sqlEd" spellcheck="false" aria-label="Editor SQL" placeholder="-- escreva sua consulta aqui. Ex.: SELECT * FROM veiculos;"></textarea></div><div class="status" id="dbStatus">Pronto. Perfil: '+escH(rankT())+' (somente leitura).</div><div id="dbExpl"></div><div id="dbMsg"></div><div class="grid" id="dbGrid"><div class="empty">O resultado da consulta aparece aqui. Clique em uma coluna no Dicionário de Dados para inserir o nome dela no editor.</div></div></div><div class="dict" id="dict"'+(dictOpen?'':' hidden')+'></div></div>';
+  b.innerHTML='<div class="toolbar"><button class="tb-btn run" id="runBtn">&#9654; '+L('Executar')+' <span class="kbd">Ctrl+Enter</span></button><button class="tb-btn" id="clrBtn">'+L('Limpar')+'</button><button class="tb-btn" id="explBtn" title="'+escH(L('Traduz a consulta do editor para português'))+'">'+L('Explique esta consulta')+'</button><span style="flex:1"></span><button class="tb-btn" id="dictBtn" aria-pressed="'+dictOpen+'">'+L('Dicionário de Dados')+'</button></div>'+
+   '<div class="dbwrap'+(tutActive()?' tut':'')+'">'+(tutActive()?'<div class="guide" id="guide" aria-live="polite"></div>':'')+'<div class="dbmain"><div class="ed"><pre aria-hidden="true" id="sqlHl"></pre><textarea id="sqlEd" spellcheck="false" aria-label="'+escH(L('Editor SQL'))+'" placeholder="'+escH(L('-- escreva sua consulta aqui. Ex.: SELECT * FROM veiculos;'))+'"></textarea></div><div class="status" id="dbStatus">'+L('Pronto. Perfil: {patente} (somente leitura).',{patente:escH(rankT())})+'</div><div id="dbExpl"></div><div id="dbMsg"></div><div class="grid" id="dbGrid"><div class="empty">'+L('O resultado da consulta aparece aqui. Clique em uma coluna no Dicionário de Dados para inserir o nome dela no editor.')+'</div></div></div><div class="dict" id="dict"'+(dictOpen?'':' hidden')+'></div></div>';
   var ta=$('#sqlEd',b);ta.value=S.editor||'';syncHl();
   ta.addEventListener('input',function(){S.editor=ta.value;syncHl();save()});
   ta.addEventListener('scroll',function(){$('#sqlHl').scrollTop=ta.scrollTop});
@@ -39,10 +39,10 @@ function buildDb(r){
 function showExplain(){
   tele('explique');
   var box=$('#dbExpl'),ex=explainSQL($('#sqlEd').value);
-  var html='<div class="explain"><div class="exh">Tradução da consulta<button id="explClose">fechar</button></div>';
+  var html='<div class="explain"><div class="exh">'+L('Tradução da consulta')+'<button id="explClose">'+L('fechar')+'</button></div>';
   if(ex.err)html+='<div class="exn">'+ex.err+'</div>';
   else{html+='<table>'+ex.rows.map(function(r){return '<tr><td class="cd">'+escH(r.code)+'</td><td>'+r.pt+'</td></tr>'}).join('')+'</table>';
-    if(ex.extra)html+='<div class="exn">Depois do primeiro <code>;</code> há outra consulta. Eu expliquei só a primeira.</div>'}
+    if(ex.extra)html+='<div class="exn">'+L('Depois do primeiro <code>;</code> há outra consulta. Eu expliquei só a primeira.')+'</div>'}
   box.innerHTML=html+'</div>';$('#explClose').onclick=function(){box.innerHTML=''};
   tutOnExplain();
 }
@@ -50,16 +50,16 @@ function syncHl(){var ta=$('#sqlEd');if(!ta)return;$('#sqlHl').innerHTML=highlig
 function insertAt(txt){var ta=$('#sqlEd');var s=ta.selectionStart,e=ta.selectionEnd;ta.value=ta.value.slice(0,s)+txt+ta.value.slice(e);ta.selectionStart=ta.selectionEnd=s+txt.length;S.editor=ta.value;syncHl();save();ta.focus()}
 var COLNOTES={'veiculos.cor':'em minúsculas: preto, prata, branco…','veiculos.placa':'sem traço, ex.: ABC1D23','veiculos.cpf_proprietario':'aponta para pessoas.cpf','leituras_radar.data_hora':'AAAA-MM-DD HH:MM:SS','leituras_radar.placa':'aponta para veiculos.placa','leituras_radar.foto_radar_url':'clique no resultado para abrir','catraca_acessos.data':'AAAA-MM-DD'};
 function renderDict(){
-  var d=$('#dict');if(!d)return;d.innerHTML='<h4>Dicionário de Dados</h4>';
+  var d=$('#dict');if(!d)return;d.innerHTML='<h4>'+L('Dicionário de Dados')+'</h4>';
   SCHEMA.tables.forEach(function(t,ti){
     var det=h('details');if(ti<2)det.open=true;
     det.appendChild(h('summary',null,t));var ul=h('ul');
     SCHEMA.info[t].forEach(function(c){
-      var li=h('li');var bt=h('button',{title:'Inserir '+c.name},(c.pk?'<span class="key">PK</span>':c.fk?'<span class="key">FK</span>':'')+'<span>'+c.name+'</span><span class="ty">'+escH((c.type||'').toLowerCase())+'</span>');
+      var li=h('li');var bt=h('button',{title:L('Inserir {nome}',{nome:c.name})},(c.pk?'<span class="key">PK</span>':c.fk?'<span class="key">FK</span>':'')+'<span>'+c.name+'</span><span class="ty">'+escH((c.type||'').toLowerCase())+'</span>');
       bt.onclick=function(){insertAt(c.name)};li.appendChild(bt);
       var note=COLNOTES[t+'.'+c.name];if(note)li.appendChild(h('div',{class:'note'},escH(note)));
       ul.appendChild(li)});
-    var tb=h('li');var tbb=h('button',{title:'Inserir nome da tabela'},'<span class="muted">↳ inserir</span><span>'+t+'</span>');tbb.onclick=function(){insertAt(t)};tb.appendChild(tbb);ul.appendChild(tb);
+    var tb=h('li');var tbb=h('button',{title:L('Inserir nome da tabela')},'<span class="muted">↳ '+L('inserir')+'</span><span>'+t+'</span>');tbb.onclick=function(){insertAt(t)};tb.appendChild(tbb);ul.appendChild(tb);
     det.appendChild(ul);d.appendChild(det)});
 }
 function runQuery(){
@@ -67,37 +67,39 @@ function runQuery(){
   // Com um trecho selecionado, executa só ele (como nos programas de banco de verdade). No treinamento, sempre o editor todo.
   var trecho=!tutActive()&&ta.selectionEnd>ta.selectionStart?ta.value.slice(ta.selectionStart,ta.selectionEnd).trim():'';
   var sql=trecho||ta.value.trim();
-  msg.innerHTML='';if(!sql){if(tutOnEmpty())return;st.textContent='Escreva uma consulta antes de executar.';return}
+  msg.innerHTML='';if(!sql){if(tutOnEmpty())return;st.textContent=L('Escreva uma consulta antes de executar.');return}
   if(!isReadOnly(sql)){
-    msg.innerHTML='<div class="err"><b>Acesso negado.</b> Seu perfil ('+escH(rankT())+') é somente leitura. Comandos que alteram o banco, como UPDATE e DELETE, são liberados no Módulo 5, com supervisão.</div>';
-    st.textContent='Tentativa de escrita bloqueada e registrada.';
+    msg.innerHTML='<div class="err">'+L('<b>Acesso negado.</b> Seu perfil ({patente}) é somente leitura. Comandos que alteram o banco, como UPDATE e DELETE, são liberados no Módulo 5, com supervisão.',{patente:escH(rankT())})+'</div>';
+    st.textContent=L('Tentativa de escrita bloqueada e registrada.');
     tele('consulta',{sql:sql.slice(0,400),res:'bloqueada'});
-    if(!S.writeWarned){S.writeWarned=true;addCorr(5,'Tentativa de escrita no banco com perfil de recruta.')}
+    if(!S.writeWarned){S.writeWarned=true;addCorr(5,L('Tentativa de escrita no banco com perfil de recruta.'))}
     return;
   }
   var bloq=tabelaBloqueada(sql);
-  if(bloq){msg.innerHTML='<div class="err">'+msgTabelaBloqueada(bloq)+'</div>';st.textContent='Acesso a tabela restrita bloqueado.';tele('consulta',{sql:sql.slice(0,400),res:'restrita',tabela:bloq.nome});return}
+  if(bloq){msg.innerHTML='<div class="err">'+msgTabelaBloqueada(bloq)+'</div>';st.textContent=L('Acesso a tabela restrita bloqueado.');tele('consulta',{sql:sql.slice(0,400),res:'restrita',tabela:bloq.nome});return}
   if(!tutBeforeRun())return;
   S.queries++;var t0=performance.now(),todos;
-  var hora=new Date().toLocaleTimeString('pt-BR');
-  var status=function(t){st.textContent=t+' · executada às '+hora+(trecho?' · só o trecho selecionado':'');st.classList.remove('flash');void st.offsetWidth;st.classList.add('flash')};
+  var hora=new Date().toLocaleTimeString(idiomaAtual());
+  var status=function(t){st.textContent=t+' · '+L('executada às {hora}',{hora:hora})+(trecho?' · '+L('só o trecho selecionado'):'');st.classList.remove('flash');void st.offsetWidth;st.classList.add('flash')};
   try{todos=executarSQL(db,sql)}catch(e){
     S.errors++;tele('consulta',{sql:sql.slice(0,400),res:'erro',erro:String(e.message||e)});save();var tr=translateError(String(e.message||e),sql,SCHEMA);
     msg.innerHTML='<div class="err">'+tr+'<span class="raw">SQLite: '+escH(e.message||e)+'</span></div>';
-    grid.innerHTML='<div class="empty">A consulta não rodou, então não há resultado. Corrija o erro acima e execute de novo.</div>';
-    status('Erro na consulta');tutOnError(tr);return}
+    grid.innerHTML='<div class="empty">'+L('A consulta não rodou, então não há resultado. Corrija o erro acima e execute de novo.')+'</div>';
+    status(L('Erro na consulta'));tutOnError(tr);return}
   var ms=(performance.now()-t0).toFixed(1),ult=todos[todos.length-1],vazio=!ult||!ult.values.length;save();
   tele('consulta',{sql:sql.slice(0,400),res:vazio?'vazio':'ok',linhas:vazio?0:ult.values.length,consultas:todos.length});
   var notas=[];
-  if(todos.length>1)notas.push('O editor tem <b>'+todos.length+' consultas</b>. Executei todas, mas o resultado abaixo é só da <b>última</b>: <code>'+escH(ult.sql)+'</code>. Para rodar só uma, selecione o texto dela e clique em Executar, ou apague as outras.');
+  if(todos.length>1)notas.push(L('O editor tem <b>{n} consultas</b>. Executei todas, mas o resultado abaixo é só da <b>última</b>: <code>{sql}</code>. Para rodar só uma, selecione o texto dela e clique em Executar, ou apague as outras.',{n:todos.length,sql:escH(ult.sql)}));
   if(vazio){
-    grid.innerHTML='<div class="empty">A consulta rodou e não retornou nenhuma linha.</div>';status('0 linhas · '+ms+' ms');
+    grid.innerHTML='<div class="empty">'+L('A consulta rodou e não retornou nenhuma linha.')+'</div>';status(Lp(0,'1 linha','{n} linhas')+' · '+ms+' ms');
     var zh=zeroRowHint(ult?ult.sql:sql,SCHEMA);if(zh)notas.push(zh);
+    notas.forEach(function(n){tele('dica_auto',{texto:semTags(n).slice(0,140)})});
     msg.innerHTML=notas.map(function(n){return '<div class="hint0">'+n+'</div>'}).join('');
     checkSteps(null);tutOnRun(toR(null));return}
-  status(ult.values.length+' linha'+(ult.values.length===1?'':'s')+' · '+ult.columns.length+' coluna'+(ult.columns.length===1?'':'s')+' · '+ms+' ms');
+  status(Lp(ult.values.length,'1 linha','{n} linhas')+' · '+Lp(ult.columns.length,'1 coluna','{n} colunas')+' · '+ms+' ms');
   renderGrid(ult);
   notas.push(avisoSQL(sql,SCHEMA),checkSteps(ult));
+  notas.filter(Boolean).forEach(function(n){tele('dica_auto',{texto:semTags(n).slice(0,140)})});
   msg.innerHTML=notas.filter(Boolean).map(function(n){return '<div class="hint0">'+n+'</div>'}).join('');
   tutOnRun(toR(ult));
 }
@@ -110,7 +112,7 @@ function renderGrid(res){
       var s=String(v);if(/\.jpg$/i.test(s))return '<td><a data-foto="'+escH(s)+'">'+escH(s)+'</a></td>';
       return '<td>'+escH(s)+'</td>'}).join('')+'</tr>'});
   html+='</tbody></table>';
-  if(res.values.length>max)html+='<div class="empty">Mostrando '+max+' de '+res.values.length+' linhas. Use LIMIT ou WHERE para enxugar.</div>';
+  if(res.values.length>max)html+='<div class="empty">'+L('Mostrando {max} de {total} linhas. Use LIMIT ou WHERE para enxugar.',{max:max,total:res.values.length})+'</div>';
   grid.innerHTML=html;
   grid.querySelectorAll('a[data-foto]').forEach(function(a){a.onclick=function(){openPhoto(a.getAttribute('data-foto'))}});
 }

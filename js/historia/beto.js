@@ -3,9 +3,11 @@ function startBeto(){
   if(S.beto!=='none')return;S.beto='asked';
   say('beto','Irmão, salva minha vida. Esqueci se bati o ponto na saída ontem (12/10). Dá uma olhada na <code>catraca_acessos</code> e me fala o horário de saída que tá lá? Meu nome tá como Roberto Silva.');
 }
+// Aceita o horário certo em qualquer formato comum (playtest: "16h40m12s" era recusado e custava Corregedoria).
+function horarioBateBeto(v){var d=String(v).replace(/\D/g,'');return d==='1640'||d==='164012'}
 function answerBeto(v){
-  var t=v.replace(/[^\d:]/g,'');
-  if(t==='16:40:12'||t==='16:40'||t==='1640'){S.beto='favor';addMetas(10);
+  var ok=horarioBateBeto(v);tele('beto',{resposta:String(v).slice(0,40),aceita:ok});
+  if(ok){S.beto='favor';addMetas(10);
     say('beto','16:40?! Verdade, saí pro dentista e esqueci de avisar. Valeu! Ó, em troca: o rádio da viatura falou que a caminhonete da Castelo é uma <b>Hilux</b>.');
     setTimeout(function(){say('beto','Agora… consegue mudar esse horário pra 18:00 aí no sistema? Ninguém vai ver, juro.')},1800);
   }else if(S.beto==='asked'){S.beto='wrong';
@@ -14,6 +16,7 @@ function answerBeto(v){
   }else say('beto','Ainda não bate… filtra por funcionario e por data = \'2026-10-12\'.');
 }
 function favorBeto(c){
+  tele('dilema',{quem:'beto',escolha:c==='yes'?'aceitou':'recusou'});
   S.beto='done';
   if(c==='no'){say('beto','Tá certo, tá certo. Não custava tentar. Valeu mesmo assim.')}
   else{say('beto','Sabia que podia contar contigo!');addCorr(15,'Pedido de alteração de ponto registrado no seu login.');

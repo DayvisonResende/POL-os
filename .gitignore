@@ -3,3 +3,7 @@ dist/
 
 # telemetria baixada na raiz por engano; sessões que valem guardar vão em docs/playtest/sessoes/
 /sisp-telemetria-*.json
+
+# telemetria remota baixada (dados de jogadores) e chaves secretas: nunca commitar
+telemetria/
+.env

@@ -14,8 +14,17 @@ function tele(tipo,dados){
   if(dados)for(var k in dados)if(k!=='tipo')e[k]=dados[k];   // tipo é reservado: identifica o evento
   TELE.ev.push(e);if(TELE.ev.length>TELE_MAX)TELE.ev.splice(0,TELE.ev.length-TELE_MAX);
   teleSalvar();
+  if(typeof enfileirarRemota==='function')enfileirarRemota(e);   // envio remoto, só com consentimento
 }
-function teleSessao(retomada){TELE.sessoes++;tele('sessao',{retomada:!!retomada,largura:window.innerWidth})}
+// Aparelho em categorias amplas (nada que identifique a pessoa).
+function infoAparelho(){
+  var ua=navigator.userAgent||'',w=window.innerWidth;
+  return {largura:w,faixa:w<=460?'celular-pequeno':w<=760?'celular':w<=1366?'notebook':'desktop',
+    toque:window.matchMedia('(pointer:coarse)').matches,idioma:navigator.language||'',
+    navegador:/Edg\//.test(ua)?'Edge':/OPR\//.test(ua)?'Opera':/Firefox\//.test(ua)?'Firefox':/Chrome\//.test(ua)?'Chrome':/Safari\//.test(ua)?'Safari':'outro',
+    sistema:/Android/.test(ua)?'Android':/iPhone|iPad/.test(ua)?'iOS':/Windows/.test(ua)?'Windows':/Mac OS/.test(ua)?'macOS':/Linux/.test(ua)?'Linux':'outro'};
+}
+function teleSessao(retomada){TELE.sessoes++;var d=infoAparelho();d.retomada=!!retomada;d.msBanco=window.MS_BANCO||null;d.versao=VERSAO_JOGO;tele('sessao',d)}
 function semTags(html){return String(html).replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim()}
 
 /* Resumo por lugar do jogo. O tempo entre um evento e o próximo (da mesma sessão) conta para o

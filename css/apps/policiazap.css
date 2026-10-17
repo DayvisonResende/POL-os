@@ -19,3 +19,5 @@
 .reply .opt{padding:7px 10px;border:1px solid var(--edge);background:var(--pane);text-align:left;font-size:14px}
 .reply .opt:hover{background:#fff}
 .reply .muted{font-size:13px;padding:4px}
+.av.jairo{background:#4a5a2e}
+.av.marina{background:#5a3f6e}

@@ -3,8 +3,8 @@
 var SQL=null, db=null, SCHEMA={tables:[],cols:[],info:{}};
 var TABELAS=[
  {nome:'veiculos'},{nome:'pessoas'},{nome:'leituras_radar'},{nome:'catraca_acessos'},
- {nome:'contas_bancarias',rankMin:3,patente:'Inspetor Analítico'},
- {nome:'transferencias',rankMin:3,patente:'Inspetor Analítico'}
+ {nome:'contas_bancarias',rankMin:3,patente:L('Inspetor Analítico')},
+ {nome:'transferencias',rankMin:3,patente:L('Inspetor Analítico')}
 ];
 function tabelaLiberada(t){return S.rank>=(t.rankMin||0)}
 function iniciarBanco(lib){
@@ -24,4 +24,4 @@ function tabelaBloqueada(sql){
   var ws=(stripSql(sql).match(/[A-Za-z_]+/g)||[]).map(function(w){return w.toLowerCase()});
   return TABELAS.filter(function(t){return !tabelaLiberada(t)&&ws.indexOf(t.nome)>=0})[0]||null;
 }
-function msgTabelaBloqueada(t){return '<b>Acesso negado.</b> A tabela <code>'+escH(t.nome)+'</code> é restrita: seu perfil ('+escH(rankT())+') ainda não tem acesso. Ela é liberada para <b>'+escH(t.patente)+'</b>.'}
+function msgTabelaBloqueada(t){return L('<b>Acesso negado.</b> A tabela <code>{tabela}</code> é restrita: seu perfil ({patente}) ainda não tem acesso. Ela é liberada para <b>{libera}</b>.',{tabela:escH(t.nome),patente:escH(rankT()),libera:escH(t.patente)})}

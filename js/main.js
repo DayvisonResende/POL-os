@@ -11,12 +11,14 @@ function startDesktop(resumed){
   if(provaMod()&&S.apps.indexOf('prova')<0){S.apps.push('prova');save();renderIcons();buildStart()}
 }
 (function boot(){
+  aplicarI18nHTML();
   var resumed=load();
-  $('#loginForm').addEventListener('submit',function(e){e.preventDefault();startDesktop(resumed)});
-  if(typeof initSqlJs!=='function'){$('#bootStatus').textContent='Não consegui carregar o motor SQL (sql.js). Verifique a conexão e recarregue.';return}
+  $('#loginForm').addEventListener('submit',function(e){e.preventDefault();if(precisaPerguntar())mostrarTermo(function(){startDesktop(resumed)});else startDesktop(resumed)});
+  var t0=performance.now();
+  if(typeof initSqlJs!=='function'){$('#bootStatus').textContent=L('Não consegui carregar o motor SQL (sql.js). Verifique a conexão e recarregue.');return}
   initSqlJs().then(function(lib){
-    iniciarBanco(lib);
-    $('#bootStatus').textContent=resumed?'Base carregada. Expediente anterior encontrado: seu progresso foi mantido.':'Base carregada: '+F.nVeic+' veículos no cadastro.';
+    iniciarBanco(lib);window.MS_BANCO=Math.round(performance.now()-t0);
+    $('#bootStatus').textContent=resumed?L('Base carregada. Expediente anterior encontrado: seu progresso foi mantido.'):L('Base carregada: {n} veículos no cadastro.',{n:F.nVeic});
     var b=$('#lgBtn');b.disabled=false;b.focus();
-  }).catch(function(err){$('#bootStatus').textContent='Erro ao iniciar o banco: '+err})
+  }).catch(function(err){$('#bootStatus').textContent=L('Erro ao iniciar o banco: {erro}',{erro:err})})
 })();

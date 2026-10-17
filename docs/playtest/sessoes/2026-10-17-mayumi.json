@@ -1,0 +1,1525 @@
+{
+ "exportado": "2026-10-17T00:22:57.621Z",
+ "resumo": {
+  "lugares": [
+   {
+    "onde": "BO 1001",
+    "seg": 214.41500000000002,
+    "consultas": 0,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino 01 · msg",
+    "seg": 75.33399999999999,
+    "consultas": 0,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino 02 · msg",
+    "seg": 27.755,
+    "consultas": 0,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino 03 · run",
+    "seg": 38.173,
+    "consultas": 1,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino 04 · msg",
+    "seg": 19.353,
+    "consultas": 0,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino 05 · explain",
+    "seg": 30.011000000000003,
+    "consultas": 0,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 1
+   },
+   {
+    "onde": "Treino 06 · predict",
+    "seg": 21.685000000000002,
+    "consultas": 1,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino 07 · slot",
+    "seg": 26.703000000000003,
+    "consultas": 1,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino 08 · msg",
+    "seg": 24.229,
+    "consultas": 0,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino 09 · blocks",
+    "seg": 28.424,
+    "consultas": 1,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino 10 · msg",
+    "seg": 37.79,
+    "consultas": 0,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino 11 · mold",
+    "seg": 30.383999999999997,
+    "consultas": 1,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino 12 · mold",
+    "seg": 20.774,
+    "consultas": 1,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino 13 · free",
+    "seg": 40.987,
+    "consultas": 1,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino 14 · final",
+    "seg": 16.651,
+    "consultas": 0,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Prova Módulo 1",
+    "seg": 106.953,
+    "consultas": 2,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Sem chamado aberto",
+    "seg": 300.695,
+    "consultas": 2,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 1
+   },
+   {
+    "onde": "Treino m2-filtros 01 · msg",
+    "seg": 65.617,
+    "consultas": 0,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino m2-filtros 02 · predict",
+    "seg": 20.811,
+    "consultas": 1,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino m2-filtros 03 · slot",
+    "seg": 45.998000000000005,
+    "consultas": 1,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 1,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino m2-filtros 04 · blocks",
+    "seg": 45.312,
+    "consultas": 1,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino m2-filtros 05 · explain",
+    "seg": 27.591,
+    "consultas": 0,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 1
+   },
+   {
+    "onde": "Treino m2-filtros 06 · predict",
+    "seg": 26.944,
+    "consultas": 1,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino m2-filtros 07 · msg",
+    "seg": 30.673,
+    "consultas": 0,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino m2-filtros 08 · slot",
+    "seg": 25.673000000000002,
+    "consultas": 1,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino m2-filtros 09 · mold",
+    "seg": 40.201,
+    "consultas": 1,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino m2-filtros 10 · mold",
+    "seg": 26.465,
+    "consultas": 1,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino m2-filtros 11 · free",
+    "seg": 59.55500000000001,
+    "consultas": 2,
+    "erros": 1,
+    "vazias": 0,
+    "tropecos": 1,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino m2-filtros 12 · final",
+    "seg": 18.741,
+    "consultas": 0,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "BO 1002",
+    "seg": 155.39300000000006,
+    "consultas": 3,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino m2-intervalos 01 · msg",
+    "seg": 0.006,
+    "consultas": 0,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino m2-intervalos 02 · predict",
+    "seg": 17.972,
+    "consultas": 1,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino m2-intervalos 03 · slot",
+    "seg": 58.863,
+    "consultas": 1,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino m2-intervalos 04 · msg",
+    "seg": 18.311,
+    "consultas": 0,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino m2-intervalos 05 · mold",
+    "seg": 23.445,
+    "consultas": 1,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino m2-intervalos 06 · predict",
+    "seg": 43.484,
+    "consultas": 1,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino m2-intervalos 07 · mold",
+    "seg": 32.04,
+    "consultas": 1,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino m2-intervalos 08 · free",
+    "seg": 77.26299999999999,
+    "consultas": 4,
+    "erros": 1,
+    "vazias": 0,
+    "tropecos": 3,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Treino m2-intervalos 09 · final",
+    "seg": 5.302,
+    "consultas": 0,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "BO 1003",
+    "seg": 488.17600000000004,
+    "consultas": 5,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   },
+   {
+    "onde": "Prova Módulo 2",
+    "seg": 30.814,
+    "consultas": 2,
+    "erros": 0,
+    "vazias": 0,
+    "tropecos": 0,
+    "dicas": 0,
+    "explique": 0
+   }
+  ],
+  "erros": [
+   [
+    "unrecognized token: \"'Piedade\"\"",
+    1
+   ],
+   [
+    "no such column: desc",
+    1
+   ]
+  ],
+  "tropecos": [
+   [
+    "Treino m2-filtros 03 · slot — Com maiúscula não acha nada: as cores estão gravadas em minúsculas, e pro = 'Azul' é diferente de 'azul'.",
+    1
+   ],
+   [
+    "Treino m2-filtros 11 · free — Errou. Ótimo, é assim que se aprende. O sistema já disse o que tá errado, lê aqui:Tem aspas abertas e não fechadas. Todo texto precisa começar e terminar com aspas simples: 'prata'.",
+    1
+   ],
+   [
+    "Treino m2-intervalos 08 · free — Faltou 2022. \"De 2022 pra cá\" inclui 2022: é &gt;=, não &gt;.",
+    1
+   ],
+   [
+    "Treino m2-intervalos 08 · free — Filtro certo. Falta a ordem: do mais novo pro mais velho é ORDER BY ano DESC.",
+    1
+   ],
+   [
+    "Treino m2-intervalos 08 · free — Errou. Ótimo, é assim que se aprende. O sistema já disse o que tá errado, lê aqui:Não existe coluna chamada desc. Se desc é um valor de texto, e não o nome de uma coluna, coloque entre aspas simples: ",
+    1
+   ]
+  ]
+ },
+ "eventos": [
+  {
+   "t": 1792191080555,
+   "s": 1,
+   "tipo": "sessao",
+   "onde": "BO 1001",
+   "retomada": false,
+   "largura": 1920
+  },
+  {
+   "t": 1792191080558,
+   "s": 1,
+   "tipo": "treino_inicio",
+   "onde": "Treino 01 · msg",
+   "treino": "m1"
+  },
+  {
+   "t": 1792191080625,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino 01 · msg",
+   "passo": 1,
+   "degrau": "msg"
+  },
+  {
+   "t": 1792191155892,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino 02 · msg",
+   "passo": 2,
+   "degrau": "msg"
+  },
+  {
+   "t": 1792191183647,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino 03 · run",
+   "passo": 3,
+   "degrau": "run"
+  },
+  {
+   "t": 1792191200855,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "Treino 03 · run",
+   "sql": "SELECT * FROM veiculos;",
+   "res": "ok",
+   "linhas": 48,
+   "consultas": 1
+  },
+  {
+   "t": 1792191200857,
+   "s": 1,
+   "tipo": "tarefa",
+   "onde": "Treino 03 · run",
+   "caso": "1001",
+   "tarefa": 1
+  },
+  {
+   "t": 1792191200858,
+   "s": 1,
+   "tipo": "treino_ok",
+   "onde": "Treino 03 · run",
+   "passo": 3
+  },
+  {
+   "t": 1792191221820,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino 04 · msg",
+   "passo": 4,
+   "degrau": "msg"
+  },
+  {
+   "t": 1792191241173,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino 05 · explain",
+   "passo": 5,
+   "degrau": "explain"
+  },
+  {
+   "t": 1792191252813,
+   "s": 1,
+   "tipo": "explique",
+   "onde": "Treino 05 · explain"
+  },
+  {
+   "t": 1792191252814,
+   "s": 1,
+   "tipo": "treino_ok",
+   "onde": "Treino 05 · explain",
+   "passo": 5
+  },
+  {
+   "t": 1792191271184,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino 06 · predict",
+   "passo": 6,
+   "degrau": "predict"
+  },
+  {
+   "t": 1792191287940,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "Treino 06 · predict",
+   "sql": "SELECT placa FROM veiculos;",
+   "res": "ok",
+   "linhas": 48,
+   "consultas": 1
+  },
+  {
+   "t": 1792191287943,
+   "s": 1,
+   "tipo": "treino_ok",
+   "onde": "Treino 06 · predict",
+   "passo": 6
+  },
+  {
+   "t": 1792191292869,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino 07 · slot",
+   "passo": 7,
+   "degrau": "slot"
+  },
+  {
+   "t": 1792191304962,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "Treino 07 · slot",
+   "sql": "SELECT placa, modelo FROM veiculos;",
+   "res": "ok",
+   "linhas": 48,
+   "consultas": 1
+  },
+  {
+   "t": 1792191304964,
+   "s": 1,
+   "tipo": "tarefa",
+   "onde": "Treino 07 · slot",
+   "caso": "1001",
+   "tarefa": 2
+  },
+  {
+   "t": 1792191304964,
+   "s": 1,
+   "tipo": "treino_ok",
+   "onde": "Treino 07 · slot",
+   "passo": 7
+  },
+  {
+   "t": 1792191319572,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino 08 · msg",
+   "passo": 8,
+   "degrau": "msg"
+  },
+  {
+   "t": 1792191343801,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino 09 · blocks",
+   "passo": 9,
+   "degrau": "blocks"
+  },
+  {
+   "t": 1792191366298,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "Treino 09 · blocks",
+   "sql": "SELECT DISTINCT cor FROM veiculos;",
+   "res": "ok",
+   "linhas": 6,
+   "consultas": 1
+  },
+  {
+   "t": 1792191366300,
+   "s": 1,
+   "tipo": "tarefa",
+   "onde": "Treino 09 · blocks",
+   "caso": "1001",
+   "tarefa": 3
+  },
+  {
+   "t": 1792191366300,
+   "s": 1,
+   "tipo": "treino_ok",
+   "onde": "Treino 09 · blocks",
+   "passo": 9
+  },
+  {
+   "t": 1792191372225,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino 10 · msg",
+   "passo": 10,
+   "degrau": "msg"
+  },
+  {
+   "t": 1792191410015,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino 11 · mold",
+   "passo": 11,
+   "degrau": "mold"
+  },
+  {
+   "t": 1792191429101,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "Treino 11 · mold",
+   "sql": "SELECT placa, modelo AS Veiculo FROM veiculos;",
+   "res": "ok",
+   "linhas": 48,
+   "consultas": 1
+  },
+  {
+   "t": 1792191429103,
+   "s": 1,
+   "tipo": "treino_ok",
+   "onde": "Treino 11 · mold",
+   "passo": 11
+  },
+  {
+   "t": 1792191440399,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino 12 · mold",
+   "passo": 12,
+   "degrau": "mold"
+  },
+  {
+   "t": 1792191455815,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "Treino 12 · mold",
+   "sql": "SELECT placa, modelo AS Veiculo FROM veiculos limit 5;",
+   "res": "ok",
+   "linhas": 5,
+   "consultas": 1
+  },
+  {
+   "t": 1792191455816,
+   "s": 1,
+   "tipo": "tarefa",
+   "onde": "Treino 12 · mold",
+   "caso": "1001",
+   "tarefa": 4
+  },
+  {
+   "t": 1792191455816,
+   "s": 1,
+   "tipo": "treino_ok",
+   "onde": "Treino 12 · mold",
+   "passo": 12
+  },
+  {
+   "t": 1792191461173,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino 13 · free",
+   "passo": 13,
+   "degrau": "free"
+  },
+  {
+   "t": 1792191493904,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "Treino 13 · free",
+   "sql": "select modelo, cor from veiculos limit 3",
+   "res": "ok",
+   "linhas": 3,
+   "consultas": 1
+  },
+  {
+   "t": 1792191493905,
+   "s": 1,
+   "tipo": "treino_ok",
+   "onde": "Treino 13 · free",
+   "passo": 13
+  },
+  {
+   "t": 1792191502160,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino 14 · final",
+   "passo": 14,
+   "degrau": "final"
+  },
+  {
+   "t": 1792191518811,
+   "s": 1,
+   "tipo": "treino_fim",
+   "onde": "BO 1001",
+   "treino": "m1"
+  },
+  {
+   "t": 1792191595786,
+   "s": 1,
+   "tipo": "desfecho",
+   "onde": "BO 1001",
+   "caso": "1001",
+   "ok": true,
+   "valores": {
+    "resp": "6"
+   }
+  },
+  {
+   "t": 1792191733223,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "Prova Módulo 1",
+   "questao": "1w1",
+   "sql": "select nome, cidade from pessoas",
+   "res": "ok"
+  },
+  {
+   "t": 1792191777126,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "Prova Módulo 1",
+   "questao": "1w3",
+   "sql": "select placa as Placa_Suspeita from veiculos limit 4",
+   "res": "ok"
+  },
+  {
+   "t": 1792191779974,
+   "s": 1,
+   "tipo": "prova",
+   "onde": "Prova Módulo 1",
+   "nota": 5,
+   "erradas": []
+  },
+  {
+   "t": 1792191840176,
+   "s": 1,
+   "tipo": "explique",
+   "onde": "Sem chamado aberto"
+  },
+  {
+   "t": 1792191941774,
+   "s": 1,
+   "tipo": "treino_inicio",
+   "onde": "Treino m2-filtros 01 · msg",
+   "treino": "m2-filtros"
+  },
+  {
+   "t": 1792191941778,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino m2-filtros 01 · msg",
+   "passo": 1,
+   "degrau": "msg"
+  },
+  {
+   "t": 1792192007391,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino m2-filtros 02 · predict",
+   "passo": 2,
+   "degrau": "predict"
+  },
+  {
+   "t": 1792192018034,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "Treino m2-filtros 02 · predict",
+   "sql": "SELECT * FROM pessoas WHERE cidade = 'Votorantim';",
+   "res": "ok",
+   "linhas": 6,
+   "consultas": 1
+  },
+  {
+   "t": 1792192018037,
+   "s": 1,
+   "tipo": "treino_ok",
+   "onde": "Treino m2-filtros 02 · predict",
+   "passo": 2
+  },
+  {
+   "t": 1792192028202,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino m2-filtros 03 · slot",
+   "passo": 3,
+   "degrau": "slot"
+  },
+  {
+   "t": 1792192050578,
+   "s": 1,
+   "tipo": "tropeco",
+   "onde": "Treino m2-filtros 03 · slot",
+   "msg": "Com maiúscula não acha nada: as cores estão gravadas em minúsculas, e pro = 'Azul' é diferente de 'azul'."
+  },
+  {
+   "t": 1792192064794,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "Treino m2-filtros 03 · slot",
+   "sql": "SELECT * FROM veiculos WHERE cor = 'azul';",
+   "res": "ok",
+   "linhas": 4,
+   "consultas": 1
+  },
+  {
+   "t": 1792192064796,
+   "s": 1,
+   "tipo": "treino_ok",
+   "onde": "Treino m2-filtros 03 · slot",
+   "passo": 3
+  },
+  {
+   "t": 1792192074200,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino m2-filtros 04 · blocks",
+   "passo": 4,
+   "degrau": "blocks"
+  },
+  {
+   "t": 1792192119509,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "Treino m2-filtros 04 · blocks",
+   "sql": "SELECT * FROM pessoas WHERE cidade = 'Sorocaba';",
+   "res": "ok",
+   "linhas": 10,
+   "consultas": 1
+  },
+  {
+   "t": 1792192119512,
+   "s": 1,
+   "tipo": "treino_ok",
+   "onde": "Treino m2-filtros 04 · blocks",
+   "passo": 4
+  },
+  {
+   "t": 1792192119512,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino m2-filtros 05 · explain",
+   "passo": 5,
+   "degrau": "explain"
+  },
+  {
+   "t": 1792192132067,
+   "s": 1,
+   "tipo": "explique",
+   "onde": "Treino m2-filtros 05 · explain"
+  },
+  {
+   "t": 1792192132069,
+   "s": 1,
+   "tipo": "treino_ok",
+   "onde": "Treino m2-filtros 05 · explain",
+   "passo": 5
+  },
+  {
+   "t": 1792192147103,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino m2-filtros 06 · predict",
+   "passo": 6,
+   "degrau": "predict"
+  },
+  {
+   "t": 1792192168854,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "Treino m2-filtros 06 · predict",
+   "sql": "SELECT cidade FROM pessoas WHERE cidade = 'Votorantim';",
+   "res": "ok",
+   "linhas": 6,
+   "consultas": 1
+  },
+  {
+   "t": 1792192168856,
+   "s": 1,
+   "tipo": "treino_ok",
+   "onde": "Treino m2-filtros 06 · predict",
+   "passo": 6
+  },
+  {
+   "t": 1792192174047,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino m2-filtros 07 · msg",
+   "passo": 7,
+   "degrau": "msg"
+  },
+  {
+   "t": 1792192204720,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino m2-filtros 08 · slot",
+   "passo": 8,
+   "degrau": "slot"
+  },
+  {
+   "t": 1792192219189,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "Treino m2-filtros 08 · slot",
+   "sql": "SELECT nome, cidade FROM pessoas WHERE nome LIKE 'Ro%';",
+   "res": "ok",
+   "linhas": 3,
+   "consultas": 1
+  },
+  {
+   "t": 1792192219191,
+   "s": 1,
+   "tipo": "treino_ok",
+   "onde": "Treino m2-filtros 08 · slot",
+   "passo": 8
+  },
+  {
+   "t": 1792192230393,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino m2-filtros 09 · mold",
+   "passo": 9,
+   "degrau": "mold"
+  },
+  {
+   "t": 1792192253231,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "Treino m2-filtros 09 · mold",
+   "sql": "SELECT placa, modelo, cor FROM veiculos WHERE placa like 'BJ%';",
+   "res": "ok",
+   "linhas": 2,
+   "consultas": 1
+  },
+  {
+   "t": 1792192253234,
+   "s": 1,
+   "tipo": "treino_ok",
+   "onde": "Treino m2-filtros 09 · mold",
+   "passo": 9
+  },
+  {
+   "t": 1792192270594,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino m2-filtros 10 · mold",
+   "passo": 10,
+   "degrau": "mold"
+  },
+  {
+   "t": 1792192289111,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "Treino m2-filtros 10 · mold",
+   "sql": "SELECT placa, modelo, cor FROM veiculos WHERE cor = 'cinza' and placa LIKE 'LM%';",
+   "res": "ok",
+   "linhas": 1,
+   "consultas": 1
+  },
+  {
+   "t": 1792192289115,
+   "s": 1,
+   "tipo": "treino_ok",
+   "onde": "Treino m2-filtros 10 · mold",
+   "passo": 10
+  },
+  {
+   "t": 1792192297059,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino m2-filtros 11 · free",
+   "passo": 11,
+   "degrau": "free"
+  },
+  {
+   "t": 1792192340348,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "Treino m2-filtros 11 · free",
+   "sql": "select nome, cidade from pessoas where cidade = 'Piedade\"",
+   "res": "erro",
+   "erro": "unrecognized token: \"'Piedade\"\""
+  },
+  {
+   "t": 1792192340351,
+   "s": 1,
+   "tipo": "tropeco",
+   "onde": "Treino m2-filtros 11 · free",
+   "msg": "Errou. Ótimo, é assim que se aprende. O sistema já disse o que tá errado, lê aqui:Tem aspas abertas e não fechadas. Todo texto precisa começar e terminar com aspas simples: 'prata'."
+  },
+  {
+   "t": 1792192349528,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "Treino m2-filtros 11 · free",
+   "sql": "select nome, cidade from pessoas where cidade = 'Piedade'",
+   "res": "ok",
+   "linhas": 15,
+   "consultas": 1
+  },
+  {
+   "t": 1792192349530,
+   "s": 1,
+   "tipo": "treino_ok",
+   "onde": "Treino m2-filtros 11 · free",
+   "passo": 11
+  },
+  {
+   "t": 1792192356614,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino m2-filtros 12 · final",
+   "passo": 12,
+   "degrau": "final"
+  },
+  {
+   "t": 1792192375355,
+   "s": 1,
+   "tipo": "treino_fim",
+   "onde": "BO 1002",
+   "treino": "m2-filtros"
+  },
+  {
+   "t": 1792192484740,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "select * from veiculos where cor = 'prata'",
+   "res": "ok",
+   "linhas": 9,
+   "consultas": 1
+  },
+  {
+   "t": 1792192484742,
+   "s": 1,
+   "tipo": "tarefa",
+   "onde": "BO 1002",
+   "caso": "1002",
+   "tarefa": 1
+  },
+  {
+   "t": 1792192507191,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "select * from veiculos where placa like 'FTR%'",
+   "res": "ok",
+   "linhas": 4,
+   "consultas": 1
+  },
+  {
+   "t": 1792192507193,
+   "s": 1,
+   "tipo": "tarefa",
+   "onde": "BO 1002",
+   "caso": "1002",
+   "tarefa": 2
+  },
+  {
+   "t": 1792192520278,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "BO 1002",
+   "sql": "select * from veiculos where placa like 'FTR%' and cor = 'prata'",
+   "res": "ok",
+   "linhas": 1,
+   "consultas": 1
+  },
+  {
+   "t": 1792192520280,
+   "s": 1,
+   "tipo": "tarefa",
+   "onde": "BO 1002",
+   "caso": "1002",
+   "tarefa": 3
+  },
+  {
+   "t": 1792192528246,
+   "s": 1,
+   "tipo": "desfecho",
+   "onde": "BO 1002",
+   "caso": "1002",
+   "ok": true,
+   "valores": {
+    "placa": "FTR7A93"
+   }
+  },
+  {
+   "t": 1792192530748,
+   "s": 1,
+   "tipo": "treino_inicio",
+   "onde": "Treino m2-intervalos 01 · msg",
+   "treino": "m2-intervalos"
+  },
+  {
+   "t": 1792192530754,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino m2-intervalos 01 · msg",
+   "passo": 1,
+   "degrau": "msg"
+  },
+  {
+   "t": 1792192866298,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino m2-intervalos 02 · predict",
+   "passo": 2,
+   "degrau": "predict"
+  },
+  {
+   "t": 1792192881118,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "Treino m2-intervalos 02 · predict",
+   "sql": "SELECT placa, modelo, ano FROM veiculos WHERE ano BETWEEN 2021 AND 2023;",
+   "res": "ok",
+   "linhas": 14,
+   "consultas": 1
+  },
+  {
+   "t": 1792192881125,
+   "s": 1,
+   "tipo": "treino_ok",
+   "onde": "Treino m2-intervalos 02 · predict",
+   "passo": 2
+  },
+  {
+   "t": 1792192884270,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino m2-intervalos 03 · slot",
+   "passo": 3,
+   "degrau": "slot"
+  },
+  {
+   "t": 1792192933517,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "Treino m2-intervalos 03 · slot",
+   "sql": "SELECT placa, velocidade_kmh FROM leituras_radar WHERE local_radar = 'Av. São Paulo' ORDER BY velocidade_kmh DESC;",
+   "res": "ok",
+   "linhas": 22,
+   "consultas": 1
+  },
+  {
+   "t": 1792192933525,
+   "s": 1,
+   "tipo": "treino_ok",
+   "onde": "Treino m2-intervalos 03 · slot",
+   "passo": 3
+  },
+  {
+   "t": 1792192943133,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino m2-intervalos 04 · msg",
+   "passo": 4,
+   "degrau": "msg"
+  },
+  {
+   "t": 1792192961444,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino m2-intervalos 05 · mold",
+   "passo": 5,
+   "degrau": "mold"
+  },
+  {
+   "t": 1792192979353,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "Treino m2-intervalos 05 · mold",
+   "sql": "SELECT nome, cidade FROM pessoas WHERE cidade IN ('Piedade', 'Votorantim');",
+   "res": "ok",
+   "linhas": 21,
+   "consultas": 1
+  },
+  {
+   "t": 1792192979360,
+   "s": 1,
+   "tipo": "treino_ok",
+   "onde": "Treino m2-intervalos 05 · mold",
+   "passo": 5
+  },
+  {
+   "t": 1792192984889,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino m2-intervalos 06 · predict",
+   "passo": 6,
+   "degrau": "predict"
+  },
+  {
+   "t": 1792193024290,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "Treino m2-intervalos 06 · predict",
+   "sql": "SELECT placa, data_hora FROM leituras_radar\nWHERE local_radar = 'Av. São Paulo'\n  AND data_hora BETWEEN '2026-10-13 04:00:00' AND '2026-10-13 06:00:00';",
+   "res": "ok",
+   "linhas": 7,
+   "consultas": 1
+  },
+  {
+   "t": 1792193024296,
+   "s": 1,
+   "tipo": "treino_ok",
+   "onde": "Treino m2-intervalos 06 · predict",
+   "passo": 6
+  },
+  {
+   "t": 1792193028373,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino m2-intervalos 07 · mold",
+   "passo": 7,
+   "degrau": "mold"
+  },
+  {
+   "t": 1792193049590,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "Treino m2-intervalos 07 · mold",
+   "sql": "SELECT placa, data_hora FROM leituras_radar\nWHERE local_radar = 'Av. São Paulo'\n  AND data_hora BETWEEN '2026-10-12 18:00:00' AND '2026-10-12 20:00:00';",
+   "res": "ok",
+   "linhas": 2,
+   "consultas": 1
+  },
+  {
+   "t": 1792193049597,
+   "s": 1,
+   "tipo": "treino_ok",
+   "onde": "Treino m2-intervalos 07 · mold",
+   "passo": 7
+  },
+  {
+   "t": 1792193060413,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino m2-intervalos 08 · free",
+   "passo": 8,
+   "degrau": "free"
+  },
+  {
+   "t": 1792193087697,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "Treino m2-intervalos 08 · free",
+   "sql": "select placa, ano from veiculos where ano > 2022",
+   "res": "ok",
+   "linhas": 8,
+   "consultas": 1
+  },
+  {
+   "t": 1792193087706,
+   "s": 1,
+   "tipo": "tropeco",
+   "onde": "Treino m2-intervalos 08 · free",
+   "msg": "Faltou 2022. \"De 2022 pra cá\" inclui 2022: é &gt;=, não &gt;."
+  },
+  {
+   "t": 1792193098817,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "Treino m2-intervalos 08 · free",
+   "sql": "select placa, ano from veiculos where ano >= 2022",
+   "res": "ok",
+   "linhas": 12,
+   "consultas": 1
+  },
+  {
+   "t": 1792193098824,
+   "s": 1,
+   "tipo": "tropeco",
+   "onde": "Treino m2-intervalos 08 · free",
+   "msg": "Filtro certo. Falta a ordem: do mais novo pro mais velho é ORDER BY ano DESC."
+  },
+  {
+   "t": 1792193125489,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "Treino m2-intervalos 08 · free",
+   "sql": "select placa, ano from veiculos where ano >= 2022 order by desc",
+   "res": "erro",
+   "erro": "no such column: desc"
+  },
+  {
+   "t": 1792193125491,
+   "s": 1,
+   "tipo": "tropeco",
+   "onde": "Treino m2-intervalos 08 · free",
+   "msg": "Errou. Ótimo, é assim que se aprende. O sistema já disse o que tá errado, lê aqui:Não existe coluna chamada desc. Se desc é um valor de texto, e não o nome de uma coluna, coloque entre aspas simples: "
+  },
+  {
+   "t": 1792193133267,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "Treino m2-intervalos 08 · free",
+   "sql": "select placa, ano from veiculos where ano >= 2022 order by ano desc",
+   "res": "ok",
+   "linhas": 12,
+   "consultas": 1
+  },
+  {
+   "t": 1792193133273,
+   "s": 1,
+   "tipo": "treino_ok",
+   "onde": "Treino m2-intervalos 08 · free",
+   "passo": 8
+  },
+  {
+   "t": 1792193137676,
+   "s": 1,
+   "tipo": "treino_passo",
+   "onde": "Treino m2-intervalos 09 · final",
+   "passo": 9,
+   "degrau": "final"
+  },
+  {
+   "t": 1792193142978,
+   "s": 1,
+   "tipo": "treino_fim",
+   "onde": "BO 1003",
+   "treino": "m2-intervalos"
+  },
+  {
+   "t": 1792193322898,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "BO 1003",
+   "sql": "select distinct local_radar from leituras_radar",
+   "res": "ok",
+   "linhas": 4,
+   "consultas": 1
+  },
+  {
+   "t": 1792193422945,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "BO 1003",
+   "sql": "select * from leituras_radar where local_radar = 'Rod. Castelo Branco - Km 18' and velocidade_kmh > 120 and data_hora between '2026-10-12 22:45:00' and '2026-10-12 23:15:00'",
+   "res": "ok",
+   "linhas": 3,
+   "consultas": 1
+  },
+  {
+   "t": 1792193422947,
+   "s": 1,
+   "tipo": "tarefa",
+   "onde": "BO 1003",
+   "caso": "1003",
+   "tarefa": 1
+  },
+  {
+   "t": 1792193471285,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "BO 1003",
+   "sql": "select * from veiculos where placa in ('JKL4A12', 'KZX9B21', 'RTA8K02')",
+   "res": "ok",
+   "linhas": 3,
+   "consultas": 1
+  },
+  {
+   "t": 1792193471287,
+   "s": 1,
+   "tipo": "tarefa",
+   "onde": "BO 1003",
+   "caso": "1003",
+   "tarefa": 2
+  },
+  {
+   "t": 1792193531012,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "BO 1003",
+   "sql": "select * from pessoas where cpf = '318.442.907-15'",
+   "res": "ok",
+   "linhas": 1,
+   "consultas": 1
+  },
+  {
+   "t": 1792193531013,
+   "s": 1,
+   "tipo": "tarefa",
+   "onde": "BO 1003",
+   "caso": "1003",
+   "tarefa": 3
+  },
+  {
+   "t": 1792193544332,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "BO 1003",
+   "sql": "select * from veiculos where placa in ('JKL4A12', 'KZX9B21', 'RTA8K02')",
+   "res": "ok",
+   "linhas": 3,
+   "consultas": 1
+  },
+  {
+   "t": 1792193557274,
+   "s": 1,
+   "tipo": "desfecho",
+   "onde": "BO 1003",
+   "caso": "1003",
+   "ok": true,
+   "valores": {
+    "placa": "KZX9B21",
+    "nome": "Valdemar Silveira"
+   }
+  },
+  {
+   "t": 1792193631154,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "Sem chamado aberto",
+   "sql": "select * from catraca_acessos where funcionario = 'Roberto Silva' and data = '2026-10-12'",
+   "res": "ok",
+   "linhas": 1,
+   "consultas": 1
+  },
+  {
+   "t": 1792193645588,
+   "s": 1,
+   "tipo": "corregedoria",
+   "onde": "Sem chamado aberto",
+   "n": 15,
+   "motivo": "Beto passou ao RH um horário errado informado por você."
+  },
+  {
+   "t": 1792193781189,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "Sem chamado aberto",
+   "sql": "select * from leituras_radar",
+   "res": "ok",
+   "linhas": 81,
+   "consultas": 1
+  },
+  {
+   "t": 1792193830251,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "Prova Módulo 2",
+   "questao": "2w2",
+   "sql": "select placa, velocidade_kmh from leituras_radar where local_radar = 'Av. Dom Aguirre' order by velocidade_kmh desc",
+   "res": "ok"
+  },
+  {
+   "t": 1792193858947,
+   "s": 1,
+   "tipo": "consulta",
+   "onde": "Prova Módulo 2",
+   "questao": "2w3",
+   "sql": "select * from pessoas where cidade in ('Itu', 'Salto')",
+   "res": "ok"
+  },
+  {
+   "t": 1792193861065,
+   "s": 1,
+   "tipo": "prova",
+   "onde": "Prova Módulo 2",
+   "nota": 5,
+   "erradas": []
+  },
+  {
+   "t": 1792196570297,
+   "s": 2,
+   "tipo": "sessao",
+   "onde": "Sem chamado aberto",
+   "retomada": true,
+   "largura": 1920
+  }
+ ]
+}

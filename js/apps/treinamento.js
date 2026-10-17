@@ -55,14 +55,14 @@ function tutFinish(){
   spot(null,null);setEditor(null,false);
   var g=$('#guide');if(g){g.remove();$('.dbwrap').classList.remove('tut')}
   histAberto=false;save();if(T.aoConcluir)T.aoConcluir();
-  if(T.anotacoes&&S.apps.indexOf('files')>=0)setTimeout(function(){toast('Anotações da Célia','O resumo do treinamento ficou em Arquivos › Anotações.','warn',function(){filesDir='Anotações';openFiles();renderFiles()})},2200);
+  if(T.anotacoes&&S.apps.indexOf('files')>=0)setTimeout(function(){toast('Anotações da Célia',L('O resumo do treinamento ficou em Arquivos › Anotações.'),'warn',function(){filesDir='Anotações';openFiles();renderFiles()})},2200);
 }
 function tutFeedback(kind,html){if(kind!=='ok')tele('tropeco',{msg:semTags(html).slice(0,200)});S.tutFb={k:kind,h:html};save();renderGuide()}
 function tutBeforeRun(){
   if(!tutActive()||S.tutPhase!=='doing')return true;var st=tutStep();
-  if(st.type==='predict'&&!S.tutPred){tutFeedback('info','Calma, apressadinho. Primeiro me diz o que vai sair. Quem chuta sem pensar aqui dentro acaba assinando mandado errado.');return false}
-  if(st.type==='slot'&&!S.tutPick){tutFeedback('info','Executar o quê? Tem um buraco no meio da consulta. Escolhe uma peça primeiro.');return false}
-  if(st.type==='blocks'&&$('#sqlEd').value.trim()===''){tutFeedback('info','Tela vazia, recruta. Monta a consulta com as peças primeiro.');return false}
+  if(st.type==='predict'&&!S.tutPred){tutFeedback('info',L('Calma, apressadinho. Primeiro me diz o que vai sair. Quem chuta sem pensar aqui dentro acaba assinando mandado errado.'));return false}
+  if(st.type==='slot'&&!S.tutPick){tutFeedback('info',L('Executar o quê? Tem um buraco no meio da consulta. Escolhe uma peça primeiro.'));return false}
+  if(st.type==='blocks'&&$('#sqlEd').value.trim()===''){tutFeedback('info',L('Tela vazia, recruta. Monta a consulta com as peças primeiro.'));return false}
   return true;
 }
 function tutOnRun(R){
@@ -70,7 +70,7 @@ function tutOnRun(R){
   if(st.ok(R)){tutComplete();return}
   if(st.miss){tutFeedback('bad',st.miss(R,S.tutMiss||0));S.tutMiss=(S.tutMiss||0)+1;save()}
 }
-function tutOnError(tr){if(!tutActive()||S.tutPhase!=='doing')return;var st=tutStep();if(st.type==='mold'||st.type==='free'){tutFeedback('bad',esc(S.tutErr||0,['Errou. Ótimo, é assim que se aprende. O sistema já disse o que tá errado, lê aqui:','Errou de novo. Respira. Lê devagar o que o sistema disse e faz o que ele manda:',st.type==='mold'?'Tá brigando com o teclado? Clica em <b>Voltar o molde</b> e recomeça: clica nos tracinhos e digita só o que eu pedi.':'Tá brigando com o teclado? Confere letra por letra com o que eu pedi. Se travar de vez, clica em Explique esta consulta.'])+(tr?'<div class="gerr">'+tr+'</div>':''));S.tutErr=(S.tutErr||0)+1;save()}}
+function tutOnError(tr){if(!tutActive()||S.tutPhase!=='doing')return;var st=tutStep();if(st.type==='mold'||st.type==='free'){tutFeedback('bad',esc(S.tutErr||0,[L('Errou. Ótimo, é assim que se aprende. O sistema já disse o que tá errado, lê aqui:'),L('Errou de novo. Respira. Lê devagar o que o sistema disse e faz o que ele manda:'),st.type==='mold'?L('Tá brigando com o teclado? Clica em <b>Voltar o molde</b> e recomeça: clica nos tracinhos e digita só o que eu pedi.'):L('Tá brigando com o teclado? Confere letra por letra com o que eu pedi. Se travar de vez, clica em Explique esta consulta.')])+(tr?'<div class="gerr">'+tr+'</div>':''));S.tutErr=(S.tutErr||0)+1;save()}}
 function tutOnExplain(){if(tutActive()&&S.tutPhase==='doing'&&tutStep().type==='explain')tutComplete()}
 /* Histórico: as falas dos passos anteriores do treinamento ativo, só para reler (playtest: quem se perdia travava).
    Fica recolhido; cada passo abre com um clique. Não deixa voltar e refazer passos. */
@@ -80,7 +80,7 @@ function histHTML(){
   if(S.tut<1)return '';
   var itens=tutPassos().slice(0,S.tut).map(function(st,k){
     return '<details class="ghi" data-k="'+(k+1)+'"><summary><span class="gn">'+(k+1)+'</span>'+escH(rotuloPasso(st))+'</summary><div class="gbub">'+fill(st.text||'')+(st.extra||'')+(st.text2||'')+'</div>'+(st.after?'<div class="gbub after">'+fill(st.after)+'</div>':'')+'</details>'}).join('');
-  return '<details class="ghist"'+(histAberto?' open':'')+'><summary>Rever falas anteriores ('+S.tut+')</summary><div class="ghl">'+itens+'</div></details>';
+  return '<details class="ghist"'+(histAberto?' open':'')+'><summary>'+L('Rever falas anteriores ({n})',{n:S.tut})+'</summary><div class="ghl">'+itens+'</div></details>';
 }
 function ligarHist(g){
   var d=g.querySelector('.ghist');if(!d)return;
@@ -90,42 +90,42 @@ function ligarHist(g){
 function renderGuide(){
   var g=$('#guide');if(!g)return;var st=tutStep();if(!st)return;
   var i=S.tut,N=tutPassos().length,after=S.tutPhase==='after';
-  var html='<div class="gh"><span class="av">CM</span><div><b>Célia Moura</b><small>'+escH(treinoAtual().titulo)+' · passo '+(i+1)+' de '+N+'</small></div></div><div class="gprog"><i style="width:'+Math.round((i+(after?1:0))/N*100)+'%"></i></div>'+histHTML();
+  var html='<div class="gh"><span class="av">CM</span><div><b>Célia Moura</b><small>'+L('{treino} · passo {i} de {total}',{treino:escH(treinoAtual().titulo),i:i+1,total:N})+'</small></div></div><div class="gprog"><i style="width:'+Math.round((i+(after?1:0))/N*100)+'%"></i></div>'+histHTML();
   if(after){html+='<div class="gbub after">'+fill(st.after)+'</div><div class="gact"><button class="btn-primary" id="gNext">Continuar</button></div>';g.innerHTML=html;ligarHist(g);$('#gNext').onclick=tutNext;spot('#gNext');return}
   html+='<div class="gbub">'+fill(st.text)+(st.extra||'')+(st.text2||'')+'</div>';
   g.innerHTML=html;ligarHist(g);var sp=st.spot||null,pl=st.point||null;
-  if(st.type==='msg'||st.type==='final'){var a=h('div',{class:'gact'});var b=h('button',{class:'btn-primary',id:'gNext'},escH(st.btn||'Continuar'));b.onclick=tutNext;a.appendChild(b);g.appendChild(a);sp='#gNext'}
+  if(st.type==='msg'||st.type==='final'){var a=h('div',{class:'gact'});var b=h('button',{class:'btn-primary',id:'gNext'},escH(st.btn||L('Continuar')));b.onclick=tutNext;a.appendChild(b);g.appendChild(a);sp='#gNext'}
   if(st.type==='predict'){
     g.appendChild(h('div',{class:'gq'},escH(st.q)));var og=h('div',{class:'gopts'});
     st.opts.forEach(function(o,k){var cls='gopt'+(S.tutPred&&o.ok?' right':'')+(S.tutWrong.indexOf(k)>=0?' wrong':'');var b=h('button',{class:cls},escH(o.t));
       if(S.tutPred||S.tutWrong.indexOf(k)>=0)b.disabled=true;
-      b.onclick=function(){if(o.ok){S.tutPred=true;tutFeedback('ok',escH(o.fb))}else{S.tutWrong.push(k);tutFeedback('bad',escH(o.fb))}};og.appendChild(b)});
-    g.appendChild(og);sp=S.tutPred?'#runBtn':null;pl=S.tutPred?'agora executa':null}
+      b.onclick=function(){tele('escolha',{passo:S.tut+1,opcao:k,certa:!!o.ok});if(o.ok){S.tutPred=true;tutFeedback('ok',escH(o.fb))}else{S.tutWrong.push(k);tutFeedback('bad',escH(o.fb))}};og.appendChild(b)});
+    g.appendChild(og);sp=S.tutPred?'#runBtn':null;pl=S.tutPred?L('agora executa'):null}
   if(st.type==='slot'){
     var cg=h('div',{class:'chips'});
     st.chips.forEach(function(c){var b=h('button',{class:'chip'+(S.tutPick===c.t?' on':'')+(c.bad&&S.tutWrong.indexOf(c.t)>=0?' no':'')},escH(c.t));
-      b.onclick=function(){if(c.bad){S.tutWrong.push(c.t);S.tutPick=null;setEditor(st.template,true);tutFeedback('bad',c.bad);return}
+      b.onclick=function(){tele('escolha',{passo:S.tut+1,peca:c.t,certa:!c.bad});if(c.bad){S.tutWrong.push(c.t);S.tutPick=null;setEditor(st.template,true);tutFeedback('bad',c.bad);return}
         S.tutPick=c.t;setEditor(st.template.replace('___',c.t),true);S.tutFb=null;save();renderGuide()};cg.appendChild(b)});
-    g.appendChild(cg);sp=S.tutPick?'#runBtn':null;pl=S.tutPick?'executa':null}
+    g.appendChild(cg);sp=S.tutPick?'#runBtn':null;pl=S.tutPick?L('executa'):null}
   if(st.type==='blocks'){
-    var line=h('div',{class:'bline','aria-label':'Sua consulta'});
-    if(!S.tutBlocks.length)line.appendChild(h('span',{class:'ph'},'clique nas peças abaixo…'));
-    S.tutBlocks.forEach(function(pi,k){var t=st.pool[pi];var b=h('button',{class:'chip'+(/^[A-Z]+$/.test(t)?' kw':''),title:'Devolver esta peça'},escH(t));
+    var line=h('div',{class:'bline','aria-label':L('Sua consulta')});
+    if(!S.tutBlocks.length)line.appendChild(h('span',{class:'ph'},L('clique nas peças abaixo…')));
+    S.tutBlocks.forEach(function(pi,k){var t=st.pool[pi];var b=h('button',{class:'chip'+(/^[A-Z]+$/.test(t)?' kw':''),title:L('Devolver esta peça')},escH(t));
       b.onclick=function(){S.tutBlocks.splice(k,1);setEditor('',true);S.tutFb=null;save();renderGuide()};line.appendChild(b)});
     g.appendChild(line);var pool=h('div',{class:'chips'});
     st.pool.forEach(function(t,pi){if(S.tutBlocks.indexOf(pi)>=0)return;var b=h('button',{class:'chip'+(/^[A-Z]+$/.test(t)?' kw':'')},escH(t));
       b.onclick=function(){S.tutBlocks.push(pi);S.tutFb=null;
         if(S.tutBlocks.length===st.pool.length){var seq=S.tutBlocks.map(function(x){return st.pool[x]});
-          if(seq.join(' ')===st.answer.join(' ')){setEditor(joinToks(seq),true);tutFeedback('ok','Agora sim. Executa.');return}
+          if(seq.join(' ')===st.answer.join(' ')){setEditor(joinToks(seq),true);tutFeedback('ok',L('Agora sim. Executa.'));return}
           setEditor('',true);tutFeedback('bad',esc(S.tutBlk||0,st.wrong));S.tutBlk=(S.tutBlk||0)+1;save();return}
         save();renderGuide()};pool.appendChild(b)});
-    g.appendChild(pool);sp=$('#sqlEd').value?'#runBtn':null;pl=$('#sqlEd').value?'executa':null}
+    g.appendChild(pool);sp=$('#sqlEd').value?'#runBtn':null;pl=$('#sqlEd').value?L('executa'):null}
   if(st.type==='free'&&st.hints){
     for(var q=0;q<S.tutHint;q++)g.appendChild(h('div',{class:'ghint'},st.hints[q]));
-    if(S.tutHint<st.hints.length){var hb=h('button',{class:'tb-btn'},escH((st.hintBtns||['Pedir dica','Ver a consulta'])[S.tutHint]));hb.onclick=function(){S.tutHint++;tele('dica',{nivel:S.tutHint});save();renderGuide()};var ha=h('div',{class:'gact'});ha.appendChild(hb);g.appendChild(ha)}}
-  if(st.type==='mold'){var rb=h('button',{class:'tb-btn',id:'gMolde'},'&#8634; Voltar o molde');rb.onclick=function(){tele('dica',{nivel:'molde'});tutRestaurarMolde()};var ra=h('div',{class:'gact'});ra.appendChild(rb);g.appendChild(ra)}
+    if(S.tutHint<st.hints.length){var hb=h('button',{class:'tb-btn'},escH((st.hintBtns||[L('Pedir dica'),L('Ver a consulta')])[S.tutHint]));hb.onclick=function(){S.tutHint++;tele('dica',{nivel:S.tutHint});save();renderGuide()};var ha=h('div',{class:'gact'});ha.appendChild(hb);g.appendChild(ha)}}
+  if(st.type==='mold'){var rb=h('button',{class:'tb-btn',id:'gMolde'},'&#8634; '+L('Voltar o molde'));rb.onclick=function(){tele('dica',{nivel:'molde'});tutRestaurarMolde()};var ra=h('div',{class:'gact'});ra.appendChild(rb);g.appendChild(ra)}
   if(S.tutFb){var fbEl=h('div',{class:'gfb '+S.tutFb.k},S.tutFb.h);g.appendChild(fbEl);setTimeout(function(){g.scrollTop=Math.max(0,fbEl.offsetTop-g.offsetTop-40)},0)}
-  if(st.type==='mold'||st.type==='free')g.appendChild(h('div',{class:'muted',style:'font-size:12.5px'},'Atalho: Ctrl+Enter também executa.'));
+  if(st.type==='mold'||st.type==='free')g.appendChild(h('div',{class:'muted',style:'font-size:12.5px'},L('Atalho: Ctrl+Enter também executa.')));
   if(sp==='#gNext'||sp==='#sqlEd')pl=null;
   spot(sp,pl);
 }

@@ -4,7 +4,9 @@
   "description": "SISP: Terminal de Inteligência Policial. O jogo roda abrindo o index.html; o npm só é usado para testes e empacotamento.",
   "scripts": {
     "test": "node --test tests/*.test.js",
-    "empacotar": "node scripts/empacotar.js"
+    "empacotar": "node scripts/empacotar.js",
+    "telemetria": "node scripts/telemetria.js",
+    "i18n": "node scripts/i18n.js"
   },
   "devDependencies": {
     "playwright-core": "1.47.2",

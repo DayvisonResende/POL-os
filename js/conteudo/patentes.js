@@ -6,5 +6,8 @@ var RANKS=[
   aoPromover:function(){unlockApp('files','Arquivos');S.caseSel=indiceCaso('1002');save();unlockToast();renderOcorr();renderFiles()}},
  {t:'Investigador Júnior',libera:['Filtros, intervalos e ordenação em qualquer chamado','Próximo módulo: tabelas financeiras (em desenvolvimento)'],
   celia:'Investigador Júnior. Na minha época isso levava dois anos, você levou um dia. Não se acha, não.',
-  aoPromover:function(){S.done=true;save();setTimeout(report,1500)}}
+  aoPromover:function(){S.done=true;save();setTimeout(report,1500);
+   // Gancho do fim do Ato I (docs/historia.md): o dono da caminhonete não é o motorista.
+   setTimeout(function(){say('jairo','Prenderam o tal Valdemar. 66 anos, de chinelo, em Piedade. Jura que nunca dirigiu uma Hilux na vida. E a caminhonete? Sumiu.')},6000);
+   setTimeout(function(){say('celia','Amanhã às 8. E traz café.')},9500)}}
 ];

@@ -1,7 +1,7 @@
 /* BO 1003 · Módulo 2 · BETWEEN, IN, chave estrangeira */
 registrarCaso({id:'1003',titulo:'Assalto à Transportadora Central',modulo:2,natureza:'Roubo de carga (art. 157)',quando:'12/10/2026 22:45',local:'Rod. Castelo Branco, Km 16',solicitante:'Delegado Paulo Henrique Dias',
   treino:'m2-intervalos',tempo:170,
-  aoEncerrar:function(){setTimeout(function(){say('celia','Mandado assinado. Pra um primeiro dia, nada mal. Mas promoção não cai do céu: a prova do Módulo 2 já tá na ACADEPOL. Passa nela e eu assino tua promoção.')},1200);setTimeout(function(){toast('ACADEPOL','Prova do Módulo 2 liberada.','warn',openProva)},2600)},
+  aoEncerrar:function(){marinaApresenta();setTimeout(function(){say('celia','Mandado assinado. Pra um primeiro dia, nada mal. Mas promoção não cai do céu: a prova do Módulo 2 já tá na ACADEPOL. Passa nela e eu assino tua promoção.')},1200);setTimeout(function(){toast('ACADEPOL','Prova do Módulo 2 liberada.','warn',openProva)},2600)},
   relato:'Três homens renderam o motorista de um caminhão da Transportadora Central e levaram a carga de eletrônicos. Duas testemunhas viram uma <b>caminhonete preta</b> sair do acostamento em alta velocidade, sentido capital, e <q>passar voando</q> pelo radar do Km 18. A escuta do número investigado foi anexada em Arquivos › Evidências. Identifique o veículo e o proprietário.',
   steps:[
    {t:'No radar do Km 18 da Castelo, ache as passagens <b>acima de 120 km/h</b> entre <b>22:45 e 23:15</b> do dia 12/10.',

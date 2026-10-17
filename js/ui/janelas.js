@@ -3,6 +3,7 @@ var WINS={}, zTop=10;
 function focusWin(id){var w=WINS[id];if(!w)return;w.el.classList.remove('min');w.el.style.zIndex=++zTop;Object.keys(WINS).forEach(function(k){WINS[k].el.classList.toggle('active',k===id)});renderTasks()}
 function openWin(id,opts){
   if(WINS[id]){focusWin(id);if(opts.refresh)opts.refresh(WINS[id]);return WINS[id]}
+  tele('janela',{app:String(id).split('_')[0]});
   var desk=$('#desk'),dw=desk.clientWidth,dh=desk.clientHeight;
   var w=Math.min(opts.w||640,dw-20),hh=Math.min(opts.h||460,dh-20);
   var n=Object.keys(WINS).length;
@@ -12,9 +13,9 @@ function openWin(id,opts){
   el.style.cssText='left:'+x+'px;top:'+y+'px;width:'+w+'px;height:'+hh+'px';
   var tb=h('div',{class:'wtb'});
   tb.appendChild(h('span',{class:'wt'},escH(opts.title)));
-  var bMin=h('button',{'aria-label':'Minimizar',title:'Minimizar'},'&#8211;');
-  var bMax=h('button',{class:'mx','aria-label':'Maximizar',title:'Maximizar'},'&#9633;');
-  var bX=h('button',{class:'x','aria-label':'Fechar',title:'Fechar'},'&#10005;');
+  var bMin=h('button',{'aria-label':L('Minimizar'),title:L('Minimizar')},'&#8211;');
+  var bMax=h('button',{class:'mx','aria-label':L('Maximizar'),title:L('Maximizar')},'&#9633;');
+  var bX=h('button',{class:'x','aria-label':L('Fechar'),title:L('Fechar')},'&#10005;');
   tb.appendChild(bMin);tb.appendChild(bMax);tb.appendChild(bX);
   var body=h('div',{class:'wbody'});
   el.appendChild(tb);el.appendChild(body);desk.appendChild(el);

@@ -7,7 +7,7 @@ function exportarProgresso(){
   var dados={jogo:BACKUP_JOGO,formato:SAVE_KEY,salvoEm:new Date().toISOString(),patente:rankT(),encerrados:S.closed.length,estado:S};
   baixarArquivo(JSON.stringify(dados,null,1),'sisp-progresso-'+hojeArquivo()+'.json','application/json');
   tele('backup',{acao:'exportar'});
-  toast('Progresso salvo em arquivo','Guarde o arquivo. Com ele você continua de onde parou, em qualquer navegador: menu SISP › Carregar progresso.','ok');
+  toast(L('Progresso salvo em arquivo'),L('Guarde o arquivo. Com ele você continua de onde parou, em qualquer navegador: SISP › Configurações › Carregar progresso.'),'ok');
 }
 function importarProgresso(){
   var inp=h('input',{type:'file',accept:'.json,application/json',style:'display:none'});
@@ -16,21 +16,21 @@ function importarProgresso(){
 }
 function lerBackup(txt){
   var d;try{d=JSON.parse(txt)}catch(e){d=null}
-  if(!d||d.jogo!==BACKUP_JOGO||!d.estado||!d.estado.chat)return avisoBackup('Esse arquivo não é um progresso salvo do SISP. Escolha o arquivo sisp-progresso-….json que o jogo baixou.');
-  if(d.formato!==SAVE_KEY)return avisoBackup('Esse progresso é de uma versão do jogo que não é mais compatível com esta.');
+  if(!d||d.jogo!==BACKUP_JOGO||!d.estado||!d.estado.chat)return avisoBackup(L('Esse arquivo não é um progresso salvo do SISP. Escolha o arquivo sisp-progresso-….json que o jogo baixou.'));
+  if(d.formato!==SAVE_KEY)return avisoBackup(L('Esse progresso é de uma versão do jogo que não é mais compatível com esta.'));
   var quando=new Date(d.salvoEm);
-  confirmar('Carregar progresso salvo?',
-    '<p>Arquivo salvo em <b>'+escH(isNaN(quando)?'data desconhecida':quando.toLocaleString('pt-BR'))+'</b>: '+escH(d.patente||'')+', '+(d.encerrados||0)+' chamado(s) encerrado(s).</p><p>O progresso atual neste navegador será <b>substituído</b>.</p>',
-    [['Carregar este progresso',function(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(d.estado))}catch(e){}tele('backup',{acao:'importar'});location.reload()},'btn-primary'],
-     ['Cancelar',null,'tb-btn']]);
+  confirmar(L('Carregar progresso salvo?'),
+    '<p>'+L('Arquivo salvo em <b>{quando}</b>: {patente}, {n} chamado(s) encerrado(s).',{quando:escH(isNaN(quando)?L('data desconhecida'):quando.toLocaleString(idiomaAtual())),patente:escH(d.patente||''),n:d.encerrados||0})+'</p><p>'+L('O progresso atual neste navegador será <b>substituído</b>.')+'</p>',
+    [[L('Carregar este progresso'),function(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(d.estado))}catch(e){}tele('backup',{acao:'importar'});location.reload()},'btn-primary'],
+     [L('Cancelar'),null,'tb-btn']]);
 }
-function avisoBackup(msg){toast('Não deu para carregar',escH(msg),'bad')}
+function avisoBackup(msg){toast(L('Não deu para carregar'),escH(msg),'bad')}
 // Reiniciar apaga tudo: pergunta antes e oferece salvar um backup.
 function pedirReinicio(){
-  confirmar('Reiniciar o turno?','<p>Isso <b>apaga todo o progresso</b> neste navegador: chamados, patente, treinamentos e conversas. Não tem como desfazer.</p>',
-    [['Salvar progresso e reiniciar',function(){exportarProgresso();setTimeout(resetAll,600)},'btn-primary'],
-     ['Reiniciar sem salvar',resetAll,'tb-btn'],
-     ['Cancelar',null,'tb-btn']]);
+  confirmar(L('Reiniciar o turno?'),'<p>'+L('Isso <b>apaga todo o progresso</b> neste navegador: chamados, patente, treinamentos e conversas. Não tem como desfazer.')+'</p>',
+    [[L('Salvar progresso e reiniciar'),function(){exportarProgresso();setTimeout(resetAll,600)},'btn-primary'],
+     [L('Reiniciar sem salvar'),resetAll,'tb-btn'],
+     [L('Cancelar'),null,'tb-btn']]);
 }
 // Caixa de confirmação do Pol-OS (artifact não permite confirm()). botoes: [[rótulo, ação ou null, classe]]
 function confirmar(titulo,html,botoes){

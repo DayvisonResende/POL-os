@@ -27,12 +27,12 @@
         <div class="brand">POL-OS<small>SISP · ESTAÇÃO DTI-04</small></div>
       </div>
       <form class="boot-form" id="loginForm">
-        <label for="lgUser">Usuário<input id="lgUser" value="recruta.dti04" autocomplete="off"></label>
-        <label for="lgPass">Senha<input id="lgPass" type="password" value="cafe-frio-2026" autocomplete="off"></label>
-        <button class="btn-primary" id="lgBtn" type="submit" disabled>Iniciar expediente</button>
-        <div id="bootStatus">Carregando base de dados…</div>
+        <label for="lgUser"><span data-i18n>Usuário</span><input id="lgUser" value="recruta.dti04" autocomplete="off"></label>
+        <label for="lgPass"><span data-i18n>Senha</span><input id="lgPass" type="password" value="cafe-frio-2026" autocomplete="off"></label>
+        <button class="btn-primary" id="lgBtn" type="submit" disabled data-i18n>Iniciar expediente</button>
+        <div id="bootStatus" data-i18n>Carregando base de dados…</div>
       </form>
-      <p class="boot-note">Simulação fictícia para ensino de SQL. Nomes, placas e CPFs foram gerados e não correspondem a pessoas reais. Protótipo: Módulos 1 e 2 (três chamados).</p>
+      <p class="boot-note" data-i18n>Simulação fictícia para ensino de SQL. Nomes, placas e CPFs foram gerados e não correspondem a pessoas reais. Protótipo: Módulos 1 e 2 (três chamados).</p>
     </div>
   </div>
 
@@ -46,8 +46,8 @@
     <button id="startBtn" aria-haspopup="true" aria-expanded="false"><svg width="16" height="18" viewBox="0 0 58 66" aria-hidden="true"><path d="M29 2 54 11v20c0 16-10.5 27-25 33C14.5 58 4 47 4 31V11z" fill="#d6951c"/></svg><span>SISP</span></button>
     <div id="tasks"></div>
     <div class="tray">
-      <div class="meter" id="mMetas" title="Metas de produtividade"><div class="ml"><span>Metas</span><b>0%</b></div><div class="bar"><div class="fill" style="width:0%"></div></div></div>
-      <div class="meter" id="mCorr" title="Auditoria da Corregedoria"><div class="ml"><span>Corregedoria</span><b>0%</b></div><div class="bar"><div class="fill" style="width:0%"></div></div></div>
+      <div class="meter" id="mMetas" title="Metas de produtividade" data-i18n-title><div class="ml"><span data-i18n>Metas</span><b>0%</b></div><div class="bar"><div class="fill" style="width:0%"></div></div></div>
+      <div class="meter" id="mCorr" title="Auditoria da Corregedoria" data-i18n-title><div class="ml"><span data-i18n>Corregedoria</span><b>0%</b></div><div class="bar"><div class="fill" style="width:0%"></div></div></div>
       <div id="clock">08:00<small>ter 13/10</small></div>
     </div>
   </div>
@@ -56,8 +56,13 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-asm.js"></script>
+<!-- Configuração (versão do jogo, telemetria remota) -->
+<script src="js/config.js"></script>
 <!-- Núcleo: lógica pura, sem DOM (também roda nos testes do Node) -->
 <script src="js/core/util.js"></script>
+<script src="js/core/i18n.js"></script>
+<!-- Traduções (antes de qualquer texto do jogo) -->
+<script src="js/i18n/en.js"></script>
 <script src="js/core/registro.js"></script>
 <script src="js/core/banco/seed.js"></script>
 <script src="js/core/banco/fatos.js"></script>
@@ -70,6 +75,7 @@
 <!-- Conteúdo do jogo: casos, treinamento, provas, patentes, arquivos (sem DOM) -->
 <script src="js/conteudo/personagens.js"></script>
 <script src="js/conteudo/dicionario.js"></script>
+<script src="js/conteudo/termo.js"></script>
 <script src="js/conteudo/patentes.js"></script>
 <script src="js/conteudo/arquivos.js"></script>
 <script src="js/conteudo/casos/1001.js"></script>
@@ -91,6 +97,7 @@
 <script src="js/ui/desktop.js"></script>
 <script src="js/ui/telemetria.js"></script>
 <script src="js/ui/backup.js"></script>
+<script src="js/ui/telemetria-remota.js"></script>
 <!-- Aplicativos -->
 <script src="js/apps/policiazap.js"></script>
 <script src="js/apps/ocorrencias.js"></script>
