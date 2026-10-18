@@ -493,3 +493,24 @@ test('Módulo 4: treinamentos não entregam o galpão nem a carga; BOs e prova c
   assert.ok(c7.final.check({ valor: '380.000,00', vagos: String(vagos) }).ok);
   for (const q of T.PROVAS[4].write) assert.ok(q.check(J.run(q.model)), q.id);
 });
+
+// Primeiro iniciante (18/10): as consultas exatas dele, que receberam dica errada ou nenhuma.
+test('playtest 18/10 (iniciante): BETWEEN sem coluna, ORDER BY que "filtra", AND ORDER BY, condição solta', () => {
+  const { T } = J;
+  const schema = { tables: ['leituras_radar', 'veiculos'], cols: ['local_radar', 'data_hora', 'velocidade_kmh', 'placa'] };
+  const Q = "SELECT * FROM leituras_radar WHERE local_radar = 'Rod. Castelo Branco - Km 18'";
+  const erro = q => { try { J.db.exec(q); return 'rodou'; } catch (e) { return T.translateError(e.message, q, schema); } };
+  // o texto do local estava certo: a culpa era do BETWEEN sem coluna, e não do = (antes: "tente LIKE '%Castelo%'")
+  for (const q of [Q + " BETWEEN '2026-10-12 22:45:00' AND '2026-10-12 23:15:59'", Q + " AND velocidade_kmh > 120 BETWEEN '2026-10-12 22:45:00' AND '2026-10-12 23:15:00'"]) {
+    const h = T.zeroRowHint(q, schema);
+    assert.match(h, /qual coluna/); assert.match(h, /data_hora BETWEEN/); assert.doesNotMatch(h, /LIKE/);
+  }
+  assert.match(T.zeroRowHint("SELECT * FROM leituras_radar WHERE local_radar = 'Rod. Castelo Branco - Km 16'", schema), /LIKE/, 'texto que não existe: aí sim a dica do LIKE');
+  assert.match(erro(Q + " AND velocidade_kmh BETWEEN >= '2026-10-12 22:45:00' AND '2026-10-12 23:15:59'"), /sem <code>&gt;=<\/code>/);
+  assert.match(erro("SELECT placa, velocidade_kmh FROM leituras_radar WHERE local_radar = 'Av. Dom Aguirre' AND ORDER BY velocidade_kmh DESC"), /AND ORDER BY<\/code> não existe/);
+  assert.match(T.avisoSQL(Q + " AND velocidade_kmh order by data_hora >='2026-10-12 22:45:00'", schema), /não filtra/);
+  assert.match(T.avisoSQL(Q + ' AND velocidade_kmh', schema), /não compara com nada/);
+  // a consulta certa não recebe aviso nenhum
+  assert.strictEqual(T.avisoSQL(Q + " AND velocidade_kmh > 120 AND data_hora BETWEEN '2026-10-12 22:45:00' AND '2026-10-12 23:15:00' ORDER BY data_hora DESC", schema), null);
+  assert.deepStrictEqual(Array.from(T.diagnosticarSQL(Q + " AND data_hora BETWEEN '2026-10-12 22:45:00' AND '2026-10-12 23:15:00'", schema)), []);
+});

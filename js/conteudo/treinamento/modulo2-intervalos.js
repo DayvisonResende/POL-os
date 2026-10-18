@@ -5,7 +5,7 @@
 registrarTreino({id:'m2-intervalos',titulo:'Intervalos',
  passos:[
  {tema:'Comparações e BETWEEN',type:'msg',btn:'Manda',
-  text:"<p>Assalto na Castelo é coisa séria, e pra ele você precisa de ferramenta nova. Dez minutos comigo e eu te solto.</p><p>Primeira: comparação. Além do <code>=</code>, tem <code>&gt;</code> (maior que), <code>&lt;</code> (menor que), <code>&gt;=</code> e <code>&lt;=</code>. E pra intervalo tem o <b>BETWEEN</b> (\"entre\"):</p>",
+  text:"<p>Assalto na Castelo é coisa séria, e pra ele você precisa de ferramenta nova. Dez minutos comigo e eu te solto.</p><p>Primeira: comparação. Além do <code>=</code>, tem <code>&gt;</code> (maior que), <code>&lt;</code> (menor que), <code>&gt;=</code> (maior <b>ou igual</b>) e <code>&lt;=</code> (menor <b>ou igual</b>). Esses dois se digitam assim mesmo, os dois sinais juntos: <code>&gt;</code> e depois <code>=</code>. E pra intervalo tem o <b>BETWEEN</b> (\"entre\"):</p>",
   extra:"<div class=\"anat\"><div><code>ano &gt; 2020</code><span>depois de 2020</span></div><div><code>ano &gt;= 2020</code><span>2020 ou depois</span></div><div><code>ano BETWEEN 2021 AND 2023</code><span>de 2021 a 2023</span></div></div>",
   text2:"<p>Número vai <b>sem</b> aspas. Aspas são só pra texto.</p>"},
 
@@ -18,7 +18,9 @@ registrarTreino({id:'m2-intervalos',titulo:'Intervalos',
   after:"<p>As duas pontas entram. Guarda isso.</p>"},
 
  {tema:'ORDER BY … DESC',type:'slot',template:"SELECT placa, velocidade_kmh FROM leituras_radar WHERE local_radar = 'Av. São Paulo' ORDER BY velocidade_kmh ___;",
-  text:"<p>Segunda: o <b>ORDER BY</b> ordena o resultado. Vai no <b>fim</b> da consulta, depois do WHERE.</p><p>Quero as passagens da Av. São Paulo com a <b>mais rápida no topo</b>. Escolhe a peça.</p>",
+  text:"<p>Segunda: o <b>ORDER BY</b> (\"ordenar por\") muda a <b>ordem</b> das linhas. Depois da coluna, você diz o sentido:</p>",
+  extra:'<div class="anat"><div><code>ORDER BY coluna ASC</code><span>do menor pro maior (1, 2, 3… · A, B, C…). É o padrão: sem nada, é ASC</span></div><div><code>ORDER BY coluna DESC</code><span>do maior pro menor (…3, 2, 1)</span></div></div>',
+  text2:"<p>Ele <b>não filtra</b> nada: todas as linhas continuam lá, só muda a ordem. Filtro é no WHERE. E vem no <b>fim</b>, depois do WHERE, <b>sem AND</b> na frente.</p><p>Quero as passagens da Av. São Paulo com a <b>mais rápida no topo</b>. Escolhe a peça.</p>",
   chips:[{t:'ASC',bad:"ASC é do menor pro maior: a mais <b>lenta</b> ficaria no topo. Eu pedi a mais rápida."},
          {t:'DESC',certo:true},
          {t:'MAIOR',bad:"Não existe MAIOR em SQL. A ordem é <b>ASC</b> (crescente) ou <b>DESC</b> (decrescente)."}],

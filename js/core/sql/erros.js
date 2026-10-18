@@ -53,7 +53,9 @@ function zeroRowHint(sql,schema){
   var lits=(sql.match(/'[^']*'/g)||[]).map(function(s){return s.slice(1,-1)});
   if(/data_hora/i.test(sql)&&lits.some(function(l){return /^\d{1,2}:\d{2}(:\d{2})?$/.test(l)}))return 'A coluna <code>data_hora</code> guarda data e hora juntas. Escreva o valor completo: <code>\'2026-10-12 22:45:00\'</code>.';
   if(lits.some(function(l){return /^[A-Z]{3}-\d/.test(l)}))return 'As placas estão gravadas sem traço: <code>\'ABC1D23\'</code>.';
-  if(/local_radar\s*=/i.test(sql))return 'Com <code>=</code> o texto precisa ser idêntico, letra por letra. Para o local do radar, tente <code>LIKE \'%Castelo%\'</code>.';
+  var lr=sql.match(/local_radar\s*=\s*('(?:[^']|'')*')/i);
+  // só culpa o texto se ele não existir mesmo no banco (antes a dica aparecia com o texto certo e mandava trocar por LIKE à toa)
+  if(lr&&!(typeof valorDe==='function'&&valorDe('SELECT COUNT(*) FROM leituras_radar WHERE local_radar = '+lr[1])))return 'Com <code>=</code> o texto precisa ser idêntico, letra por letra. Para o local do radar, tente <code>LIKE \'%Castelo%\'</code>.';
   var cap=lits.filter(function(l){return /[A-ZÀ-Ú]/.test(l)&&l===l.charAt(0).toUpperCase()+l.slice(1).toLowerCase()&&!/\d/.test(l)&&l.length>2})[0];
   if(cap&&/\bcor\b/i.test(sql))return 'As cores estão gravadas em minúsculas. <code>\''+escH(cap)+'\'</code> é diferente de <code>\''+escH(cap.toLowerCase())+'\'</code>.';
   var eq=sql.match(/(\w+)\s*=\s*('[^']*')/);

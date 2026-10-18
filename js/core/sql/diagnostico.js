@@ -33,7 +33,17 @@ function diagnosticarSQL(sql,schema){
   if(ob&&['ASC','DESC'].indexOf(U(ts[ob.i+2]))>=0)probs.push('Faltou a <b>coluna</b> depois do <code>ORDER BY</code>: ele precisa saber <i>pelo quê</i> ordenar. O formato é <code>ORDER BY coluna DESC</code>, por exemplo <code>ORDER BY ano DESC</code>.');
   var hv=cl.filter(function(c){return c.k==='HAVING'})[0];
   if(hv&&!cl.some(function(c){return c.k==='GROUP BY'}))probs.push('O <code>HAVING</code> filtra <b>grupos</b>, então precisa de um <code>GROUP BY</code> antes dele: <code>… GROUP BY coluna HAVING COUNT(*) &gt; 1</code>. Para filtrar linhas comuns, use <code>WHERE</code>.');
+  // AND/OR colado no ORDER BY: o ORDER BY não é condição (playtest de 18/10: "… AND ORDER BY velocidade_kmh DESC")
+  for(var oi=1;oi<ts.length;oi++)if(U(ts[oi])==='ORDER'&&U(ts[oi+1])==='BY'&&['AND','OR'].indexOf(U(ts[oi-1]))>=0){
+    probs.push(L('O <code>{c} ORDER BY</code> não existe: o ORDER BY não é uma condição. O AND e o OR juntam condições do WHERE; o ORDER BY vem <b>depois</b>, sem AND: <code>WHERE coluna = \'valor\' ORDER BY coluna DESC</code>.',{c:U(ts[oi-1])}));break}
   if(cond){var conds=splitConds(cond);
+    // BETWEEN sem coluna antes ("local_radar = 'X' BETWEEN a AND b"): o SQLite aceita e devolve vazio (playtest de 18/10)
+    conds.forEach(function(c){var bi=c.ts.map(U).indexOf('BETWEEN');if(bi<0)return;
+      var antes=c.ts[bi-1]||'',depois=c.ts[bi+1]||'';
+      if(OPERADORES.indexOf(depois)>=0){probs.push(L('Depois do <code>BETWEEN</code> vêm os dois valores, sem <code>{op}</code>: <code>coluna BETWEEN valor1 AND valor2</code>.',{op:escH(depois)}));return}
+      if(bi>0&&(/^'/.test(antes)||/^\d/.test(antes))&&c.ts.slice(0,bi).some(function(t){return OPERADORES.indexOf(t)>=0})){
+        var dt=/^'\d{4}-\d{2}-\d{2}/.test(depois),col=dt?'data_hora':'coluna';
+        probs.push(L('Faltou dizer <b>qual coluna</b> está entre os dois valores. Em <code>{trecho}</code>, o BETWEEN ficou grudado na comparação anterior. São duas condições, ligadas por AND, cada uma com a sua coluna: <code>… = {v} AND {col} BETWEEN … AND …</code>.',{trecho:escH(joinToks(c.ts.slice(Math.max(0,bi-3),bi+2)))+' …',v:escH(antes),col:col}))}});
     var cmpNull=conds.filter(function(c){return c.ts.some(function(t,i){return U(t)==='NULL'&&['=','==','!=','<>'].indexOf(c.ts[i-1])>=0})})[0];
     if(cmpNull)probs.push(L('Com NULL não se usa <code>=</code>: nada é \"igual\" ao vazio, então a condição nunca é verdadeira e o resultado volta vazio. Use <code>IS NULL</code> (ou <code>IS NOT NULL</code>).'));
     var ruim=conds.filter(semComparacao)[0];
@@ -81,6 +91,12 @@ function colunasSoltas(sql){
 }
 // Aviso para consulta que rodou, mas está fora do padrão (funciona no SQLite, falha em outros bancos).
 function avisoSQL(sql,schema){
+  var tsA=tokSQL(stripSqlKeepDq(sql)),clA=clausulasSQL(tsA),obA=clA.filter(function(c){return c.k==='ORDER BY'})[0];
+  if(obA){var fimOb=(clA.filter(function(c){return c.i>obA.i})[0]||{i:tsA.length}).i,obTs=tsA.slice(obA.i+2,fimOb);
+    if(obTs.some(function(t){return OPERADORES.indexOf(t)>=0||['BETWEEN','LIKE'].indexOf(U(t))>=0}))return L('Rodou, mas atenção: o <code>ORDER BY</code> <b>não filtra</b> nada, ele só muda a ordem das linhas. A comparação depois dele não tirou nenhuma linha. Para filtrar, a condição vai no WHERE (com AND), <b>antes</b> do ORDER BY: <code>WHERE … AND data_hora &gt;= \'…\' ORDER BY data_hora</code>.')}
+  var wA=clA.filter(function(c){return c.k==='WHERE'})[0];
+  if(wA){var fimW=(clA.filter(function(c){return c.i>wA.i})[0]||{i:tsA.length}).i,solta=splitConds(tsA.slice(wA.i+1,fimW)).filter(semComparacao)[0];
+    if(solta)return L('Rodou, mas por sorte: <code>{c}</code> não compara com nada, então não filtrou nada. Cada condição precisa de <b>coluna, operador e valor</b>: <code>{col} &gt; 120</code>, por exemplo.',{c:escH(joinToks(solta.ts)),col:escH(solta.ts[0])})}
   var semOn=joinSemOn(sql);
   if(semOn)return 'Funcionou, mas cuidado: o <code>JOIN '+escH(semOn)+'</code> não tem <code>ON</code>. Sem ele, cada linha é combinada com <b>todas</b> as linhas da outra tabela, e por isso o resultado ficou enorme. Diga qual coluna liga as duas: <code>JOIN outra_tabela t ON t.coluna = a.coluna_que_aponta_pra_ela</code>. No Dicionário de Dados, a nota "aponta para" mostra quem liga com quem.';
   var dq=aspasDuplas(sql,schema);

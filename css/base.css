@@ -22,6 +22,9 @@ body{background:var(--wall-2);color:var(--ink);font-family:var(--f-ui);font-size
 button,input,textarea,select{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+/* Sem ligaduras de programação: a JetBrains Mono desenha >= como ≥ e != como ≠, e o iniciante não sabe o que
+   digitar (playtest de 18/10: "o >= tem um símbolo estranho, tive que pesquisar"). Vale para o jogo todo. */
+html{font-variant-ligatures:none;font-feature-settings:"calt" 0,"liga" 0}
 code{font-family:var(--f-code);font-size:.86em;background:var(--accent-soft);color:var(--ink);padding:0 .3em;border-radius:2px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 

@@ -75,9 +75,26 @@ function checkSteps(res){
   var feitas=0,quase=null;
   c.steps.forEach(function(s,k){if(stp.indexOf(k)<0){var ok=false;try{ok=s.ok(R)}catch(e){}if(ok){feitas++;stp.push(k);tele('tarefa',{caso:c.id,tarefa:k+1});if(s.aoConcluir)setTimeout(s.aoConcluir,1200);if(!tutActive())toast('Tarefa concluída',s.t.replace(/<[^>]+>/g,''),'ok')}
     else if(!quase&&s.quase){try{var q=s.quase(R);if(q)quase={k:k,msg:q}}catch(e){}}}});
+  // Empurrão para as dicas: 3 consultas seguidas sem avançar e a dica da tarefa ainda fechada (playtest de 18/10:
+  // o iniciante passou 50 min no BO 1003 e foi ao ChatGPT sem nunca abrir as dicas, que tinham a resposta).
+  var sa=S.semAvanco||(S.semAvanco={});sa[c.id]=feitas?0:(sa[c.id]||0)+1;
+  var pend=c.steps.map(function(s,k){return k}).filter(function(k){return stp.indexOf(k)<0})[0],empurrao=null;
+  if(!feitas&&!tutActive()&&pend!=null&&sa[c.id]>=3&&sa[c.id]%3===0&&(S.hintsSeen[c.id+':'+pend]||0)<c.steps[pend].h.length){
+    tele('empurrao_dica',{caso:c.id,tarefa:pend+1,tentativas:sa[c.id]});
+    empurrao=L('Travou na tarefa {n}? A Célia deixou dicas para ela, do empurrãozinho até a consulta pronta.',{n:pend+1})+' <button type="button" class="pedir-dica" data-caso="'+escH(c.id)+'" data-k="'+pend+'">'+L('Ver a dica da tarefa {n}',{n:pend+1})+'</button>';
+  }
   save();renderOcorr();
   // Nenhuma tarefa marcou, mas a consulta chegou perto de uma: diz o que falta em vez de ficar calado.
-  if(feitas||!quase)return null;
+  if(feitas||!quase)return empurrao;
   tele('quase',{caso:c.id,tarefa:quase.k+1});
-  return L('<b>Quase lá</b> (tarefa {n}): {msg}',{n:quase.k+1,msg:quase.msg});
+  return L('<b>Quase lá</b> (tarefa {n}): {msg}',{n:quase.k+1,msg:quase.msg})+(empurrao?'<br>'+empurrao:'');
+}
+// Botão "Ver a dica" das mensagens do DB-Investigator: abre a próxima dica da tarefa em Ocorrências.
+function ligarPedirDica(caixa){
+  if(!caixa)return;
+  caixa.querySelectorAll('.pedir-dica').forEach(function(b){b.onclick=function(){
+    var id=b.getAttribute('data-caso'),k=+b.getAttribute('data-k'),hk=id+':'+k,c=CASES[indiceCaso(id)];
+    S.hintsSeen[hk]=Math.min((S.hintsSeen[hk]||0)+1,c.steps[k].h.length);tele('dica',{caso:id,tarefa:k+1,nivel:S.hintsSeen[hk],origem:'empurrao'});save();
+    S.caseSel=indiceCaso(id);openOcorr();renderOcorr();
+    var alvo=WINS.ocorr&&WINS.ocorr.body.querySelectorAll('.steps .step')[k];if(alvo)alvo.scrollIntoView({block:'center'})}});
 }

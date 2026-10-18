@@ -1028,3 +1028,33 @@ test('Módulo 4 · quinta-feira completa', { skip: !CHROME && 'Chrome não encon
     assert.deepStrictEqual(erros, []);
   } finally { await browser.close(); }
 });
+
+// Primeiro iniciante (18/10): sem ligaduras na fonte do código (>= aparecia como ≥) e empurrão para as dicas do BO.
+test('playtest 18/10 · ">=" sem ligadura e empurrão para as dicas depois de 3 tentativas', { skip: !CHROME && 'Chrome não encontrado (defina CHROME)', timeout: 60000 }, async () => {
+  const { chromium } = require('playwright-core');
+  const browser = await chromium.launch({ executablePath: CHROME, headless: true });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1366, height: 800 } });
+    const erros = []; page.on('pageerror', e => erros.push(e.message));
+    await page.route('**/*', r => { const u = r.request().url(); if (u.includes('sql-asm.js')) return r.fulfill({ body: fs.readFileSync(ASM), contentType: 'application/javascript' }); return u.startsWith('file:') ? r.continue() : r.abort(); });
+    const terca = { chat: { celia: [], beto: [], jairo: [], marina: [] }, unread: {}, lidas: {}, tut: 0, treino: null, treinosFeitos: ['m1', 'm2-filtros', 'm2-intervalos'],
+      rank: 1, done: true, dia: 0, diaIniciado: 0, closed: ['1001', '1002'], caseSel: 2, apps: ['db', 'ocorr', 'zap', 'files', 'caderno'], beto: 'done' };
+    await page.addInitScript(s => { window.SISP_CONFIG_TESTE = { url: '', chave: '', contato: '' }; window.SISP_IDIOMA_TESTE = 'pt-BR'; localStorage.setItem('sisp-proto-v2', s); }, JSON.stringify(terca));
+    await page.goto('file://' + path.join(RAIZ, 'index.html'));
+    await page.waitForFunction(() => !document.querySelector('#lgBtn').disabled);
+    await page.click('#lgBtn');
+    for (const sel of ['code', '#sqlEd', '#sqlHl']) {
+      const lig = await page.evaluate(s => { if (s !== 'code' && !document.querySelector(s)) openDb(); const el = document.querySelector(s) || document.body.appendChild(document.createElement('code')); return getComputedStyle(el).fontVariantLigatures; }, sel);
+      assert.strictEqual(lig, 'none', sel + ' sem ligaduras');
+    }
+    // três tentativas sem avançar no BO 1003: aparece o botão da dica; ele abre a dica certa em Ocorrências
+    const Q = "SELECT * FROM leituras_radar WHERE local_radar = 'Rod. Castelo Branco - Km 18' BETWEEN '2026-10-12 22:45:00' AND '2026-10-12 23:15:59';";
+    for (let i = 0; i < 3; i++) { await page.evaluate(q => openDb(q), Q); await page.click('#runBtn'); }
+    assert.match(await page.textContent('#dbMsg'), /qual coluna/);
+    assert.match(await page.textContent('#dbMsg .pedir-dica'), /dica da tarefa 1/);
+    await page.click('#dbMsg .pedir-dica');
+    assert.strictEqual(await page.evaluate(() => S.hintsSeen['1003:0']), 1);
+    assert.match(await page.textContent('.ocdetail .steps .step .hint'), /três filtros/);
+    assert.deepStrictEqual(erros, []);
+  } finally { await browser.close(); }
+});

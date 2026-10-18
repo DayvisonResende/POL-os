@@ -359,5 +359,7 @@ registrarIdioma('en',{nome:'English',pronto:false,textos:{
  "Ver no Guia":"See in the Guide",
  "No Guia:":"In the Guide:",
  "Cada coluna com seta <b>aponta</b> para outra tabela. É por elas que um JOIN liga uma tabela à outra: <code>ON a.coluna = b.chave</code>.":"Each column with an arrow <b>points</b> to another table. These are the columns a JOIN uses to link one table to another: <code>ON a.column = b.key</code>.",
- "Simulação fictícia para ensino de SQL. Nomes, placas e CPFs foram gerados e não correspondem a pessoas reais. Protótipo: Módulos 1 a 4 (sete chamados).":"Fictional simulation for teaching SQL. Names, license plates and CPF numbers were generated and do not belong to real people. Prototype: Modules 1 to 4 (seven cases)."
+ "Simulação fictícia para ensino de SQL. Nomes, placas e CPFs foram gerados e não correspondem a pessoas reais. Protótipo: Módulos 1 a 4 (sete chamados).":"Fictional simulation for teaching SQL. Names, license plates and CPF numbers were generated and do not belong to real people. Prototype: Modules 1 to 4 (seven cases).",
+ "Travou na tarefa {n}? A Célia deixou dicas para ela, do empurrãozinho até a consulta pronta.":"Stuck on task {n}? Célia left hints for it, from a nudge up to the finished query.",
+ "Ver a dica da tarefa {n}":"See the hint for task {n}"
 }});
