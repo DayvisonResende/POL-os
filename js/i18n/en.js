@@ -227,7 +227,6 @@ registrarIdioma('en',{nome:'English',pronto:false,textos:{
  "{n} mensagens novas":"{n} new messages",
  "Nova mensagem":"New message",
  "Você já é {patente}. A próxima prova sai quando o próximo módulo sair.":"You're already {patente}. The next exam comes out when the next module does.",
- "Simulação fictícia para ensino de SQL. Nomes, placas e CPFs foram gerados e não correspondem a pessoas reais. Protótipo: Módulos 1 a 3 (cinco chamados).":"A fictional simulation for learning SQL. Names, license plates and tax IDs were generated and don't belong to real people. Prototype: Modules 1 to 3 (five cases).",
  "Resposta ao pedido":"Reply to the request",
  "sua resposta":"your answer",
  "Geral":"General",
@@ -359,5 +358,6 @@ registrarIdioma('en',{nome:'English',pronto:false,textos:{
  "Agente Especial":"Special Agent",
  "Ver no Guia":"See in the Guide",
  "No Guia:":"In the Guide:",
- "Cada coluna com seta <b>aponta</b> para outra tabela. É por elas que um JOIN liga uma tabela à outra: <code>ON a.coluna = b.chave</code>.":"Each column with an arrow <b>points</b> to another table. These are the columns a JOIN uses to link one table to another: <code>ON a.column = b.key</code>."
+ "Cada coluna com seta <b>aponta</b> para outra tabela. É por elas que um JOIN liga uma tabela à outra: <code>ON a.coluna = b.chave</code>.":"Each column with an arrow <b>points</b> to another table. These are the columns a JOIN uses to link one table to another: <code>ON a.column = b.key</code>.",
+ "Simulação fictícia para ensino de SQL. Nomes, placas e CPFs foram gerados e não correspondem a pessoas reais. Protótipo: Módulos 1 a 4 (sete chamados).":"Fictional simulation for teaching SQL. Names, license plates and CPF numbers were generated and do not belong to real people. Prototype: Modules 1 to 4 (seven cases)."
 }});

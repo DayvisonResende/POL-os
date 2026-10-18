@@ -15,5 +15,11 @@ var RANKS=[
   aoPromover:function(){concluirDia();setTimeout(report,1500);
    // Gancho do fim do Ato II (docs/historia.md): o prazo da escuta e a pergunta do segundo radar.
    setTimeout(function(){say('jairo',L('Recruta, amanhã é quinta. "Some com ela até sexta", lembra da escuta? A Hilux continua sumida, e a carga com ela.'))},6000);
-   setTimeout(function(){say('celia',L('Uma pergunta pra você pensar no caminho de casa: o radar viu aquela caminhonete uma vez só? Amanhã às 8.'))},10500)}}
+   setTimeout(function(){say('celia',L('Uma pergunta pra você pensar no caminho de casa: o radar viu aquela caminhonete uma vez só? Amanhã às 8.'))},10500)}},
+ {t:L('Agente Especial'),libera:[L('Cruzamento de bases (JOIN) em definitivo'),L('Amanhã: acesso de escrita no banco, com supervisão')],
+  celia:L('Agente Especial. Cinco tabelas numa consulta e um mandado deferido. Na minha época isso era trabalho de força-tarefa. Vai pra casa; o resto da noite é com o Jairo.'),
+  aoPromover:function(){concluirDia();setTimeout(report,1500);
+   // Gancho do fim do Ato III (docs/historia.md): o galpão vazio. Alguém avisou, e o jogador está na lista.
+   setTimeout(function(){S.clock=23*60+10;save();say('jairo',L('Chegamos. Galpão vazio. Café ainda quente na garrafa. Saíram faz uma hora, no máximo. Alguém avisou.'))},6500);
+   setTimeout(function(){say('celia',L('Só cinco pessoas sabiam dessa operação. Eu, você, o delegado, o Jairo e a perícia. Vai dormir. Amanhã a gente conversa.'))},12500)}}
 ];

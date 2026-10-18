@@ -151,7 +151,8 @@ function renderGrid(res){
 /* Autocompletar: faixa logo abaixo do editor com até 5 nomes que começam com o que a pessoa está digitando.
    Tab aceita o primeiro; clique aceita qualquer um; Esc esconde. Desligado no celular (teclado na tela). */
 var sugestaoAtual=null;
-function autocompletarLigado(){return window.innerWidth>760&&!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches)}
+// Desligado no celular e nos passos de completar lacuna do treinamento (lá a Célia pede um texto exato)
+function autocompletarLigado(){if(tutActive()&&tutStep()&&tutStep().type==='mold')return false;return window.innerWidth>760&&!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches)}
 function esconderSugestoes(){sugestaoAtual=null;var b=$('#sugest');if(b){b.hidden=true;b.innerHTML=''}}
 function mostrarSugestoes(){
   var ta=$('#sqlEd'),b=$('#sugest');if(!ta||!b)return;

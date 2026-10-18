@@ -58,6 +58,8 @@ async function treinamento(page) {
   await next();                                                 // msg AS/LIMIT
   // moldes: executa sem preencher (bronca), depois clica no editor e digita só a parte pedida
   // o jogo seleciona a lacuna logo depois do clique (setTimeout 0): espera isso antes de digitar
+  // passo de lacuna: o autocompletar fica desligado (playtest de 18/10: "Ve" + Tab virava "veiculos")
+  assert.strictEqual(await page.evaluate(() => autocompletarLigado()), false);
   const preencher = async s => { await page.click('#sqlEd');
     await page.waitForFunction(() => { const t = document.querySelector('#sqlEd'); return !/___/.test(t.value) || t.value.slice(t.selectionStart, t.selectionEnd) === '___'; });
     await page.keyboard.type(s); };
@@ -577,8 +579,8 @@ test('Módulo 3 · quarta-feira completa', { skip: !CHROME && 'Chrome não encon
     await page.waitForSelector('.report', { timeout: 5000 });
     const fim = await page.evaluate(() => ({ rank: S.rank, closed: S.closed, feitos: S.treinosFeitos, dia: S.dia, concl: S.diaConcluido, contas: tabelaBloqueada('SELECT * FROM transferencias') === null }));
     assert.deepStrictEqual(fim, { rank: 3, closed: ['1001', '1002', '1003', '1004', '1005'], feitos: ['m1', 'm2-filtros', 'm2-intervalos', 'm3-agregacao', 'm3-nulos'], dia: 1, concl: 1, contas: true });
-    assert.match(await page.textContent('.report'), /Inspetor Analítico.*Quinta-feira.*em desenvolvimento/s);
-    assert.strictEqual(await page.$('#rpDia'), null, 'sem quinta-feira ainda, sem botão de encerrar');
+    assert.match(await page.textContent('.report'), /Inspetor Analítico/);
+    assert.ok(await page.$('#rpDia'), 'a quinta-feira existe: o relatório oferece encerrar o expediente');
     await page.waitForFunction(() => /uma vez só/.test(S.chat.celia[S.chat.celia.length - 1].text), null, { timeout: 15000 });
     assert.deepStrictEqual(erros, []);
   } finally { await browser.close(); }
@@ -858,7 +860,7 @@ test('Módulo 4 · tabelas novas, mapa e ferramentas de JOIN', { skip: !CHROME &
       const page = await browser.newPage({ viewport: { width: 1366, height: 800 } });
       const erros = []; page.on('pageerror', e => erros.push(e.message));
       await page.route('**/*', r => { const u = r.request().url(); if (u.includes('sql-asm.js')) return r.fulfill({ body: fs.readFileSync(ASM), contentType: 'application/javascript' }); return u.startsWith('file:') ? r.continue() : r.abort(); });
-      const st = { chat: { celia: [], beto: [], jairo: [], marina: [] }, unread: {}, lidas: {}, tut: 0, treino: null, treinosFeitos: ['m1', 'm2-filtros', 'm2-intervalos', 'm3-agregacao', 'm3-nulos'],
+      const st = { chat: { celia: [], beto: [], jairo: [], marina: [] }, unread: {}, lidas: {}, tut: 0, treino: null, treinosFeitos: ['m1', 'm2-filtros', 'm2-intervalos', 'm3-agregacao', 'm3-nulos'].concat(dia >= 2 ? ['m4-join', 'm4-left'] : []),
         rank: 3, done: true, dia, diaIniciado: dia, diaConcluido: dia - 1, closed: ['1001', '1002', '1003', '1004', '1005'], caseSel: 4, apps: ['db', 'ocorr', 'zap', 'files', 'prova', 'caderno'], beto: 'done' };
       await page.addInitScript(s => { window.SISP_CONFIG_TESTE = { url: '', chave: '', contato: '' }; window.SISP_IDIOMA_TESTE = 'pt-BR'; localStorage.setItem('sisp-proto-v2', s); }, JSON.stringify(st));
       await page.goto('file://' + path.join(RAIZ, 'index.html'));
@@ -946,6 +948,83 @@ test('Guia SQL · atalhos a partir do erro e do Explique', { skip: !CHROME && 'C
     const links = await page.textContent('#dbExpl .guia-links');
     for (const re of [/GROUP BY/, /COUNT/, /WHERE/, /Comparação/]) assert.match(links, re);
     assert.doesNotMatch(links, /NULL|COALESCE/, 'só o que está na consulta (e já foi ensinado)');
+    assert.deepStrictEqual(erros, []);
+  } finally { await browser.close(); }
+});
+
+
+// Quinta-feira (Módulo 4, Ato III): JOIN até o galpão, a pergunta da Marina, a soma que infla, a prova e o galpão vazio.
+test('Módulo 4 · quinta-feira completa', { skip: !CHROME && 'Chrome não encontrado (defina CHROME)', timeout: 240000 }, async () => {
+  const { chromium } = require('playwright-core');
+  const browser = await chromium.launch({ executablePath: CHROME, headless: true });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1366, height: 800 } });
+    const erros = []; page.on('pageerror', e => erros.push(e.message));
+    await page.route('**/*', r => { const u = r.request().url(); if (u.includes('sql-asm.js')) return r.fulfill({ body: fs.readFileSync(ASM), contentType: 'application/javascript' }); return u.startsWith('file:') ? r.continue() : r.abort(); });
+    const fimDeQuarta = { chat: { celia: [], beto: [], jairo: [], marina: [{ me: false, text: 'Oi, recruta!' }] }, unread: { celia: 0, beto: 0, jairo: 0, marina: 0 }, lidas: {},
+      tut: 0, treino: null, treinosFeitos: ['m1', 'm2-filtros', 'm2-intervalos', 'm3-agregacao', 'm3-nulos'], rank: 3, done: true, dia: 1, diaIniciado: 1, diaConcluido: 1,
+      closed: ['1001', '1002', '1003', '1004', '1005'], caseSel: 4, apps: ['db', 'ocorr', 'zap', 'files', 'prova', 'caderno'], beto: 'done', metas: 90, marinaApresentou: true };
+    await page.addInitScript(s => { window.SISP_CONFIG_TESTE = { url: '', chave: '', contato: '' }; window.SISP_IDIOMA_TESTE = 'pt-BR';
+      if (!sessionStorage.getItem('ok')) { localStorage.setItem('sisp-proto-v2', s); sessionStorage.setItem('ok', '1'); } }, JSON.stringify(fimDeQuarta));
+    await page.goto('file://' + path.join(RAIZ, 'index.html'));
+    await page.waitForFunction(() => !document.querySelector('#lgBtn').disabled);
+    await page.click('#lgBtn');
+    assert.ok(await page.evaluate(() => tabelaBloqueada('SELECT * FROM empresas') !== null), 'na quarta, as bases do Módulo 4 são restritas');
+
+    // fim da quarta → quinta-feira
+    await page.evaluate(() => report());
+    await page.click('#rpDia');
+    assert.match(await page.textContent('.dia-card'), /quinta-feira, 15\/10\/2026/);
+    await Promise.all([page.waitForNavigation(), page.click('#diaOk')]);
+    await page.waitForFunction(() => !document.querySelector('#lgBtn').disabled);
+    await page.click('#lgBtn');
+    assert.match(await page.textContent('.email'), /cruzamento de bases.*Mapa das tabelas/s);
+    await page.click('#emOk');
+
+    const rodar = async q => { await page.evaluate(q => { openDb(q); }, q); await page.click('#runBtn'); };
+    const C = await page.evaluate(() => ({ cadeia: F.Q4CADEIA, galpao: F.galpao, fachada: F.fachada, carga: F.QCARGA, valor: F.valorCarga }));
+
+    assert.strictEqual(await jogarTreino(page), 'm4-join');
+    assert.strictEqual(await page.evaluate(() => CASES[S.caseSel].id), '1006');
+    for (const q of ["SELECT r.placa, r.local_radar, r.data_hora FROM leituras_radar r JOIN veiculos v ON v.placa = r.placa WHERE v.modelo = 'Hilux';",
+      "SELECT p.nome, r.data_hora FROM leituras_radar r JOIN veiculos v ON v.placa = r.placa JOIN pessoas p ON p.cpf = v.cpf_proprietario WHERE r.local_radar LIKE '%Km 92%' AND v.modelo = 'Hilux';",
+      "SELECT e.razao_social, e.aberta_em FROM empresas e JOIN pessoas p ON p.cpf = e.cpf_responsavel WHERE p.nome = 'Valdemar Silveira';",
+      `SELECT i.endereco, i.alugado_em FROM imoveis i JOIN empresas e ON e.cnpj = i.cnpj_locatario WHERE e.razao_social = '${C.fachada}';`,
+      `SELECT r.data_hora, i.endereco ${C.cadeia};`]) await rodar(q);
+    assert.strictEqual(await page.evaluate(() => S.steps['1006'].length), 5);
+    await page.evaluate(() => openOcorr());
+    await entregar(page, { f_1006_endereco: C.galpao, f_1006_empresa: C.fachada });
+
+    // a Marina pergunta o horário e o caminho da operação; o jogador decide
+    await page.waitForFunction(() => S.marinaOperacao === 'perguntou', null, { timeout: 25000 });
+    await page.evaluate(() => { chatSel = 'marina'; openZap(); });
+    await page.click('.reply button:has-text("Não contar")');
+    await page.waitForFunction(() => S.marinaOperacao === 'recusou' && /profissional/.test(S.chat.marina.at(-1).text));
+
+    assert.strictEqual(await jogarTreino(page), 'm4-left');
+    assert.strictEqual(await page.evaluate(() => CASES[S.caseSel].id), '1007');
+    const nota = "JOIN empresas e ON e.cnpj = n.cnpj_transportadora WHERE e.razao_social LIKE '%Central%' AND n.data_emissao = '2026-10-12'";
+    await rodar(`SELECT n.* FROM notas_fiscais n ${nota};`);
+    await rodar(`SELECT i.produto, i.quantidade FROM notas_fiscais n JOIN itens_nota i ON i.nota_id = n.id ${nota};`);
+    await rodar(`SELECT SUM(n.valor_total) FROM notas_fiscais n JOIN itens_nota i ON i.nota_id = n.id ${nota};`);   // a soma que infla
+    assert.match(await page.textContent('#dbMsg'), /não existe/);
+    for (const q of [`SELECT SUM(n.valor_total) FROM notas_fiscais n ${nota};`,
+      `SELECT i.produto, SUM(i.quantidade) FROM notas_fiscais n JOIN itens_nota i ON i.nota_id = n.id ${nota} GROUP BY i.produto;`,
+      "SELECT i.endereco, e.razao_social FROM imoveis i LEFT JOIN empresas e ON e.cnpj = i.cnpj_locatario WHERE i.referencia LIKE '%Raposo%';",
+      "SELECT i.endereco FROM imoveis i LEFT JOIN empresas e ON e.cnpj = i.cnpj_locatario WHERE i.referencia LIKE '%Raposo%' AND e.cnpj IS NULL;"]) await rodar(q);
+    assert.strictEqual(await page.evaluate(() => S.steps['1007'].length), 6);
+    const vagos = await page.evaluate(() => linhasDe("SELECT id FROM imoveis WHERE referencia LIKE '%Raposo%' AND cnpj_locatario IS NULL").length);
+    await page.evaluate(() => openOcorr());
+    await entregar(page, { f_1007_valor: String(C.valor), f_1007_vagos: String(vagos) });
+
+    await page.waitForFunction(() => provaMod() === 4);
+    await prova(page);
+    await page.waitForSelector('.report', { timeout: 5000 });
+    const fim = await page.evaluate(() => ({ rank: S.rank, patente: rankT(), dia: S.dia, concl: S.diaConcluido, feitos: S.treinosFeitos.slice(-2), joins: tabelaBloqueada('SELECT * FROM empresas') === null }));
+    assert.deepStrictEqual(fim, { rank: 4, patente: 'Agente Especial', dia: 2, concl: 2, feitos: ['m4-join', 'm4-left'], joins: true });
+    assert.match(await page.textContent('.report'), /Agente Especial.*Sexta-feira.*em desenvolvimento/s);
+    // o gancho da noite: galpão vazio, alguém avisou
+    await page.waitForFunction(() => S.chat.jairo.some(m => /Galpão vazio/.test(m.text)) && /Só cinco pessoas sabiam/.test(S.chat.celia.at(-1).text), null, { timeout: 20000 });
     assert.deepStrictEqual(erros, []);
   } finally { await browser.close(); }
 });

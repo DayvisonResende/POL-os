@@ -22,6 +22,9 @@ function linhas() {
     A('treino_fim', 'BO 1004', { treino: 'm3-agregacao' }), A('desfecho', 'BO 1004', { caso: '1004', ok: true }),
     A('treino_fim', 'BO 1005', { treino: 'm3-nulos' }), A('desfecho', 'BO 1005', { caso: '1005', ok: true }),
     A('prova', 'Prova Módulo 3', { onde: 'Prova Módulo 3', nota: 5 }),
+    A('treino_fim', 'BO 1006', { treino: 'm4-join' }), A('desfecho', 'BO 1006', { caso: '1006', ok: true }),
+    A('treino_fim', 'BO 1007', { treino: 'm4-left' }), A('desfecho', 'BO 1007', { caso: '1007', ok: true }),
+    A('prova', 'Prova Módulo 4', { onde: 'Prova Módulo 4', nota: 5 }),
     B('sessao', 'Treino 01 · msg', { faixa: 'celular', navegador: 'Chrome', sistema: 'Android', msBanco: 2400 }),
     B('treino_fim', 'BO 1001', { treino: 'm1' }), B('desfecho', 'BO 1001', { caso: '1001', ok: true }),
     B('prova', 'Prova Módulo 1', { onde: 'Prova Módulo 1', nota: 4 }), B('treino_fim', 'BO 1002', { treino: 'm2-filtros' }),
@@ -68,15 +71,15 @@ test('npm run telemetria: baixa do Supabase, separa por sessão e gera o relató
     { env: { ...process.env, TELEMETRIA_IGNORAR: '', ...extra, SUPABASE_URL: `http://127.0.0.1:${servidor.address().port}`, SUPABASE_SERVICE_KEY: 'chave-secreta-teste', SISP_TELEMETRIA_PASTA: pasta, ...extra } },
     (erro, saida, err) => erro ? falha(new Error(err || erro.message)) : ok(saida)));
   try {
-    assert.match(await rodar(), /26 evento\(s\) novo\(s\)/);
+    assert.match(await rodar(), /31 evento\(s\) novo\(s\)/);
     assert.strictEqual(pedidos[0].chave, 'chave-secreta-teste');
     assert.deepStrictEqual(fs.readdirSync(path.join(pasta, 'sessoes')).sort(), ['2026-10-20-sessao-a.json', '2026-10-20-sessao-b.json']);
     const sessaoB = JSON.parse(fs.readFileSync(path.join(pasta, 'sessoes', '2026-10-20-sessao-b.json'), 'utf8'));
     assert.strictEqual(sessaoB.eventos.find(e => e.tipo === 'consulta').res, 'erro', 'mesmo formato do Baixar JSON do jogo');
     assert.match(fs.readFileSync(path.join(pasta, 'relatorio.md'), 'utf8'), /\*\*2\*\* jogador/);
     // segunda vez: só pede o que é novo e não duplica
-    assert.match(await rodar(), /0 evento\(s\) novo\(s\)\. Total: 26 eventos/);
-    assert.match(pedidos[pedidos.length - 1].url, /id=gt\.26/);
+    assert.match(await rodar(), /0 evento\(s\) novo\(s\)\. Total: 31 eventos/);
+    assert.match(pedidos[pedidos.length - 1].url, /id=gt\.31/);
     // os testes do autor (TELEMETRIA_IGNORAR, pelo começo do código) ficam fora do relatório
     assert.match(await rodar({ TELEMETRIA_IGNORAR: 'jogador-bb' }), /Fora do relatório: \d+ evento\(s\) \(1 jogador/);
     assert.match(fs.readFileSync(path.join(pasta, 'relatorio.md'), 'utf8'), /\*\*1\*\* jogador/);

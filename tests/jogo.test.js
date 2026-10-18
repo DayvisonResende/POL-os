@@ -13,7 +13,7 @@ test('todo script referenciado no index.html existe', () => {
 
 test('registro: casos em ordem, arquivos e provas apontam para casos existentes', () => {
   const { T } = J;
-  assert.deepStrictEqual([...T.CASES.map(c => c.id)], ['1001', '1002', '1003', '1004', '1005']);
+  assert.deepStrictEqual([...T.CASES.map(c => c.id)], ['1001', '1002', '1003', '1004', '1005', '1006', '1007']);
   for (const f of T.FILES) assert.ok(T.indiceCaso(f.caso) >= 0, f.name);
   for (const m in T.PROVAS) {
     assert.ok(T.indiceCaso(T.PROVAS[m].requer) >= 0, 'prova ' + m);
@@ -144,7 +144,7 @@ function respostaDoPasso(T, st) {
 
 test('treinamentos: todo passo que executa aceita a resposta esperada', () => {
   const { T } = J;
-  assert.deepStrictEqual(Object.keys(T.TREINOS).sort(), ['m1', 'm2-filtros', 'm2-intervalos', 'm3-agregacao', 'm3-nulos']);
+  assert.deepStrictEqual(Object.keys(T.TREINOS).sort(), ['m1', 'm2-filtros', 'm2-intervalos', 'm3-agregacao', 'm3-nulos', 'm4-join', 'm4-left']);
   for (const id in T.TREINOS) for (const [k, st] of T.TREINOS[id].passos.entries()) {
     assert.ok(st.tema, `${id} passo ${k + 1}: falta o tema (rótulo do histórico)`);
     if (!st.ok) continue;
@@ -423,6 +423,7 @@ test('autocompletar: só nomes, na ordem certa, nunca dentro de texto', () => {
   assert.deepStrictEqual(op('select c'), [], 'uma letra só não sugere');
   assert.deepStrictEqual(op('select * from veiculos'), [], 'palavra completa não sugere ela mesma');
   assert.ok(op('select * from veiculos where co').length <= 5);
+  assert.deepStrictEqual(op('SELECT placa, modelo AS Ve'), [], 'depois do AS vem apelido inventado: nada de sugestão');
 });
 
 test('JOIN: explicação, avisos e erros (Módulo 4)', () => {
@@ -466,4 +467,29 @@ test('Módulo 4: o JOIN leva a um galpão só; a carga vale R$ 380 mil e a soma 
   // as tabelas do Módulo 4 ficam bloqueadas até a quinta-feira
   const banco = fs.readFileSync(path.join(RAIZ, 'js/ui/banco.js'), 'utf8');
   for (const t of ['empresas', 'imoveis', 'notas_fiscais', 'itens_nota']) assert.match(banco, new RegExp("nome:'" + t + "',rankMin:4,diaMin:2"), t);
+});
+
+test('Módulo 4: treinamentos não entregam o galpão nem a carga; BOs e prova conferem pelo resultado', () => {
+  const { T } = J, F = T.F;
+  const proibido = [/Hilux/, /Valdemar/, /Km 9[0-5]/, /VS Armaz/, /galp[ãa]o/i, /empresas/, /imoveis/, /cpf_responsavel/, /cnpj_locatario/, /2026-10-12/, /Central/, /380/, /1\.?879/];
+  for (const id of ['m4-join', 'm4-left']) {
+    const texto = JSON.stringify(T.TREINOS[id].passos) + T.TREINOS[id].passos.map(p => String(p.ok) + String(p.miss || '')).join('') + T.TREINOS[id].anotacoes.texto;
+    for (const re of proibido) assert.doesNotMatch(texto, re, `${id} contém ${re}`);
+  }
+  // a nota de exemplo do treinamento não é da carga roubada e tem 4 itens
+  assert.strictEqual(J.db.exec("SELECT COUNT(*) FROM notas_fiscais n JOIN itens_nota i ON i.nota_id = n.id WHERE n.numero = 'NF 72143' AND n.data_emissao <> '2026-10-12'")[0].values[0][0], 4);
+  // BO 1006: a consulta da última tarefa passa; o mandado aceita o galpão certo e recusa os vizinhos
+  const c6 = T.CASES.find(c => c.id === '1006');
+  assert.ok(c6.steps[4].ok(J.run('SELECT r.data_hora, i.endereco ' + F.Q4CADEIA)));
+  assert.ok(c6.final.check({ endereco: F.galpao, empresa: F.fachada }).ok);
+  assert.ok(!c6.final.check({ endereco: 'Rod. Raposo Tavares, Km 94, Galpão 5', empresa: F.fachada }).ok);
+  assert.ok(!c6.final.check({ endereco: F.galpao, empresa: 'Transportadora Central' }).ok);
+  // BO 1007: a soma que infla tem resposta própria; o valor certo e os vazios fecham o relatório
+  const c7 = T.CASES.find(c => c.id === '1007');
+  const inflada = J.run('SELECT SUM(n.valor_total) FROM notas_fiscais n JOIN itens_nota i ON i.nota_id = n.id WHERE ' + F.QCARGA);
+  assert.ok(!c7.steps[2].ok(inflada)); assert.match(c7.steps[2].quase(inflada), /não existe/);
+  const vagos = J.db.exec("SELECT COUNT(*) FROM imoveis WHERE referencia LIKE '%Raposo%' AND cnpj_locatario IS NULL")[0].values[0][0];
+  assert.match(c7.final.check({ valor: String(F.somaInflada), vagos: String(vagos) }).msg, /soma que infla/);
+  assert.ok(c7.final.check({ valor: '380.000,00', vagos: String(vagos) }).ok);
+  for (const q of T.PROVAS[4].write) assert.ok(q.check(J.run(q.model)), q.id);
 });

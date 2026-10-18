@@ -446,7 +446,7 @@ Jairo Teixeira (investigador impaciente), Marina Okada (perita), Paulo Henrique 
 | 4 | Conteúdo do Módulo 3 | ✅ implementado (17/10/2026): treinos `m3-agregacao` e `m3-nulos`, BOs 1004 e 1005, prova 3, Inspetor Analítico, pedido do Jairo; falta playtest |
 | — | Serviços do Beto (treino livre com domínio por conceito) | ✅ implementado (17/10/2026): Módulos 1–3, 12 conceitos, 21 serviços (118 variações); falta playtest |
 | — | Vozes dos personagens (base técnica) | ✅ preparado (17/10/2026): tocador, manifesto, roteiro `npm run vozes`; gravar depois (`docs/vozes.md`) |
-| 5 | Módulo 4 (JOIN) | — |
+| 5 | Módulo 4 (JOIN) | ✅ implementado (18/10/2026): treinos `m4-join` e `m4-left`, BOs 1006 e 1007, prova 4, Agente Especial, quinta-feira, escolha da Marina, galpão vazio; falta playtest |
 | 6 | Módulo 5 (escrita, transações) | — |
 | 7 | Módulo 6 (avançado) | — |
 | 8 | Prova final e certificado (Prioridade 7) | — |
@@ -496,13 +496,21 @@ Colocar **2 ou 3 pessoas que nunca programaram** para jogar, sem ajudar, e anota
 - A partir daqui o relógio do expediente pode começar a pressionar.
 
 ### Prioridade 4 — Módulo 4 (JOIN)
-**Parte técnica feita (17/10/2026); conteúdo depois do primeiro retorno dos iniciantes.**
+**Feito: parte técnica (17/10/2026) e conteúdo (18/10/2026).**
 - **Dados** (`seedModulo4` em `js/core/banco/seed.js`, PRNG 5042, depois de todo o resto): `empresas` (cnpj, razao_social, cidade, aberta_em, cpf_responsavel), `imoveis` (id, tipo, endereco, bairro, cidade, referencia, cnpj_locatario, alugado_em), `notas_fiscais` (id, numero, cnpj_emitente, cnpj_transportadora, data_emissao, valor_total), `itens_nota` (id, nota_id, produto, quantidade, valor_unitario). Bloqueadas até a quinta (`diaMin:2`) ou a patente **Agente Especial** (`rankMin:4`).
 - **Plantado (Ato III):** a Hilux (KZX9B21) passou no Km 92 às 23:41 → dono no papel: **Valdemar** (laranja) → empresa de fachada **VS Armazéns Gerais ME** (aberta em 08/09/2026, no nome dele) → **galpão na Raposo Tavares, Km 93**, alugado em 30/09. Uma consulta com 5 tabelas (`F.Q4CADEIA`) chega a um imóvel só. Distratores: outros 4 galpões entre o Km 90 e o 95, de empresas comuns (alugados há anos) ou vagos.
 - **A soma que infla (★):** a carga da Transportadora Central em 12/10 são 3 notas, **R$ 380.000** (`F.valorCarga`, bate com o relato do BO 1004). `SUM(n.valor_total)` depois do JOIN com `itens_nota` dá **R$ 1.879.350** (`F.somaInflada`).
 - **LEFT JOIN (★):** imóveis sem inquilino (`cnpj_locatario` NULL); contas que nunca receberam (já existiam).
 - **Ferramentas:** Explique entende `JOIN`, `LEFT JOIN`, apelidos (`v.placa`), vírgula no FROM e JOIN sem ON; avisos de JOIN sem ON (o SQLite roda e combina tudo com tudo), apelido não definido, coluna que não existe na tabela do apelido, coluna ambígua (diz em quais tabelas está), ON ligando colunas que não combinam (resultado vazio; usa as notas "aponta para"); **Mapa das tabelas** (`js/apps/mapa.js`, botão no Dicionário: só as tabelas liberadas, setas das notas "aponta para"; no celular vira lista com "→ tabela.coluna"); autocompletar depois de `apelido.`; Organizar quebra JOIN e recua o ON.
-- **Falta (conteúdo):** dia 3 em `DIAS` (quinta, e-mail da manhã), patente Agente Especial em `RANKS`, treinamento `m4-join` (escada: ver → prever → completar → escrever, com a soma que infla e o LEFT JOIN), BOs 1006 (localizar a carga) e 1007, prova 4, a pergunta da Marina, o galpão vazio, verbetes de JOIN no Guia e serviços do Beto com JOIN (incluir o que for do Ato III em `SERV_FORA`).
+- **Conteúdo (18/10/2026):**
+  - **Quinta-feira** (`DIAS[2]`): chegada e e-mail do delegado liberando as quatro bases e apresentando o Mapa das tabelas.
+  - **Treino `m4-join`** ("Cruzar tabelas"): por que JOIN, primeiro JOIN, JOIN sem ON (prever: 48 × 55), apelidos, a regra do ON (slot), escolher colunas, Explique, três tabelas (radar → carro → dono), JOIN do zero. Anotações `06_join.txt`.
+  - **BO 1006, "O segundo radar"**: Hilux nos radares → dono (Valdemar) → empresa no nome dele → imóvel alugado → tudo numa consulta (5 tabelas). Mandado de busca: endereço do galpão + empresa (galpão vizinho é recusado com explicação). Ao encerrar: Célia ("bico fechado"), Jairo ("22h, pela Raposo, nem no Zap") e a **pergunta da Marina** (`js/historia/operacao.js`): o jogador escolhe contar ou não; fica em `S.marinaOperacao` ('contou'|'recusou') e na telemetria (`dilema`, quem: marina). Nenhuma escolha evita o galpão vazio.
+  - **Treino `m4-left`** ("Quem fica de fora"): LEFT JOIN (pessoas sem carro), "quem não tem" (slot IS NULL), a soma que infla (NF 72143, nota comum de setembro com 4 itens: 24.919 → 99.676), somar do lado certo, "quem não tem conta" do zero. Anotações `07_left_join.txt`.
+  - **BO 1007, "O tamanho do prejuízo"**: notas da carga pelo nome da transportadora (JOIN com empresas), itens, **valor total** (a soma inflada tem resposta própria da Célia), unidades por produto (JOIN + GROUP BY), imóveis da Raposo com LEFT JOIN (inclusive vazios) e só os vazios. Relatório: valor (380 mil; a inflada é recusada com explicação) + quantos vazios.
+  - **Prova 4** e patente **Agente Especial** (`RANKS[4]`): ao promover, fim do dia e o gancho da noite (relógio vai a 23:10): Jairo "Galpão vazio… Alguém avisou"; Célia "Só cinco pessoas sabiam…".
+  - **Guia**: verbetes `join`, `apelido`, `jointres`, `leftjoin`, `sempar`, `somainfla`. **Serviços do Beto**: conceitos `join` e `leftjoin` e 4 serviços (dono de carro único, passagens por cidade, quem não tem carro, cidade com mais donos de uma cor). `SERV_FORA.pessoas` exclui os personagens do enredo das respostas.
+  - Testes: `Módulo 4 · quinta-feira completa` (navegador) e o teste que impede os treinos do Módulo 4 de citar galpão, Hilux, Valdemar, empresas, imóveis ou a carga.
 - Agora o JOIN tem motivo: `leituras_radar → veiculos → pessoas → enderecos` (criar tabela de endereços/galpões para o esconderijo do bando).
 - Mostrar ao jogador que as 3 consultas do BO 1003 viram **uma só**.
 - `explainSQL` **não entende JOIN** ainda; precisa ser estendido. `translateError` já trata `ambiguous column`.

@@ -19,8 +19,10 @@ registrarConceito('agregacao', {nome:L('COUNT, SUM, AVG, MIN e MAX'),         tr
 registrarConceito('groupby',   {nome:L('GROUP BY'),                           treino:'m3-agregacao'});
 registrarConceito('having',    {nome:L('HAVING'),                             treino:'m3-agregacao'});
 registrarConceito('null',      {nome:L('NULL (o vazio)'),                     treino:'m3-nulos'});
+registrarConceito('join',      {nome:L('JOIN (cruzar tabelas)'),              treino:'m4-join'});
+registrarConceito('leftjoin',  {nome:L('LEFT JOIN e "quem não tem"'),        treino:'m4-left'});
 
-var SERV_FORA={cor:['prata'],modelo:['Virtus','Hilux'],radar:['Rod. Castelo Branco - Km 18','Rod. Raposo Tavares - Km 92'],cidade:['Piedade','Itu']};
+var SERV_FORA={pessoas:/Denise|Valdemar|Lucas Ferraz|Marina|Gustavo Henrique Lemos|Patrícia Nogueira Sales|Renata Campos Vidal|Osvaldo Brito Menezes|Carlos Eduardo Paiva|Fernanda Rocha Bastos|Igor Matsumoto/,cor:['prata'],modelo:['Virtus','Hilux'],radar:['Rod. Castelo Branco - Km 18','Rod. Raposo Tavares - Km 92'],cidade:['Piedade','Itu']};
 function servRadares(){return linhasDe('SELECT DISTINCT local_radar AS l FROM leituras_radar ORDER BY l').map(function(r){return r.l}).filter(function(l){return SERV_FORA.radar.indexOf(l)<0})}
 function servValores(tab,col,fora){return linhasDe('SELECT DISTINCT '+col+' AS v FROM '+tab+' ORDER BY v').map(function(r){return r.v}).filter(function(v){return v!=null&&(fora||[]).indexOf(v)<0})}
 // Só serve se o primeiro lugar for único (empate deixaria duas respostas certas).
@@ -174,3 +176,31 @@ registrarServico({id:'mix-radar-horario-campeao',conceitos:['datahora','groupby'
   sql:function(p){return p.sql},
   mostrar:function(p){return p.sql.replace(' LIMIT 2',';')},
   dica:L('Filtra o horário no WHERE (BETWEEN com data e hora completas) e conta por radar com GROUP BY.')});
+
+/* ---------- Módulo 4 ---------- */
+registrarServico({id:'join-dono',conceitos:['join'],
+  variar:function(){return linhasDe('SELECT v.modelo, v.cor, MAX(p.nome) AS dono FROM veiculos v JOIN pessoas p ON p.cpf = v.cpf_proprietario GROUP BY v.modelo, v.cor HAVING COUNT(*) = 1')
+    .filter(function(r){return SERV_FORA.modelo.indexOf(r.modelo)<0&&SERV_FORA.cor.indexOf(r.cor)<0&&!SERV_FORA.pessoas.test(r.dono)}).map(function(r){return {modelo:r.modelo,cor:r.cor}})},
+  texto:function(p){return L('Bateram no meu carro e fugiram num <b>{modelo} de cor {cor}</b>. Só tem um desses no cadastro. Qual o <b>nome do dono</b>?',p)},
+  sql:function(p){return 'SELECT p.nome FROM veiculos v JOIN pessoas p ON p.cpf = v.cpf_proprietario WHERE v.modelo = '+sq(p.modelo)+' AND v.cor = '+sq(p.cor)},
+  mostrar:function(p){return 'SELECT p.nome FROM veiculos v JOIN pessoas p ON p.cpf = v.cpf_proprietario WHERE v.modelo = '+sq(p.modelo)+' AND v.cor = '+sq(p.cor)+';'},
+  dica:L('Junte veiculos com pessoas (ON p.cpf = v.cpf_proprietario) e filtre o modelo e a cor.')});
+registrarServico({id:'join-radar-cidade',conceitos:['join'],
+  variar:function(){var l=[];servRadares().forEach(function(r){servValores('pessoas','cidade',SERV_FORA.cidade).forEach(function(c){l.push({r:r,c:c})})});return l},
+  texto:function(p){return L('Estatística pra prefeitura: quantas passagens no radar da <b>{r}</b> foram de carros de gente de <b>{c}</b>?',p)},
+  sql:function(p){return 'SELECT COUNT(*) FROM leituras_radar r JOIN veiculos v ON v.placa = r.placa JOIN pessoas p ON p.cpf = v.cpf_proprietario WHERE r.local_radar = '+sq(p.r)+' AND p.cidade = '+sq(p.c)},
+  mostrar:function(p){return 'SELECT r.data_hora, p.nome FROM leituras_radar r JOIN veiculos v ON v.placa = r.placa JOIN pessoas p ON p.cpf = v.cpf_proprietario WHERE r.local_radar = '+sq(p.r)+' AND p.cidade = '+sq(p.c)+';'},
+  dica:L('Três tabelas: radar → veículo (pela placa) → dono (pelo CPF). Filtre o radar e a cidade e conte.')});
+registrarServico({id:'leftjoin-sem-carro',conceitos:['leftjoin'],
+  variar:function(){return servValores('pessoas','cidade',SERV_FORA.cidade).map(function(c){return {c:c}})},
+  texto:function(p){return L('O pessoal do transporte público quer saber: quantas pessoas de <b>{c}</b> não têm <b>nenhum carro</b> no cadastro?',p)},
+  sql:function(p){return 'SELECT COUNT(*) FROM pessoas p LEFT JOIN veiculos v ON v.cpf_proprietario = p.cpf WHERE v.placa IS NULL AND p.cidade = '+sq(p.c)},
+  mostrar:function(p){return 'SELECT p.nome FROM pessoas p LEFT JOIN veiculos v ON v.cpf_proprietario = p.cpf WHERE v.placa IS NULL AND p.cidade = '+sq(p.c)+';'},
+  dica:L('LEFT JOIN de pessoas com veiculos e, no WHERE, quem ficou sem placa: v.placa IS NULL. Mais a cidade.')});
+registrarServico({id:'mix-join-groupby',conceitos:['join','groupby'],
+  variar:function(){return servValores('veiculos','cor',SERV_FORA.cor).map(function(c){return {cor:c,sql:'SELECT p.cidade, COUNT(*) AS n FROM veiculos v JOIN pessoas p ON p.cpf = v.cpf_proprietario WHERE v.cor = '+sq(c)+' GROUP BY p.cidade ORDER BY n DESC LIMIT 2'}})
+    .filter(function(p){var t=servTopoUnico(p.sql);return t&&SERV_FORA.cidade.indexOf(t.cidade)<0})},
+  texto:function(p){return L('Em qual <b>cidade</b> moram mais donos de carro <b>{cor}</b>? Um vendedor de pintura quer abrir loja lá.',p)},
+  sql:function(p){return p.sql},
+  mostrar:function(p){return p.sql.replace(' LIMIT 2',';')},
+  dica:L('Junte veiculos com pessoas, filtre a cor e agrupe pela cidade do dono.')});

@@ -170,3 +170,46 @@ registrarVerbete({id:'coalesce',titulo:'COALESCE',treino:'m3-nulos',busca:'troca
   erros:[L('Esqueceu as aspas no substituto de texto.')],
   mercado:L('Funciona igual em todos os bancos. No SQL Server também existe <code>ISNULL(coluna, valor)</code>, que só funciona lá.'),
   ver:['null']});
+
+/* ---------- Módulo 4: cruzar tabelas ---------- */
+registrarVerbete({id:'join',titulo:'JOIN … ON',treino:'m4-join',busca:'juntar cruzar ligar combinar duas tabelas inner join relacionar',
+  resumo:L('Junta as linhas de duas tabelas, lado a lado. O <code>ON</code> diz a regra: qual coluna de uma combina com qual coluna da outra (a coluna que <b>aponta</b> com a chave da outra tabela).'),
+  formato:'SELECT … FROM tabela1 a JOIN tabela2 b ON b.chave = a.coluna_que_aponta;',
+  exemplos:[{sql:"SELECT v.placa, v.modelo, p.nome FROM veiculos v JOIN pessoas p ON p.cpf = v.cpf_proprietario WHERE v.cor = 'azul';",explica:L('Cada carro azul com o nome do dono.')},
+            {sql:"SELECT r.data_hora, v.modelo FROM leituras_radar r JOIN veiculos v ON v.placa = r.placa WHERE r.local_radar = 'Av. São Paulo' LIMIT 10;",explica:L('Passagens de um radar com o modelo do carro.')}],
+  erros:[L('JOIN sem ON: cada linha é combinada com todas as da outra tabela. Resultado enorme e falso.'),L('ON ligando colunas que não guardam a mesma coisa (CPF com placa): volta vazio.'),L('Coluna com o mesmo nome nas duas tabelas sem dizer de qual: erro de coluna ambígua. Use o apelido: <code>v.placa</code>.')],
+  mercado:L('Igual no PostgreSQL e no SQL Server. <code>JOIN</code> sozinho é o mesmo que <code>INNER JOIN</code>.'),
+  ver:['apelido','jointres','leftjoin']});
+registrarVerbete({id:'apelido',titulo:L('Apelido de tabela'),treino:'m4-join',busca:'alias apelido tabela ponto v.placa abreviar',
+  resumo:L('Um nome curto para a tabela, logo depois do nome dela. Depois, <code>apelido.coluna</code> diz de qual tabela é cada coluna.'),
+  formato:'FROM veiculos v JOIN pessoas p ON …   →   v.placa, p.nome',
+  exemplos:[{sql:'SELECT v.placa, p.nome, p.cidade FROM veiculos v JOIN pessoas p ON p.cpf = v.cpf_proprietario WHERE p.cidade = \'Votorantim\';',explica:L('<code>v</code> é veiculos, <code>p</code> é pessoas.')}],
+  erros:[L('Usar um apelido que não foi definido no FROM ou no JOIN.'),L('Dar o apelido e depois escrever o nome inteiro da tabela misturado: funciona, mas confunde.')],
+  ver:['join','as']});
+registrarVerbete({id:'jointres',titulo:L('JOIN de três tabelas ou mais'),treino:'m4-join',busca:'várias tabelas encadear caminho três quatro cinco',
+  resumo:L('Um <code>JOIN</code> e um <code>ON</code> para cada ligação, seguindo o caminho das setas do Mapa das tabelas.'),
+  formato:'FROM a JOIN b ON b.chave = a.fk JOIN c ON c.chave = b.fk',
+  exemplos:[{sql:"SELECT r.data_hora, v.placa, p.nome FROM leituras_radar r JOIN veiculos v ON v.placa = r.placa JOIN pessoas p ON p.cpf = v.cpf_proprietario WHERE r.local_radar = 'Av. São Paulo';",explica:L('Radar → carro → dono, numa consulta só.')}],
+  erros:[L('Esquecer o ON de um dos JOINs.'),L('Ligar a terceira tabela com a primeira quando o caminho passa pela segunda: confira no Mapa.')],
+  ver:['join']});
+registrarVerbete({id:'leftjoin',titulo:'LEFT JOIN',treino:'m4-left',busca:'manter todos sem par esquerda outer vazios incluindo',
+  resumo:L('Como o JOIN, mas mantém <b>todas</b> as linhas da tabela do FROM. Quem não tem par aparece com as colunas da outra tabela vazias (NULL).'),
+  formato:'FROM tabela1 a LEFT JOIN tabela2 b ON b.chave = a.coluna',
+  exemplos:[{sql:'SELECT p.nome, v.placa FROM pessoas p LEFT JOIN veiculos v ON v.cpf_proprietario = p.cpf;',explica:L('Todo mundo, com e sem carro. Sem carro, a placa vem vazia.')}],
+  erros:[L('A ordem importa: a tabela que você quer manter inteira vai no FROM (à esquerda).'),L('Filtrar a tabela da direita no WHERE com <code>=</code> desfaz o LEFT: os sem par somem de novo.')],
+  mercado:L('Igual nos outros bancos. Também se escreve <code>LEFT OUTER JOIN</code>.'),
+  ver:['sempar','join','null']});
+registrarVerbete({id:'sempar',titulo:L('"Quem não tem" (LEFT JOIN + IS NULL)'),treino:'m4-left',busca:'quem não tem sem nenhum nunca anti join faltando ausente',
+  resumo:L('Para achar quem <b>não tem</b> par: LEFT JOIN e, no WHERE, a coluna da outra tabela <code>IS NULL</code>.'),
+  formato:'FROM a LEFT JOIN b ON … WHERE b.chave IS NULL',
+  exemplos:[{sql:'SELECT p.nome FROM pessoas p LEFT JOIN veiculos v ON v.cpf_proprietario = p.cpf WHERE v.placa IS NULL;',explica:L('Pessoas sem carro nenhum.')}],
+  erros:[L('<code>= NULL</code> no lugar de <code>IS NULL</code>: volta vazio.'),L('JOIN comum no lugar de LEFT JOIN: ele já tira quem não tem par, e o resultado volta vazio.')],
+  mercado:L('Em outros bancos também se faz com <code>NOT EXISTS</code>, que você vai ver mais adiante.'),
+  ver:['leftjoin','null']});
+registrarVerbete({id:'somainfla',titulo:L('A soma que infla no JOIN'),treino:'m4-left',busca:'soma duplicada inflada repetida um para muitos 1:N fan-out total errado',
+  resumo:L('Quando um registro tem <b>vários</b> do outro lado (uma nota, vários itens), o JOIN repete a linha dele uma vez para cada par. Somar uma coluna desse lado multiplica o total.'),
+  formato:'SUM(i.quantidade * i.valor_unitario)   (some do lado "muitos")',
+  exemplos:[{sql:"SELECT n.numero, n.valor_total, i.produto FROM notas_fiscais n JOIN itens_nota i ON i.nota_id = n.id WHERE n.numero = 'NF 72143';",explica:L('O valor da nota aparece uma vez por item.')},
+            {sql:"SELECT SUM(i.quantidade * i.valor_unitario) AS total FROM notas_fiscais n JOIN itens_nota i ON i.nota_id = n.id WHERE n.numero = 'NF 72143';",explica:L('O total certo, somado pelos itens.')}],
+  erros:[L('<code>SUM(n.valor_total)</code> depois do JOIN com os itens: o valor vira N vezes maior.'),L('Confiar no número sem comparar com algo que você já sabe.')],
+  ver:['leftjoin','sumavg','join']});

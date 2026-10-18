@@ -13,7 +13,8 @@ function sugerirSQL(antes,schema,tudo){
     return ops.length?{prefixo:ap[2]||'',opcoes:ops.slice(0,6)}:null}
   var m=antes.match(/[A-Za-z_][A-Za-z0-9_]*$/);if(!m||m[0].length<2)return null;
   var p=m[0],pu=p.toUpperCase(),ts=tokSQL(antes.slice(0,antes.length-p.length)),ant=String(ts[ts.length-1]||'').toUpperCase();
-  if(ant==='.'||/^\d/.test(p))return null;
+  // depois do AS vem um apelido inventado: sugerir nome existente só atrapalha (playtest de 18/10: AS Ve + Tab virou AS veiculos)
+  if(ant==='.'||ant==='AS'||/^\d/.test(p))return null;
   var citadas=schema.tables.filter(function(t){return new RegExp('\\b'+t+'\\b','i').test(antes)});
   var colsDe=function(l){var c=[];l.forEach(function(t){(schema.info[t]||[]).forEach(function(x){if(c.indexOf(x.name)<0)c.push(x.name)})});return c};
   var tabelas=schema.tables,colsCitadas=colsDe(citadas),outrasCols=colsDe(schema.tables).filter(function(c){return colsCitadas.indexOf(c)<0});

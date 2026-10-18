@@ -18,6 +18,11 @@ const MARCOS = [
   ['Terminou o treinamento NULL', e => e.tipo === 'treino_fim' && e.dados.treino === 'm3-nulos'],
   ['Fechou o BO 1005', e => e.tipo === 'desfecho' && e.dados.caso === '1005' && e.dados.ok],
   ['Passou na prova do Módulo 3', e => e.tipo === 'prova' && /Módulo 3/.test(e.dados.onde || e.onde) && e.dados.nota >= 4],
+  ['Terminou o treinamento JOIN', e => e.tipo === 'treino_fim' && e.dados.treino === 'm4-join'],
+  ['Fechou o BO 1006', e => e.tipo === 'desfecho' && e.dados.caso === '1006' && e.dados.ok],
+  ['Terminou o treinamento LEFT JOIN', e => e.tipo === 'treino_fim' && e.dados.treino === 'm4-left'],
+  ['Fechou o BO 1007', e => e.tipo === 'desfecho' && e.dados.caso === '1007' && e.dados.ok],
+  ['Passou na prova do Módulo 4', e => e.tipo === 'prova' && /Módulo 4/.test(e.dados.onde || e.onde) && e.dados.nota >= 4],
 ];
 
 const contar = (lista, chave) => { const m = {}; lista.forEach(x => { const k = chave(x); if (k != null && k !== '') m[k] = (m[k] || 0) + 1; }); return Object.entries(m).sort((a, b) => b[1] - a[1]); };
