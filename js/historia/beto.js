@@ -23,3 +23,12 @@ function favorBeto(c){
     setTimeout(function(){say('celia','Recruta, a Corregedoria registrou uma conversa sobre alteração de ponto no teu login. Teu perfil nem tem permissão de escrita, e mesmo se tivesse: não se mete nisso. O Beto é gente boa, mas já me rendeu duas sindicâncias.')},2500)}
   save();setTimeout(apresentarServicos,c==='no'?3000:6000);
 }
+
+// Quem deixou o pedido do Beto sem resposta não fica sem os serviços para sempre: no dia seguinte ele desiste do
+// assunto, e os serviços liberam. Fica registrado como 'ignorou' (o Ato IV pode levar isso em conta).
+function betoDesiste(){
+  if(S.dia<1||['asked','wrong','favor'].indexOf(S.beto)<0)return;
+  var pediuFavor=S.beto==='favor';S.beto='done';S.betoIgnorou=true;save();
+  tele('dilema',{quem:'beto',escolha:'ignorou',etapa:pediuFavor?'favor':'horario'});
+  say('beto',pediuFavor?L('Esquece aquilo do ponto, tá? O RH resolveu do jeito deles. Sem ressentimento.'):L('Ó, esquece aquele horário que eu te pedi. Já me resolvi com o RH.'));
+}

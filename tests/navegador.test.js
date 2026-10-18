@@ -57,7 +57,10 @@ async function treinamento(page) {
   await run(); await next();
   await next();                                                 // msg AS/LIMIT
   // moldes: executa sem preencher (bronca), depois clica no editor e digita só a parte pedida
-  const preencher = async s => { await page.click('#sqlEd'); await page.keyboard.type(s); };
+  // o jogo seleciona a lacuna logo depois do clique (setTimeout 0): espera isso antes de digitar
+  const preencher = async s => { await page.click('#sqlEd');
+    await page.waitForFunction(() => { const t = document.querySelector('#sqlEd'); return !/___/.test(t.value) || t.value.slice(t.selectionStart, t.selectionEnd) === '___'; });
+    await page.keyboard.type(s); };
   await run(); assert.ok(await page.isVisible('.gfb.bad'));
   const MOLDE1 = 'SELECT placa, modelo AS ___ FROM veiculos;';
   await page.fill('#sqlEd', ''); await run();                                    // apagou tudo e executou
@@ -284,10 +287,12 @@ test('treino Intervalos · BETWEEN com data e hora em duas lacunas', { skip: !CH
     await page.click('#runBtn');
     assert.match(await page.textContent('.gfb.bad'), /duas pontas/);
     await page.click('#gMolde');
+    // o jogo seleciona a lacuna logo depois do clique (setTimeout 0); espera isso antes de digitar, como uma pessoa faria
+    const lacunaSelecionada = () => page.waitForFunction(() => { const t = document.querySelector('#sqlEd'); return t.value.slice(t.selectionStart, t.selectionEnd) === '___'; });
     await page.click('#guide');
-    await page.click('#sqlEd'); await page.keyboard.type('18:00:00');
+    await page.click('#sqlEd'); await lacunaSelecionada(); await page.keyboard.type('18:00:00');
     await page.click('#guide');
-    await page.click('#sqlEd'); await page.keyboard.type('20:00:00');
+    await page.click('#sqlEd'); await lacunaSelecionada(); await page.keyboard.type('20:00:00');
     assert.match(await page.inputValue('#sqlEd'), /BETWEEN '2026-10-12 18:00:00' AND '2026-10-12 20:00:00';$/);
     await page.click('#runBtn');
     assert.strictEqual(await page.evaluate(() => S.tutPhase), 'after');
@@ -891,6 +896,56 @@ test('Módulo 4 · tabelas novas, mapa e ferramentas de JOIN', { skip: !CHROME &
     assert.match(await page.textContent('#sugest'), /cnpj_locatario/);
     await page.keyboard.press('Tab');
     assert.strictEqual(await page.inputValue('#sqlEd'), 'SELECT i.cnpj_locatario FROM imoveis i');
+    assert.deepStrictEqual(erros, []);
+  } finally { await browser.close(); }
+});
+
+// Quem deixou o pedido do Beto sem resposta ganha os serviços no dia seguinte (antes ficava sem nunca).
+test('serviços do Beto · liberam no dia seguinte para quem ignorou o pedido do ponto', { skip: !CHROME && 'Chrome não encontrado (defina CHROME)', timeout: 60000 }, async () => {
+  const { chromium } = require('playwright-core');
+  const browser = await chromium.launch({ executablePath: CHROME, headless: true });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1366, height: 800 } });
+    const erros = []; page.on('pageerror', e => erros.push(e.message));
+    await page.route('**/*', r => { const u = r.request().url(); if (u.includes('sql-asm.js')) return r.fulfill({ body: fs.readFileSync(ASM), contentType: 'application/javascript' }); return u.startsWith('file:') ? r.continue() : r.abort(); });
+    const quarta = { chat: { celia: [], beto: [{ me: false, text: 'Irmão, salva minha vida.' }], jairo: [], marina: [] }, unread: {}, lidas: {}, tut: 0, treino: null, treinosFeitos: ['m1', 'm2-filtros', 'm2-intervalos'],
+      rank: 2, done: true, dia: 1, diaIniciado: 1, diaConcluido: 0, closed: ['1001', '1002', '1003'], caseSel: 3, apps: ['db', 'ocorr', 'zap', 'files', 'prova', 'caderno'], beto: 'asked' };
+    await page.addInitScript(s => { window.SISP_CONFIG_TESTE = { url: '', chave: '', contato: '' }; window.SISP_IDIOMA_TESTE = 'pt-BR'; localStorage.setItem('sisp-proto-v2', s); }, JSON.stringify(quarta));
+    await page.goto('file://' + path.join(RAIZ, 'index.html'));
+    await page.waitForFunction(() => !document.querySelector('#lgBtn').disabled);
+    await page.click('#lgBtn');
+    await page.waitForFunction(() => S.beto === 'done' && S.chat.beto.some(m => /me pede serviço/.test(m.text)));
+    assert.ok(await page.evaluate(() => S.betoIgnorou && S.chat.beto.some(m => /esquece aquele horário/i.test(m.text))));
+    await page.evaluate(() => { chatSel = 'beto'; openZap(); });
+    assert.ok(await page.isVisible('.reply .servico-pedir'), '"Tem serviço?" disponível');
+    assert.deepStrictEqual(erros, []);
+  } finally { await browser.close(); }
+});
+
+// Atalhos para o Guia: o erro do HAVING leva ao verbete do HAVING; o Explique lista os comandos da consulta.
+test('Guia SQL · atalhos a partir do erro e do Explique', { skip: !CHROME && 'Chrome não encontrado (defina CHROME)', timeout: 60000 }, async () => {
+  const { chromium } = require('playwright-core');
+  const browser = await chromium.launch({ executablePath: CHROME, headless: true });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1366, height: 800 } });
+    const erros = []; page.on('pageerror', e => erros.push(e.message));
+    await page.route('**/*', r => { const u = r.request().url(); if (u.includes('sql-asm.js')) return r.fulfill({ body: fs.readFileSync(ASM), contentType: 'application/javascript' }); return u.startsWith('file:') ? r.continue() : r.abort(); });
+    const quarta = { chat: { celia: [], beto: [], jairo: [], marina: [] }, unread: {}, lidas: {}, tut: 0, treino: null, treinosFeitos: ['m1', 'm2-filtros', 'm2-intervalos', 'm3-agregacao'],
+      rank: 2, done: true, dia: 1, diaIniciado: 1, diaConcluido: 0, closed: ['1001', '1002', '1003'], caseSel: 3, apps: ['db', 'ocorr', 'zap', 'files', 'prova', 'caderno'], beto: 'done' };
+    await page.addInitScript(s => { window.SISP_CONFIG_TESTE = { url: '', chave: '', contato: '' }; window.SISP_IDIOMA_TESTE = 'pt-BR'; localStorage.setItem('sisp-proto-v2', s); }, JSON.stringify(quarta));
+    await page.goto('file://' + path.join(RAIZ, 'index.html'));
+    await page.waitForFunction(() => !document.querySelector('#lgBtn').disabled);
+    await page.click('#lgBtn');
+    await page.evaluate(() => openDb('SELECT cor FROM veiculos HAVING COUNT(*) > 3;'));
+    await page.click('#runBtn');
+    assert.match(await page.textContent('#dbMsg .ver-guia'), /HAVING/);
+    await page.click('#dbMsg .ver-guia');
+    assert.match(await page.textContent('.guia-titulo'), /HAVING/);
+    await page.evaluate(() => { focusWin('db'); const ta = document.querySelector('#sqlEd'); ta.value = "SELECT cor, COUNT(*) FROM veiculos WHERE ano > 2015 GROUP BY cor;"; S.editor = ta.value; });
+    await page.click('#explBtn');
+    const links = await page.textContent('#dbExpl .guia-links');
+    for (const re of [/GROUP BY/, /COUNT/, /WHERE/, /Comparação/]) assert.match(links, re);
+    assert.doesNotMatch(links, /NULL|COALESCE/, 'só o que está na consulta (e já foi ensinado)');
     assert.deepStrictEqual(erros, []);
   } finally { await browser.close(); }
 });

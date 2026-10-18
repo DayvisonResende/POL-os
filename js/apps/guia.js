@@ -5,7 +5,7 @@ var guiaSel=null,guiaBusca='';
 function guiaLiberados(){return verbetesLiberados(treinoFeito)}
 function guiaLiberado(){return guiaLiberados().length>0}
 function openGuia(id){
-  if(id)guiaSel=id;
+  if(id){guiaSel=id;guiaBusca=''}
   openWin('guia',{title:nomeApp('guia'),w:720,h:500,x:200,y:30,build:function(){renderGuia()},refresh:function(){renderGuia()}});
   tele('guia',{acao:'abrir',verbete:guiaSel||''});
 }
@@ -42,3 +42,20 @@ function renderGuia(){
   }
   wrap.appendChild(esq);wrap.appendChild(dir);r.body.appendChild(wrap);
 }
+
+/* Atalhos para o Guia: nas mensagens de erro e de dica ("Ver no Guia: HAVING") e no Explique ("No Guia: …").
+   Só aponta para verbetes já liberados. */
+var GUIA_PISTAS=[[/veio antes do|ordem das partes/i,'ordem'],[/HAVING/,'having'],[/GROUP BY/,'groupby'],[/COALESCE/,'coalesce'],[/COUNT\(coluna\)|COUNT\(descricao\)/,'countcoluna'],
+  [/IS NULL|NULL/,'null'],[/BETWEEN/,'between'],[/I?LIKE/,'like'],[/aspas/i,'aspas'],[/ORDER BY/,'orderby'],[/\bIN\b/,'in'],[/LIMIT|TOP/,'limit'],
+  [/COUNT|SUM|AVG|MIN|MAX/,'count'],[/data_hora|AAAA-MM-DD/,'datahora'],[/\bAND\b|\bOR\b/,'and'],[/WHERE/,'where'],[/DISTINCT/,'distinct'],[/FROM|SELECT/,'select']];
+function verbeteDoTexto(txt){var lib=guiaLiberados().map(function(v){return v.id});
+  for(var i=0;i<GUIA_PISTAS.length;i++)if(GUIA_PISTAS[i][0].test(txt)&&lib.indexOf(GUIA_PISTAS[i][1])>=0)return GUIA_PISTAS[i][1];return null}
+function botaoGuia(id,rotulo){var b=h('button',{class:'ver-guia',type:'button'},'&#128214; '+escH(rotulo||L('Ver no Guia'))+': <b>'+escH(verbete(id).titulo)+'</b>');b.onclick=function(){tele('guia',{acao:'atalho',verbete:id});openGuia(id);renderGuia()};return b}
+function guiaNasMensagens(caixa){
+  if(!caixa||!guiaLiberado())return;
+  caixa.querySelectorAll('.err,.hint0').forEach(function(d){var id=verbeteDoTexto(d.textContent.replace(/SQLite:.*$/,''));if(id)d.appendChild(botaoGuia(id))});
+}
+var GUIA_TOKENS={SELECT:'select',DISTINCT:'distinct',AS:'as',LIMIT:'limit',WHERE:'where',LIKE:'like',AND:'and',OR:'and',BETWEEN:'between',IN:'in',ORDER:'orderby',
+  COUNT:'count',SUM:'sumavg',AVG:'sumavg',MIN:'minmax',MAX:'minmax',GROUP:'groupby',HAVING:'having',NULL:'null',COALESCE:'coalesce','>':'comparacao','<':'comparacao','>=':'comparacao','<=':'comparacao','!=':'comparacao','<>':'comparacao'};
+function guiaDaConsulta(sql){var lib=guiaLiberados().map(function(v){return v.id}),ids=[];
+  tokSQL(sql).forEach(function(t){var id=GUIA_TOKENS[t.toUpperCase()];if(id&&lib.indexOf(id)>=0&&ids.indexOf(id)<0)ids.push(id)});return ids}

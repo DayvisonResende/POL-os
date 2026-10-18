@@ -11,6 +11,14 @@ function openMapa(){openWin('mapa',{title:L('Mapa das tabelas'),w:900,h:520,x:12
 function renderMapa(){
   var r=WINS.mapa;if(!r)return;
   var tabs=SCHEMA.tables.slice(),liga=ligacoesMapa().filter(function(x){return tabs.indexOf(x.de)>=0&&tabs.indexOf(x.para)>=0});
+  // Celular: lista em vez de desenho (o desenho tem 4 colunas e não cabe numa tela estreita)
+  if(window.innerWidth<=760){
+    r.body.innerHTML='<div class="mapa"><p class="mapa-dica">'+L('Cada coluna com seta <b>aponta</b> para outra tabela. É por elas que um JOIN liga uma tabela à outra: <code>ON a.coluna = b.chave</code>.')+'</p>'+
+      tabs.map(function(t){var cols=SCHEMA.info[t].filter(function(c){return c.pk||liga.some(function(x){return x.de===t&&x.col===c.name})});
+        return '<div class="mapa-cartao"><div class="mapa-cartao-nome">'+escH(t)+'</div>'+cols.map(function(c){var l=liga.filter(function(x){return x.de===t&&x.col===c.name})[0];
+          return '<div class="mapa-cartao-col"><span class="mapa-chave">'+(c.pk?'PK':'FK')+'</span> '+escH(c.name)+(l?' <span class="mapa-destino">→ '+escH(l.para+'.'+l.alvo)+'</span>':'')+'</div>'}).join('')+'</div>'}).join('')+'</div>';
+    return;
+  }
   var W=180,DX=220,DY=165,box={},livre=0;
   tabs.forEach(function(t){var p=MAPA_POS[t]||[livre++%4,3];
     var cols=SCHEMA.info[t].filter(function(c){return c.pk||liga.some(function(x){return x.de===t&&x.col===c.name})||liga.some(function(x){return x.para===t&&x.alvo===c.name})});

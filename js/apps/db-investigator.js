@@ -50,6 +50,8 @@ function showExplain(){
   else{html+='<table>'+ex.rows.map(function(r){return '<tr><td class="cd">'+escH(r.code)+'</td><td>'+r.pt+'</td></tr>'}).join('')+'</table>';
     if(ex.extra)html+='<div class="exn">'+L('Depois do primeiro <code>;</code> há outra consulta. Eu expliquei só a primeira.')+'</div>'}
   box.innerHTML=html+'</div>';$('#explClose').onclick=function(){box.innerHTML=''};
+  var ids=ex.err?[]:guiaDaConsulta($('#sqlEd').value);
+  if(ids.length){var gl=h('div',{class:'exn guia-links'},'<span>'+L('No Guia:')+'</span>');ids.slice(0,8).forEach(function(id){var b=h('button',{type:'button'},escH(verbete(id).titulo));b.onclick=function(){tele('guia',{acao:'atalho',verbete:id});openGuia(id);renderGuia()};gl.appendChild(b)});box.querySelector('.explain').appendChild(gl)}
   tutOnExplain();
 }
 function syncHl(){var ta=$('#sqlEd');if(!ta)return;$('#sqlHl').innerHTML=highlight(ta.value);$('#sqlHl').scrollTop=ta.scrollTop}
@@ -100,7 +102,7 @@ function runQuery(){
   var status=function(t){st.textContent=t+' · '+L('executada às {hora}',{hora:hora})+(trecho?' · '+L('só o trecho selecionado'):'');st.classList.remove('flash');void st.offsetWidth;st.classList.add('flash')};
   try{todos=executarSQL(db,sql)}catch(e){
     S.errors++;tele('consulta',{sql:sql.slice(0,400),res:'erro',erro:String(e.message||e)});save();var tr=translateError(String(e.message||e),sql,SCHEMA);
-    msg.innerHTML='<div class="err">'+tr+'<span class="raw">SQLite: '+escH(e.message||e)+'</span></div>';
+    msg.innerHTML='<div class="err">'+tr+'<span class="raw">SQLite: '+escH(e.message||e)+'</span></div>';guiaNasMensagens(msg);
     grid.innerHTML='<div class="empty">'+L('A consulta não rodou, então não há resultado. Corrija o erro acima e execute de novo.')+'</div>';
     status(L('Erro na consulta'));tutOnError(tr);return}
   var ms=(performance.now()-t0).toFixed(1),ult=todos[todos.length-1],vazio=!ult||!ult.values.length;save();
@@ -111,13 +113,13 @@ function runQuery(){
     grid.innerHTML='<div class="empty">'+L('A consulta rodou e não retornou nenhuma linha.')+'</div>';status(Lp(0,'1 linha','{n} linhas')+' · '+ms+' ms');
     var zh=zeroRowHint(ult?ult.sql:sql,SCHEMA);if(zh)notas.push(zh);
     notas.forEach(function(n){tele('dica_auto',{texto:semTags(n).slice(0,140)})});
-    msg.innerHTML=notas.map(function(n){return '<div class="hint0">'+n+'</div>'}).join('');
+    msg.innerHTML=notas.map(function(n){return '<div class="hint0">'+n+'</div>'}).join('');guiaNasMensagens(msg);
     checkSteps(null);tutOnRun(toR(null));return}
   status(Lp(ult.values.length,'1 linha','{n} linhas')+' · '+Lp(ult.columns.length,'1 coluna','{n} colunas')+' · '+ms+' ms');
   renderGrid(ult);
   notas.push(avisoSQL(sql,SCHEMA),checkSteps(ult));
   notas.filter(Boolean).forEach(function(n){tele('dica_auto',{texto:semTags(n).slice(0,140)})});
-  msg.innerHTML=notas.filter(Boolean).map(function(n){return '<div class="hint0">'+n+'</div>'}).join('');
+  msg.innerHTML=notas.filter(Boolean).map(function(n){return '<div class="hint0">'+n+'</div>'}).join('');guiaNasMensagens(msg);
   tutOnRun(toR(ult));
 }
 var ultimoResultado=null;   // para o 📌 (fixar linha no Caderno)

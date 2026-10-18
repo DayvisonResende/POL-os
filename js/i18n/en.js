@@ -356,5 +356,8 @@ registrarIdioma('en',{nome:'English',pronto:false,textos:{
  "Mapa das tabelas":"Table map",
  "Mapa das tabelas e das ligações entre elas":"Map of the tables and the links between them",
  "Cada seta sai da coluna que <b>aponta</b> (FK) e chega na tabela de onde vem a informação. É por essas colunas que um JOIN liga uma tabela à outra: <code>ON a.coluna_fk = b.chave</code>.":"Each arrow starts at the column that <b>points</b> (FK) and ends at the table the information comes from. These are the columns a JOIN uses to link one table to another: <code>ON a.fk_column = b.key</code>.",
- "Agente Especial":"Special Agent"
+ "Agente Especial":"Special Agent",
+ "Ver no Guia":"See in the Guide",
+ "No Guia:":"In the Guide:",
+ "Cada coluna com seta <b>aponta</b> para outra tabela. É por elas que um JOIN liga uma tabela à outra: <code>ON a.coluna = b.chave</code>.":"Each column with an arrow <b>points</b> to another table. These are the columns a JOIN uses to link one table to another: <code>ON a.column = b.key</code>."
 }});
