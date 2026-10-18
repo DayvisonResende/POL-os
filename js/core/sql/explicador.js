@@ -1,9 +1,9 @@
 /* Botão "Explique esta consulta": traduz a consulta para português, parte por parte. */
-var COLDESC={placa:'a placa',modelo:'o modelo',cor:'a cor',ano:'o ano',cpf_proprietario:'o CPF do dono',nome:'o nome',cpf:'o CPF',cidade:'a cidade',data_nascimento:'a data de nascimento',local_radar:'o local do radar',data_hora:'a data e a hora',velocidade_kmh:'a velocidade em km/h',foto_radar_url:'o arquivo da foto',funcionario:'o funcionário',cargo:'o cargo',data:'a data',horario_entrada:'o horário de entrada',horario_saida:'o horário de saída',id:'o número do registro',banco:'o banco',agencia:'a agência',numero:'o número da conta',cpf_titular:'o CPF do titular',conta_origem:'a conta de origem',conta_destino:'a conta de destino',valor:'o valor',descricao:'a descrição'};
-var TABDESC={veiculos:'o cadastro de veículos do Detran',pessoas:'o cadastro de pessoas',leituras_radar:'as passagens registradas pelos radares',catraca_acessos:'o ponto dos funcionários na catraca',contas_bancarias:'o cadastro de contas bancárias',transferencias:'as transferências de dinheiro entre contas'};
+var COLDESC={placa:'a placa',modelo:'o modelo',cor:'a cor',ano:'o ano',cpf_proprietario:'o CPF do dono',nome:'o nome',cpf:'o CPF',cidade:'a cidade',data_nascimento:'a data de nascimento',local_radar:'o local do radar',data_hora:'a data e a hora',velocidade_kmh:'a velocidade em km/h',foto_radar_url:'o arquivo da foto',funcionario:'o funcionário',cargo:'o cargo',data:'a data',horario_entrada:'o horário de entrada',horario_saida:'o horário de saída',id:'o número do registro',banco:'o banco',agencia:'a agência',numero:'o número da conta',cpf_titular:'o CPF do titular',conta_origem:'a conta de origem',conta_destino:'a conta de destino',valor:'o valor',descricao:'a descrição',aberta_em:'a data de abertura',cnpj:'o CNPJ',razao_social:'o nome da empresa',cpf_responsavel:'o CPF do responsável',tipo:'o tipo de imóvel',endereco:'o endereço',bairro:'o bairro',referencia:'a referência (rodovia e km)',cnpj_locatario:'o CNPJ de quem alugou',alugado_em:'a data do aluguel',numero_nf:'o número da nota',cnpj_emitente:'o CNPJ de quem vendeu',cnpj_transportadora:'o CNPJ da transportadora',data_emissao:'a data da nota',valor_total:'o valor total da nota',nota_id:'o número da nota (id)',produto:'o produto',quantidade:'a quantidade',valor_unitario:'o preço de uma unidade'};
+var TABDESC={veiculos:'o cadastro de veículos do Detran',pessoas:'o cadastro de pessoas',leituras_radar:'as passagens registradas pelos radares',catraca_acessos:'o ponto dos funcionários na catraca',contas_bancarias:'o cadastro de contas bancárias',transferencias:'as transferências de dinheiro entre contas',empresas:'o cadastro de empresas',imoveis:'o cadastro de imóveis',notas_fiscais:'as notas fiscais',itens_nota:'os itens de cada nota fiscal'};
 function listPt(a){return a.length<=1?a.join(''):a.slice(0,-1).join(', ')+' e '+a[a.length-1]}
 function colPt(t){var k=String(t).toLowerCase().split('.').pop().replace(/^"|"$/g,'');return COLDESC[k]?COLDESC[k]+' (<code>'+escH(t)+'</code>)':'<code>'+escH(t)+'</code>'}
-function valPt(ts){if(ts.length===1){var t=ts[0];if(t.charAt(0)==="'")return '<code>'+escH(t)+'</code>';if(/^\d/.test(t))return '<b>'+t+'</b>';var dq=t.match(/^"(.*)"$/);if(dq&&!COLDESC[dq[1].toLowerCase()])return 'o texto <code>'+escH(t)+'</code> (atenção: texto vai entre aspas <b>simples</b>, <code>\''+escH(dq[1])+'\'</code>)';return 'o valor da coluna '+colPt(t)}return '<code>'+escH(joinToks(ts))+'</code>'}
+function valPt(ts){if(ts.length===1){var t=ts[0];if(t.charAt(0)==="'")return '<code>'+escH(t)+'</code>';if(/^\d/.test(t))return '<b>'+t+'</b>';var dq=t.match(/^"(.*)"$/);if(dq&&!COLDESC[dq[1].toLowerCase()])return 'o texto <code>'+escH(t)+'</code> (atenção: texto vai entre aspas <b>simples</b>, <code>\''+escH(dq[1])+'\'</code>)';return COLDESC[String(t).toLowerCase().split('.').pop()]?colPt(t):'o valor da coluna '+colPt(t)}return '<code>'+escH(joinToks(ts))+'</code>'}
 function likePt(p){var s=String(p).replace(/^'|'$/g,''),a=s.charAt(0)==='%',b=s.slice(-1)==='%'&&s.length>1,core=s.replace(/^%/,'').replace(/%$/,'');
   if(/[%_]/.test(core))return 'segue o padrão <code>'+escH(p)+'</code>';
   if(a&&b)return 'contém <code>'+escH(core)+'</code> em qualquer parte';if(b)return 'começa com <code>'+escH(core)+'</code>';if(a)return 'termina com <code>'+escH(core)+'</code>';
@@ -40,12 +40,46 @@ function condPt(ts){
   if(op==='LIKE')return c+neg+likePt(ts[i+1]||"''");
   if(op==='BETWEEN'){var a=-1;for(var k=i+1;k<ts.length;k++)if(U(ts[k])==='AND'){a=k;break}if(a<0)return null;return c+neg+'está entre '+valPt(ts.slice(i+1,a))+' e '+valPt(ts.slice(a+1))+' (incluindo os dois extremos)'}
   if(op==='IN'){var vals=[],cur=[],close=ts.lastIndexOf(')');ts.slice(i+2,close<0?ts.length:close).forEach(function(t){if(t===','){vals.push(cur);cur=[]}else cur.push(t)});if(cur.length)vals.push(cur);return c+neg+'é um destes valores: '+listPt(vals.map(valPt))}
-  if(op==='IS')return c+(U(ts[i+1])==='NOT'?' está preenchida':' está vazia (NULL)');
-  if(OPPT[op]&&ts.length>i+1)return c+' '+OPPT[op]+' '+valPt(ts.slice(i+1));
+  if(op==='IS')return c+(U(ts[i+1])==='NOT'?' tem valor (não é NULL)':' não tem valor (é NULL, vazio)');
+  if(OPPT[op]&&ts.length>i+1)return c+' '+(OPPT[op]+' '+valPt(ts.slice(i+1))).replace(/\ba o /,'ao ').replace(/\ba a /,'à ').replace(/\ba os /,'aos ').replace(/\ba as /,'às ');
   return null;
 }
+/* FROM com JOIN (Módulo 4): separa "FROM a x JOIN b y ON … LEFT JOIN c ON …" (e "FROM a, b") em partes:
+   {tipo:'FROM'|'JOIN'|'LEFT'|'CROSS'|',', tabela, apelido, on:[tokens], ts:[tokens da parte]}. */
+var JOIN_PALAVRAS=['JOIN','INNER','LEFT','RIGHT','FULL','CROSS','OUTER','ON','USING'];
+function partesFrom(ft){
+  var partes=[],cur=null,d=0;
+  for(var i=0;i<ft.length;i++){var t=ft[i],u=U(t);
+    if(t==='(')d++;else if(t===')')d--;
+    var novo=d===0&&(i===0||t===','||((u==='INNER'||u==='LEFT'||u==='RIGHT'||u==='FULL'||u==='CROSS')&&!(cur&&cur.abrindo))||(u==='JOIN'&&!(cur&&cur.abrindo)));
+    if(novo){cur={tipo:i===0?'FROM':t===','?',':u==='JOIN'?'JOIN':u,ts:[],on:null,abrindo:u!=='JOIN'&&i!==0&&t!==','};partes.push(cur)}
+    if(u==='JOIN'&&cur)cur.abrindo=false;
+    cur.ts.push(t);
+    if(d===0&&(u==='ON'||u==='USING'))cur.on=[];else if(cur.on)cur.on.push(t);
+  }
+  partes.forEach(function(p){var nomes=p.ts.slice(1).filter(function(t){var u=U(t);return JOIN_PALAVRAS.indexOf(u)<0&&u!=='AS'});
+    var ate=p.on?p.ts.length-p.on.length-1:p.ts.length,cab=p.ts.slice(1,ate).filter(function(t){var u=U(t);return JOIN_PALAVRAS.indexOf(u)<0&&u!=='AS'});
+    p.tabela=cab[0]||'';p.apelido=cab[1]||null;delete p.abrindo});
+  return partes;
+}
+function tabelaPt(t,apelido){var tk=String(t).toLowerCase(),d=TABDESC[tk],extra=[];if(d)extra.push(d);if(apelido)extra.push('apelido <b>'+escH(apelido)+'</b>');
+  return 'a tabela <b>'+escH(t)+'</b>'+(extra.length?' ('+extra.join('; ')+')':'')+(d?'':'. Atenção: essa tabela não existe no banco')}
+function fromPt(p,k){
+  if(!p.tabela)return 'Faltou o nome da tabela aqui.';
+  if(p.tipo==='FROM')return 'da tabela <b>'+escH(p.tabela)+'</b>'+(TABDESC[String(p.tabela).toLowerCase()]?', que '+(/^(as|os) /.test(TABDESC[String(p.tabela).toLowerCase()])?'são ':'é ')+TABDESC[String(p.tabela).toLowerCase()]:'. Atenção: essa tabela não existe no banco')+(p.apelido?' (apelido <b>'+escH(p.apelido)+'</b>: daqui em diante, <code>'+escH(p.apelido)+'.coluna</code> quer dizer uma coluna dela)':'');
+  var liga=p.on&&p.on.length?splitConds(p.on).map(function(c){return condPt(c.ts)||'<code>'+escH(joinToks(c.ts))+'</code>'}).join(' e '):null;
+  if(p.tipo===','||p.tipo==='CROSS'||!liga){
+    var base='e também '+tabelaPt(p.tabela,p.apelido)+'. ';
+    return base+(p.tipo===','?'Sem dizer aqui como as duas se ligam, cada linha é combinada com <b>todas</b> as da outra; a ligação precisa vir no WHERE (ex.: <code>WHERE a.cpf = b.cpf</code>). Com JOIN … ON fica mais claro.':'<b>Sem ON</b>, cada linha é combinada com <b>todas</b> as linhas da outra tabela (são milhares de combinações sem sentido). Diga com <code>ON</code> qual coluna liga as duas.');
+  }
+  var esq=p.tipo==='LEFT';
+  return (esq?'mantendo <b>todas</b> as linhas que já tinha e ':'')+'juntando cada linha com a linha '+de(tabelaPt(p.tabela,p.apelido))+' em que '+liga+
+    (esq?'. Se não achar nenhuma, a linha <b>continua</b> no resultado, com as colunas '+de('<b>'+escH(p.tabela)+'</b>')+' vazias (NULL)':'. Linha sem par nas duas tabelas <b>sai</b> do resultado');
+}
+// apelido.coluna (v.placa) vira um nome só, para ser explicado como coluna
+function juntarPontos(ts){var o=[];for(var i=0;i<ts.length;i++){if(ts[i+1]==='.'&&/^[A-Za-z_]/.test(ts[i])&&/^([A-Za-z_]|\*)/.test(ts[i+2]||'')){o.push(ts[i]+'.'+ts[i+2]);i+=2}else o.push(ts[i])}return o}
 function explainSQL(sql){
-  var ts=tokSQL(sql);if(!ts.length)return {err:'O editor está vazio. Escreva uma consulta primeiro e depois peça a explicação.'};
+  var ts=juntarPontos(tokSQL(sql));if(!ts.length)return {err:'O editor está vazio. Escreva uma consulta primeiro e depois peça a explicação.'};
   var semi=ts.indexOf(';'),extra=semi>=0&&semi<ts.length-1;if(semi>=0)ts=ts.slice(0,semi);
   if(U(ts[0])!=='SELECT')return {err:'Por enquanto eu só sei explicar consultas que começam com <code>SELECT</code>.'};
   var idx={},d=0;ts.forEach(function(t,i){if(t==='(')d++;else if(t===')')d--;else if(d===0){var u=U(t);
@@ -60,13 +94,14 @@ function explainSQL(sql){
   var itPt=items.map(function(it){if(!it.length)return '<i>(uma coluna em branco: sobrou uma vírgula?)</i>';var a=-1;it.forEach(function(t,k){if(U(t)==='AS')a=k});var expr=a>=0?it.slice(0,a):it,alias=a>=0?it[a+1]:null;
     if(a<0&&it.length===2&&/^[A-Za-z_]/.test(it[1])&&it[0]!=='*'){expr=[it[0]];alias=it[1]}
     var ag=aggPt(expr),co=coalescePt(expr);
-    var e=(expr.length===1&&expr[0]==='*')?'<b>todas as colunas</b>':expr.length===1?colPt(expr[0]):ag?(temAg=true,ag+(idx.GROUP!=null?' <i>em cada grupo</i>':'')):co?co:'o cálculo <code>'+escH(joinToks(expr))+'</code>';
+    var e=(expr.length===1&&expr[0]==='*')?'<b>todas as colunas</b>':(expr.length===1&&/\.\*$/.test(expr[0]))?'<b>todas as colunas</b> de <b>'+escH(expr[0].slice(0,-2))+'</b>':expr.length===1?colPt(expr[0]):ag?(temAg=true,ag+(idx.GROUP!=null?' <i>em cada grupo</i>':'')):co?co:'o cálculo <code>'+escH(joinToks(expr))+'</code>';
     return e+(alias?', com o apelido <b>'+escH(String(alias).replace(/^["']|["']$/g,''))+'</b> no resultado':'')});
   rows.push({code:joinToks(ts.slice(0,selEnd)),pt:items.length?'Mostre '+(distinct?'<b>sem repetir</b> ':'')+listPt(itPt):'Mostre… o quê? Faltam as colunas depois do SELECT.'});
   if(temAg&&idx.GROUP==null)rows.push({code:'(sem GROUP BY)',pt:'Como não tem GROUP BY, cada conta é feita <b>uma vez só</b>, sobre todas as linhas que passarem pelo filtro: o resultado tem uma linha.'});
   if(idx.FROM==null)rows.push({code:'(sem FROM)',pt:'Falta dizer de qual tabela vêm os dados: <code>FROM nome_da_tabela</code>.'});
-  else{var ft=ts.slice(idx.FROM,end('FROM')),tb=String(ft[1]||''),tk=tb.toLowerCase();
-    rows.push({code:joinToks(ft),pt:!tb?'da tabela… qual? Falta o nome dela depois do FROM.':TABDESC[tk]?'da tabela <b>'+escH(tb)+'</b>, que '+(/^(as|os) /.test(TABDESC[tk])?'são ':'é ')+TABDESC[tk]:'da tabela <b>'+escH(tb)+'</b>. Atenção: essa tabela não existe no banco.'})}
+  else{var ft=ts.slice(idx.FROM,end('FROM'));
+    if(!ft[1])rows.push({code:joinToks(ft),pt:'da tabela… qual? Falta o nome dela depois do FROM.'});
+    else partesFrom(ft).forEach(function(pt,k){rows.push({code:joinToks(pt.ts),pt:fromPt(pt,k)})})}
   if(idx.WHERE!=null){splitConds(ts.slice(idx.WHERE+1,end('WHERE'))).forEach(function(c,k){var p=condPt(c.ts)||'a condição <code>'+escH(joinToks(c.ts))+'</code> for verdadeira';
     rows.push({code:(k===0?'WHERE ':c.conn+' ')+joinToks(c.ts),pt:k===0?'mas só as linhas em que '+p:(c.conn==='AND'?'<b>e também</b> ':'<b>ou então</b> ')+p})})}
   if(idx.GROUP!=null){var gb=ts.slice(idx.GROUP+2,end('GROUP')),gc=[],g1=[];gb.forEach(function(t){if(t===','){gc.push(g1);g1=[]}else g1.push(t)});if(g1.length)gc.push(g1);

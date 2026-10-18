@@ -4,7 +4,7 @@ const assert = require('node:assert');
 const { carregarJogo } = require('./carregar');
 
 // O que os BOs perguntam (e as pistas guardadas para depois). Nada disso pode aparecer em texto ou SQL de exemplo.
-const PROIBIDO_TEXTO = /prata|Virtus|Hilux|Castelo|Raposo|Dom Aguirre|Piedade|\bItu\b|Salto|FTR|KZX|22:45|23:15|2026-10-13|13\/10|conta_origem|conta_destino|Denise|Valdemar|Marina|Lucas|laranja|9000|9999/i;
+const PROIBIDO_TEXTO = /VS Armaz|Km 93|Galpão 7|45\.230\.871|prata|Virtus|Hilux|Castelo|Raposo|Dom Aguirre|Piedade|\bItu\b|Salto|FTR|KZX|22:45|23:15|2026-10-13|13\/10|conta_origem|conta_destino|Denise|Valdemar|Marina|Lucas|laranja|9000|9999/i;
 
 test('Guia: verbetes completos, ids únicos, ligados a treinamentos que existem', async () => {
   const { T } = await carregarJogo();

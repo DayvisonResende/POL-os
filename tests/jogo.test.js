@@ -424,3 +424,46 @@ test('autocompletar: só nomes, na ordem certa, nunca dentro de texto', () => {
   assert.deepStrictEqual(op('select * from veiculos'), [], 'palavra completa não sugere ela mesma');
   assert.ok(op('select * from veiculos where co').length <= 5);
 });
+
+test('JOIN: explicação, avisos e erros (Módulo 4)', () => {
+  const { T } = J;
+  const schema = { tables: ['veiculos', 'pessoas', 'leituras_radar'], cols: ['placa', 'cor', 'cpf', 'nome', 'cpf_proprietario', 'local_radar'],
+    info: { veiculos: [{ name: 'placa' }, { name: 'cor' }, { name: 'cpf_proprietario' }], pessoas: [{ name: 'cpf' }, { name: 'nome' }], leituras_radar: [{ name: 'placa' }, { name: 'local_radar' }] } };
+  const erro = q => { try { J.db.exec(q); return 'rodou'; } catch (e) { return T.translateError(e.message, q, schema); } };
+  // explicação
+  const ex = T.explainSQL('SELECT p.nome, v.placa FROM veiculos v LEFT JOIN pessoas p ON p.cpf = v.cpf_proprietario WHERE p.cpf IS NULL;').rows.map(r => r.pt).join(' ');
+  assert.match(ex, /apelido <b>v<\/b>/); assert.match(ex, /o nome \(<code>p\.nome<\/code>\)/);
+  assert.match(ex, /mantendo <b>todas<\/b>/); assert.match(ex, /continua<\/b> no resultado/); assert.match(ex, /é igual ao CPF do dono/);
+  assert.match(T.explainSQL('SELECT * FROM veiculos v JOIN pessoas p;').rows.map(r => r.pt).join(' '), /Sem ON/);
+  // avisos e erros
+  assert.match(T.avisoSQL('SELECT * FROM veiculos v JOIN pessoas p;', schema), /não tem <code>ON<\/code>/);
+  assert.strictEqual(T.avisoSQL('SELECT * FROM veiculos v JOIN pessoas p ON p.cpf = v.cpf_proprietario;', schema), null);
+  assert.match(erro('SELECT placa FROM veiculos v JOIN leituras_radar r ON r.placa = v.placa'), /existe em <b>veiculos<\/b> e <b>leituras_radar<\/b>.*v\.placa.*r\.placa/s);
+  assert.match(erro('SELECT x.placa FROM veiculos v'), /apelido <b>x<\/b> não foi definido/);
+  assert.match(erro('SELECT v.nome FROM veiculos v'), /veiculos<\/b> \(apelido <b>v<\/b>\) não tem a coluna <b>nome/);
+  assert.match(T.zeroRowHint('SELECT * FROM veiculos v JOIN pessoas p ON p.cpf = v.placa', schema), /Confira o <code>ON<\/code>/);
+  assert.strictEqual(T.ligacaoEstranha('SELECT * FROM veiculos v JOIN pessoas p ON p.cpf = v.cpf_proprietario'), null, 'ligação certa, sem aviso');
+});
+
+test('Módulo 4: o JOIN leva a um galpão só; a carga vale R$ 380 mil e a soma ingênua infla', () => {
+  const { T } = J, F = T.F, um = q => J.db.exec(q)[0].values[0][0];
+  assert.match(F.galpao, /Raposo Tavares, Km 93/);
+  assert.strictEqual(F.fachada, 'VS Armazéns Gerais ME');
+  assert.strictEqual(um('SELECT COUNT(*) ' + F.Q4CADEIA), 1, 'a cadeia aponta para um imóvel só');
+  assert.ok(F.aberturaFachada >= '2026-09-01' && F.aluguelGalpao < '2026-10-12', 'empresa aberta e galpão alugado semanas antes do assalto');
+  assert.strictEqual(F.passagemKm92, '2026-10-12 23:41:02');
+  // perto do Km 92 só os galpões plantados; o único alugado em 2026 é o da fachada
+  assert.strictEqual(um("SELECT COUNT(*) FROM imoveis WHERE referencia LIKE 'Rod. Raposo Tavares, Km 9%' AND CAST(substr(referencia, 25) AS INTEGER) BETWEEN 90 AND 95"), 5);
+  assert.strictEqual(um("SELECT COUNT(*) FROM imoveis WHERE referencia LIKE 'Rod. Raposo Tavares, Km 9%' AND alugado_em >= '2026-01-01'"), 1);
+  // o Valdemar só responde pela fachada; a Denise e o Lucas não têm empresa
+  assert.strictEqual(um("SELECT COUNT(*) FROM empresas e JOIN pessoas p ON p.cpf = e.cpf_responsavel WHERE p.nome = 'Valdemar Silveira'"), 1);
+  assert.strictEqual(um("SELECT COUNT(*) FROM empresas e JOIN pessoas p ON p.cpf = e.cpf_responsavel WHERE p.nome IN ('Denise Albuquerque Prado', 'Lucas Ferraz Tavares')"), 0);
+  // carga: 3 notas, R$ 380.000,00; somar o valor da nota depois do JOIN com os itens dá quase 5 vezes isso
+  assert.strictEqual(F.valorCarga, 380000);
+  assert.strictEqual(F.notasCarga.length, 3);
+  assert.ok(F.somaInflada > 4 * F.valorCarga, 'a soma ingênua infla');
+  assert.strictEqual(um('SELECT COUNT(*) FROM (SELECT n.id FROM notas_fiscais n JOIN itens_nota i ON i.nota_id = n.id GROUP BY n.id HAVING ABS(SUM(i.quantidade * i.valor_unitario) - n.valor_total) > 0.001)'), 0, 'cada nota bate com a soma dos itens');
+  // as tabelas do Módulo 4 ficam bloqueadas até a quinta-feira
+  const banco = fs.readFileSync(path.join(RAIZ, 'js/ui/banco.js'), 'utf8');
+  for (const t of ['empresas', 'imoveis', 'notas_fiscais', 'itens_nota']) assert.match(banco, new RegExp("nome:'" + t + "',rankMin:4,diaMin:2"), t);
+});

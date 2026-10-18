@@ -24,7 +24,8 @@ function diagnosticarSQL(sql,schema){
   var w=cl.filter(function(c){return c.k==='WHERE'})[0],fr=cl.filter(function(c){return c.k==='FROM'})[0],cond=null;
   if(w)cond=depois(w);
   else if(fr){var resto=depois(fr).slice(1);   // o que vem depois do nome da tabela
-    if(resto.some(function(t){return OPERADORES.indexOf(t)>=0||['LIKE','IN','BETWEEN'].indexOf(U(t))>=0})){
+    // com JOIN, o '=' depois do FROM é do ON, não um filtro sem WHERE
+    if(!resto.some(function(t){return U(t)==='JOIN'||U(t)==='ON'})&&resto.some(function(t){return OPERADORES.indexOf(t)>=0||['LIKE','IN','BETWEEN'].indexOf(U(t))>=0})){
       probs.push('Falta o <code>WHERE</code>. Todo filtro começa com ele, logo depois do nome da tabela: <code>FROM tabela WHERE coluna = \'valor\'</code>.');cond=resto}}
   var temAgreg=function(t){return t.some(function(x,i){return AGREGACOES.indexOf(U(x))>=0&&t[i+1]==='('})};
   if(w&&temAgreg(cond))probs.push('<code>COUNT</code>, <code>SUM</code>, <code>AVG</code>, <code>MIN</code> e <code>MAX</code> não vão no <code>WHERE</code>. O WHERE olha <b>uma linha de cada vez</b>, e essas contas são de um <b>grupo</b> de linhas. Para filtrar pelo resultado da conta, use <code>HAVING</code> depois do <code>GROUP BY</code>: <code>GROUP BY coluna HAVING COUNT(*) &gt; 3</code>.');
@@ -80,10 +81,43 @@ function colunasSoltas(sql){
 }
 // Aviso para consulta que rodou, mas está fora do padrão (funciona no SQLite, falha em outros bancos).
 function avisoSQL(sql,schema){
+  var semOn=joinSemOn(sql);
+  if(semOn)return 'Funcionou, mas cuidado: o <code>JOIN '+escH(semOn)+'</code> não tem <code>ON</code>. Sem ele, cada linha é combinada com <b>todas</b> as linhas da outra tabela, e por isso o resultado ficou enorme. Diga qual coluna liga as duas: <code>JOIN outra_tabela t ON t.coluna = a.coluna_que_aponta_pra_ela</code>. No Dicionário de Dados, a nota "aponta para" mostra quem liga com quem.';
   var dq=aspasDuplas(sql,schema);
   var soltas=colunasSoltas(sql);
   if(soltas[0]==='*')return 'Funcionou, mas por sorte: com <code>GROUP BY</code>, cada grupo vira <b>uma linha só</b>, e o <code>*</code> pede todas as colunas. Para as colunas que não estão no GROUP BY, o SQLite mostra o valor de uma linha <b>qualquer</b> do grupo. No PostgreSQL e no SQL Server isso dá erro. Troque o <code>*</code> pelas colunas do GROUP BY e pelas contas (COUNT, SUM…).';
   if(soltas.length)return 'Funcionou, mas por sorte: <code>'+escH(soltas[0])+'</code> não está no <code>GROUP BY</code> nem dentro de uma conta (COUNT, SUM…). Então o banco não sabe <b>qual</b> valor mostrar de cada grupo, e o SQLite escolhe <b>um qualquer</b>. No PostgreSQL e no SQL Server isso dá erro. Ou coloque a coluna no GROUP BY, ou tire ela do SELECT.';
   if(dq)return 'Funcionou, mas por sorte: o SQLite aceitou <code>"'+escH(dq)+'"</code> como texto porque não existe coluna com esse nome. O certo é aspas simples, <code>\''+escH(dq)+'\'</code>. No PostgreSQL e no SQL Server, aspas duplas dão erro.';
+  return null;
+}
+
+/* ---------- JOIN (Módulo 4) ---------- */
+// Tabelas e apelidos da consulta: {apelido_ou_nome: tabela}. "FROM veiculos v JOIN pessoas AS p" → {veiculos, v, pessoas, p}
+var NAO_APELIDO=['JOIN','INNER','LEFT','RIGHT','FULL','CROSS','OUTER','ON','USING','WHERE','GROUP','ORDER','HAVING','LIMIT','UNION'];
+function tabelasDaConsulta(sql){
+  var ts=tokSQL(stripSqlKeepDq(sql)),m={};
+  ts.forEach(function(t,i){var u=U(t);if((u==='FROM'||u==='JOIN'||(t===','&&ts.slice(0,i).some(function(x){return U(x)==='FROM'})&&!ts.slice(0,i).some(function(x){return ['WHERE','GROUP','ORDER'].indexOf(U(x))>=0})))&&/^[A-Za-z_]/.test(ts[i+1]||'')){
+    var tab=ts[i+1],j=i+2;if(U(ts[j])==='AS')j++;m[tab.toLowerCase()]=tab.toLowerCase();
+    if(/^[A-Za-z_]\w*$/.test(ts[j]||'')&&NAO_APELIDO.indexOf(U(ts[j]))<0)m[ts[j].toLowerCase()]=tab.toLowerCase()}});
+  return m;
+}
+// JOIN sem ON / USING (o SQLite aceita e combina tudo com tudo). Devolve o nome da tabela ou null.
+function joinSemOn(sql){
+  var ts=tokSQL(stripSqlKeepDq(sql)),d=0;
+  for(var i=0;i<ts.length;i++){var t=ts[i];if(t==='(')d++;else if(t===')')d--;
+    if(d===0&&U(t)==='JOIN'&&U(ts[i-1])!=='CROSS'){var k=i+1,achou=false;
+      for(;k<ts.length;k++){var u=U(ts[k]);if(u==='ON'||u==='USING'){achou=true;break}if(u==='JOIN'||['WHERE','GROUP','ORDER','LIMIT','HAVING'].indexOf(u)>=0||ts[k]===';')break}
+      if(!achou)return ts[i+1]||'?'}}
+  return null;
+}
+// Ligações do ON que não combinam: "ON p.cpf = v.placa". Usa as notas "aponta para" do Dicionário.
+function ligacaoEstranha(sql){
+  var re=/\bON\s+([\w.]+)\s*=\s*([\w.]+)/ig,m,notas=typeof COLNOTES!=='undefined'?COLNOTES:{};
+  while((m=re.exec(stripSqlKeepDq(sql)))){
+    var a=m[1].split('.').pop().toLowerCase(),b=m[2].split('.').pop().toLowerCase();
+    if(a===b)continue;
+    var liga=Object.keys(notas).some(function(k){var col=k.split('.')[1],n=notas[k];return (col===a&&new RegExp('aponta para \\w+\\.'+b+'\\b').test(n))||(col===b&&new RegExp('aponta para \\w+\\.'+a+'\\b').test(n))});
+    if(!liga)return [m[1],m[2]];
+  }
   return null;
 }

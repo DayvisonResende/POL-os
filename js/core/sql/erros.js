@@ -17,6 +17,10 @@ function translateError(msg,sql,schema){
   var m,tables=schema.tables,cols=schema.cols,dl=dialetoSQL(sql);
   if(dl)return dl;
   if((m=msg.match(/no such table: (\S+)/))){var s=closest(m[1].split('.').pop(),tables,3);return 'A tabela <b>'+escH(m[1])+'</b> não existe.'+(s?' Você quis dizer <code>'+s+'</code>?':'')+' Os nomes certos estão no Dicionário de Dados, à direita.'}
+  if((m=msg.match(/no such column: (\S+)/))&&m[1].indexOf('.')>0){var pre=m[1].split('.')[0],col=m[1].split('.').pop(),tq=tabelasDaConsulta(sql),tab=tq[pre.toLowerCase()];
+    if(!tab)return 'O apelido <b>'+escH(pre)+'</b> não foi definido nesta consulta. Dê o apelido logo depois do nome da tabela: <code>FROM tabela '+escH(pre)+'</code> ou <code>JOIN tabela '+escH(pre)+' ON …</code>.';
+    var cs=(schema.info&&schema.info[tab]||[]).map(function(c){return c.name}),sug=closest(col,cs);
+    return 'A tabela <b>'+escH(tab)+'</b>'+(pre.toLowerCase()!==tab?' (apelido <b>'+escH(pre)+'</b>)':'')+' não tem a coluna <b>'+escH(col)+'</b>.'+(sug?' Você quis dizer <code>'+escH(pre)+'.'+sug+'</code>?':' Confira no Dicionário de Dados de qual tabela ela é.')}
   if((m=msg.match(/no such column: (\S+)/))){var nm=m[1],base=nm.split('.').pop(),s2=closest(base,cols);
     if(/^(asc|desc)$/i.test(base)){var po=diagnosticarSQL(sql,schema);if(po.length)return juntarProblemas(po)}
     if(s2)return 'Não existe coluna chamada <b>'+escH(nm)+'</b>. Você quis dizer <code>'+s2+'</code>?';
@@ -33,6 +37,9 @@ function translateError(msg,sql,schema){
   if(/unrecognized token/.test(msg)&&!/'/.test(msg))return 'O banco não reconhece o símbolo <b>'+escH((msg.match(/unrecognized token: "?([^"]*)"?/)||[])[1]||'')+'</b>. Confira se ele não veio de outro programa ou de outro tipo de banco.';
   if(/unrecognized token/.test(msg))return 'Tem aspas abertas e não fechadas. Todo texto precisa começar e terminar com aspas simples: <code>\'prata\'</code>.';
   if((m=msg.match(/no such function: (\S+)/)))return 'Este banco não tem a função <b>'+escH(m[1])+'</b>. Confira o nome no manual do BO ("Comandos deste módulo").';
+  if((m=msg.match(/ambiguous column name: (\S+)/))){var amb=m[1],tq2=tabelasDaConsulta(sql),donos=[],apel={};
+    Object.keys(tq2).forEach(function(k){var tb=tq2[k];if(k!==tb)apel[tb]=k;if(donos.indexOf(tb)<0&&(schema.info&&schema.info[tb]||[]).some(function(c){return c.name===amb}))donos.push(tb)});
+    return 'A coluna <b>'+escH(amb)+'</b> existe em '+(donos.length>1?'<b>'+donos.map(escH).join('</b> e <b>')+'</b>':'mais de uma tabela da consulta')+'. Diga de qual: '+(donos.length?donos.map(function(tb){return '<code>'+escH(apel[tb]||tb)+'.'+escH(amb)+'</code>'}).join(' ou '):'<code>tabela.coluna</code>')+'.'}
   if(/ambiguous column/.test(msg))return 'Essa coluna existe em mais de uma tabela da consulta. Diga de qual: <code>tabela.coluna</code>.';
   if(/misuse of aggregate/.test(msg)||/non-aggregate query/.test(msg)){var pa=diagnosticarSQL(sql,schema);if(pa.length)return juntarProblemas(pa);
     return /non-aggregate/.test(msg)?'O <code>HAVING</code> filtra grupos e precisa de um <code>GROUP BY</code> antes dele. Para filtrar linhas, use <code>WHERE</code>.':'Funções como COUNT e SUM não vão no WHERE: o WHERE olha uma linha de cada vez. Para filtrar pelo resultado da conta, use HAVING depois do GROUP BY.'}
@@ -41,6 +48,8 @@ function translateError(msg,sql,schema){
 
 function zeroRowHint(sql,schema){
   var pr=diagnosticarSQL(sql,schema);if(pr.length)return juntarProblemas(pr);
+  var lg=ligacaoEstranha(sql);
+  if(lg)return 'Nenhuma linha juntou. Confira o <code>ON</code>: ele liga <code>'+escH(lg[0])+'</code> com <code>'+escH(lg[1])+'</code>, que não guardam a mesma informação. As duas colunas do ON precisam ser a mesma coisa (CPF com CPF, placa com placa). No Dicionário de Dados, a nota "aponta para" diz quem liga com quem.';
   var lits=(sql.match(/'[^']*'/g)||[]).map(function(s){return s.slice(1,-1)});
   if(/data_hora/i.test(sql)&&lits.some(function(l){return /^\d{1,2}:\d{2}(:\d{2})?$/.test(l)}))return 'A coluna <code>data_hora</code> guarda data e hora juntas. Escreva o valor completo: <code>\'2026-10-12 22:45:00\'</code>.';
   if(lits.some(function(l){return /^[A-Z]{3}-\d/.test(l)}))return 'As placas estão gravadas sem traço: <code>\'ABC1D23\'</code>.';

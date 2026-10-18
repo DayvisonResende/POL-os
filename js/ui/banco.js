@@ -4,7 +4,10 @@ var SQL=null, db=null, SCHEMA={tables:[],cols:[],info:{}};
 var TABELAS=[
  {nome:'veiculos'},{nome:'pessoas'},{nome:'leituras_radar'},{nome:'catraca_acessos'},
  {nome:'contas_bancarias',rankMin:3,diaMin:1,patente:L('Inspetor Analítico')},
- {nome:'transferencias',rankMin:3,diaMin:1,patente:L('Inspetor Analítico')}
+ {nome:'transferencias',rankMin:3,diaMin:1,patente:L('Inspetor Analítico')},
+ // Módulo 4 (JOIN): quinta-feira. Enquanto o dia 2 não existe no jogo, ficam bloqueadas para todos.
+ {nome:'empresas',rankMin:4,diaMin:2,patente:L('Agente Especial')},{nome:'imoveis',rankMin:4,diaMin:2,patente:L('Agente Especial')},
+ {nome:'notas_fiscais',rankMin:4,diaMin:2,patente:L('Agente Especial')},{nome:'itens_nota',rankMin:4,diaMin:2,patente:L('Agente Especial')}
 ];
 // diaMin: acesso provisório a partir desse dia (Operação Véio, quarta-feira); rankMin: acesso definitivo pela patente.
 function tabelaLiberada(t){return S.rank>=(t.rankMin||0)||(t.diaMin!=null&&S.dia>=t.diaMin)}

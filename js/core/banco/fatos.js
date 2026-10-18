@@ -39,6 +39,17 @@ function computeFacts(db){
   F.nSemOrigem=um('SELECT COUNT(*) FROM transferencias WHERE conta_origem IS NULL');
   F.somaEspecie=um('SELECT SUM(valor) FROM transferencias WHERE conta_origem IS NULL');
   F.nComDescricao=um('SELECT COUNT(descricao) FROM transferencias');
+  // Módulo 4 (Operação Véio, Ato III). A cadeia do JOIN: radar Km 92 → Hilux → dono → empresa → imóvel.
+  var Q4="FROM leituras_radar r JOIN veiculos v ON v.placa = r.placa JOIN pessoas p ON p.cpf = v.cpf_proprietario JOIN empresas e ON e.cpf_responsavel = p.cpf JOIN imoveis i ON i.cnpj_locatario = e.cnpj WHERE r.local_radar LIKE '%Km 92%' AND v.modelo = 'Hilux'";
+  F.Q4CADEIA=Q4;
+  F.galpao=um('SELECT i.endereco '+Q4);F.galpaoId=um('SELECT i.id '+Q4);
+  F.fachada=um('SELECT e.razao_social '+Q4);F.cnpjFachada=um('SELECT e.cnpj '+Q4);F.aberturaFachada=um('SELECT e.aberta_em '+Q4);F.aluguelGalpao=um('SELECT i.alugado_em '+Q4);
+  F.passagemKm92=um("SELECT r.data_hora FROM leituras_radar r JOIN veiculos v ON v.placa = r.placa WHERE r.local_radar LIKE '%Km 92%' AND v.modelo = 'Hilux'");
+  var CARGA="n.cnpj_transportadora = '12.408.336/0001-90' AND n.data_emissao = '2026-10-12'";F.QCARGA=CARGA;
+  F.valorCarga=um('SELECT SUM(n.valor_total) FROM notas_fiscais n WHERE '+CARGA);
+  F.somaInflada=um('SELECT SUM(n.valor_total) FROM notas_fiscais n JOIN itens_nota i ON i.nota_id = n.id WHERE '+CARGA);
+  F.notasCarga=col('SELECT n.numero FROM notas_fiscais n WHERE '+CARGA+' ORDER BY n.numero');
+  F.nItensCarga=um('SELECT COUNT(*) FROM notas_fiscais n JOIN itens_nota i ON i.nota_id = n.id WHERE '+CARGA);
   return F;
 }
 

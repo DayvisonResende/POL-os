@@ -76,6 +76,7 @@ function buildSeedSQL(){
   radar.forEach(function(r){sql.push('INSERT INTO leituras_radar (placa,local_radar,data_hora,velocidade_kmh,foto_radar_url) VALUES ('+sq(r[0])+','+sq(r[1])+','+sq(r[2])+','+r[3]+','+sq(r[4])+');')});
   catraca.forEach(function(c){sql.push('INSERT INTO catraca_acessos (funcionario,cargo,data,horario_entrada,horario_saida) VALUES ('+c.map(sq).join(',')+');')});
   sql.push(seedFinanceiro(people));
+  sql.push(seedModulo4(people));
   return sql.join('\n');
 }
 
@@ -143,5 +144,80 @@ function seedFinanceiro(people){
   novasPessoas.forEach(function(p){sql.push('INSERT INTO pessoas VALUES ('+[p.cpf,p.nome,p.nasc,p.cidade].map(sq).join(',')+');')});
   contas.forEach(function(c){sql.push('INSERT INTO contas_bancarias VALUES ('+c.id+','+[c.banco,c.agencia,c.numero,c.cpf,c.aberta].map(sq).join(',')+');')});
   tr.concat(planta).forEach(function(x){sql.push('INSERT INTO transferencias (conta_origem,conta_destino,valor,data_hora,descricao) VALUES ('+(x[0]==null?'NULL':x[0])+','+x[1]+','+x[2].toFixed(2)+','+sq(x[3])+','+(x[4]==null?'NULL':sq(x[4]))+');')});
+  return sql.join('\n');
+}
+
+/* Módulo 4 (JOIN): empresas, imóveis, notas fiscais e itens. PRNG próprio (5042): não muda nada dos módulos anteriores.
+   Operação Véio, Ato III (docs/historia.md): a Hilux passou no radar da Raposo Tavares, Km 92, às 23:41. O dono no
+   papel é o Valdemar (laranja: "nunca dirigiu uma Hilux"). No nome dele há uma empresa de fachada aberta em setembro,
+   que alugou um galpão no Km 93 duas semanas antes do assalto. Uma consulta com JOIN liga tudo:
+   leituras_radar → veiculos → pessoas → empresas → imoveis.
+   A carga roubada (R$ 380 mil, em 3 notas com vários itens) ensina a soma que infla no JOIN (1 nota → N itens). */
+function seedModulo4(people){
+  var r5=mulberry32(5042),pk=function(a){return a[Math.floor(r5()*a.length)]},rint=function(a,b){return a+Math.floor(r5()*(b-a+1))};
+  var pad=function(n){return String(n).padStart(2,'0')},data=function(a1,a2){return rint(a1,a2)+'-'+pad(rint(1,12))+'-'+pad(rint(1,28))};
+  var usados=new Set(),cnpj=function(){var c;do{c=pad(rint(10,99))+'.'+rint(100,999)+'.'+rint(100,999)+'/0001-'+pad(rint(10,99))}while(usados.has(c));usados.add(c);return c};
+  var cidades=['Sorocaba','Sorocaba','Votorantim','Itu','Salto','Araçoiaba da Serra'];
+  // responsáveis das empresas comuns: gente comum do cadastro (nunca os personagens plantados nos BOs)
+  var comuns=people.slice(10).filter(function(p){return !/Denise|Valdemar|Lucas Ferraz/.test(p.nome)});
+  var valdemar=people.filter(function(p){return p.nome==='Valdemar Silveira'})[0];
+  var ramo=['Comercial','Distribuidora','Transportes','Logística','Mercado','Auto Peças','Construtora','Padaria','Farmácia','Armazéns'];
+  var marca=['Sorocabana','Vale do Tietê','Bandeirantes','Santa Rosa','Primavera','Ipanema','Campolim','Éden','Itavuvu','Votocel','Cerrado','Trevo'];
+  var sufixo=['Ltda','Ltda','ME','S.A.','Eireli'];
+  var empresas=[],nomesE=new Set();
+  for(var i=0;i<26;i++){var n;do{n=pk(ramo)+' '+pk(marca)+' '+pk(sufixo)}while(nomesE.has(n));nomesE.add(n);
+    empresas.push({cnpj:cnpj(),nome:n,cidade:pk(cidades),aberta:data(1996,2024),cpf:pk(comuns).cpf})}
+  var transp=empresas.filter(function(e){return /^(Transportes|Logística)/.test(e.nome)});
+  // ---- PLANTADO ----
+  var central={cnpj:'12.408.336/0001-90',nome:'Transportadora Central Ltda',cidade:'Sorocaba',aberta:'2004-03-15',cpf:pk(comuns).cpf};
+  var eletro={cnpj:'27.915.604/0001-33',nome:'Eletro Sul Distribuidora S.A.',cidade:'Itu',aberta:'2011-08-02',cpf:pk(comuns).cpf};
+  var fachada={cnpj:'45.230.871/0001-06',nome:'VS Armazéns Gerais ME',cidade:'Araçoiaba da Serra',aberta:'2026-09-08',cpf:valdemar.cpf};
+  [central,eletro,fachada].forEach(function(e){usados.add(e.cnpj);empresas.push(e)});
+  transp.push(central);
+
+  // Imóveis: casas, apartamentos, salas e galpões. Galpões aleatórios ficam LONGE do Km 92 (Km 90 a 95 é só dos plantados).
+  var ruas=['Rua XV de Novembro','Av. General Carneiro','Rua da Penha','Av. Ipanema','Rua Souza Pereira','Av. Itavuvu','Rua Comendador Oetterer','Rua Barão de Tatuí','Av. Brasil','Rua Padre Luiz'];
+  var bairros=['Centro','Vila Hortência','Campolim','Éden','Jardim Simus','Wanel Ville','Santa Rosália','Jardim Ipiranga'];
+  var imoveis=[],empresasComuns=empresas.slice(0,26);
+  for(i=0;i<40;i++){
+    var tipo=pk(['casa','casa','apartamento','apartamento','sala comercial','galpão']),ref=null;
+    if(tipo==='galpão'){var rod=pk(['Rod. Raposo Tavares','Rod. Castelo Branco','Rod. Senador José Ermírio de Moraes']),km=rint(70,120);
+      if(rod==='Rod. Raposo Tavares'&&km>=90&&km<=95)km+=7;ref=rod+', Km '+km}
+    var alugado=r5()<.65,dono=alugado?(tipo==='casa'||tipo==='apartamento'?null:pk(empresasComuns)):null;
+    if(alugado&&!dono)alugado=r5()<.5;   // casas e apartamentos: metade alugada para empresas (moradia de funcionário), metade vaga
+    if(alugado&&!dono)dono=pk(empresasComuns);
+    imoveis.push({tipo:tipo,end:pk(ruas)+', '+rint(10,2400),bairro:tipo==='galpão'?'Distrito Industrial':pk(bairros),cidade:pk(cidades),ref:ref,cnpj:alugado?dono.cnpj:null,desde:alugado?data(2012,2025):null});
+  }
+  // Galpões perto do Km 92: três de empresas comuns, alugados há anos, um vago, e o da fachada (alugado em 30/09).
+  var perto=[[90,pk(transp.slice(0,-1)),'2019-05-20'],[91,pk(empresasComuns),'2016-11-03'],[94,pk(transp.slice(0,-1)),'2022-02-14'],[95,null,null],[93,fachada,'2026-09-30']];
+  perto.forEach(function(g,k){imoveis.push({tipo:'galpão',end:'Rod. Raposo Tavares, Km '+g[0]+', Galpão '+(k+3),bairro:'Distrito Industrial',cidade:g[0]<=92?'Sorocaba':'Araçoiaba da Serra',ref:'Rod. Raposo Tavares, Km '+g[0],cnpj:g[1]?g[1].cnpj:null,desde:g[2]})});
+  // ids embaralhados: o galpão plantado não fica no fim da tabela
+  for(i=imoveis.length-1;i>0;i--){var j=Math.floor(r5()*(i+1)),t=imoveis[i];imoveis[i]=imoveis[j];imoveis[j]=t}
+  for(i=empresas.length-1;i>0;i--){j=Math.floor(r5()*(i+1));t=empresas[i];empresas[i]=empresas[j];empresas[j]=t}
+
+  // Notas fiscais e itens. A carga de 12/10 da Transportadora Central: 3 notas, R$ 380.000,00 no total.
+  var produtos=[['Geladeira',2890],['Fogão',1290],['Micro-ondas',690],['Ventilador',189],['Liquidificador',149],['Bicicleta',1450],['Pneu',420],['Bateria automotiva',560],['Cimento (saco)',38],['Furadeira',310],['Colchão',980],['Cadeira de escritório',720]];
+  var notas=[],itens=[],emit=empresasComuns.concat([eletro]);
+  for(i=0;i<30;i++){
+    var nItens=rint(2,6),tot=0,lista=[],ps=produtos.slice();
+    for(var k=0;k<nItens;k++){var pr=ps.splice(Math.floor(r5()*ps.length),1)[0],q=rint(1,40);tot+=q*pr[1];lista.push([pr[0],q,pr[1]])}
+    var d=new Date(Date.UTC(2026,8,1)+rint(0,40)*86400000);
+    notas.push({num:'NF '+String(rint(10000,99999)),emit:pk(emit).cnpj,transp:pk(transp).cnpj,data:d.toISOString().slice(0,10),total:tot,itens:lista});
+  }
+  [[['Notebook',40,2950],['Monitor',20,980],['Tablet',12,1150],['Mouse sem fio',50,20]],
+   [['Celular',50,1890],['Fone bluetooth',100,145],['Smartwatch',25,690],['Carregador',100,35],['Capinha',100,15],['Cabo USB',50,10]],
+   [['Console de videogame',15,3200],['Controle de videogame',30,380],['Smart TV',10,2850],['Caixa de som',15,450],['Headset',12,100]]
+  ].forEach(function(lista,k){notas.push({num:'NF '+(77310+k*7),emit:eletro.cnpj,transp:central.cnpj,data:'2026-10-12',total:lista.reduce(function(a,x){return a+x[1]*x[2]},0),itens:lista})});
+  notas.sort(function(a,b){return a.data<b.data?-1:a.data>b.data?1:0});
+
+  var sql=["CREATE TABLE empresas (cnpj TEXT PRIMARY KEY, razao_social TEXT NOT NULL, cidade TEXT, aberta_em DATE, cpf_responsavel TEXT REFERENCES pessoas(cpf));",
+    "CREATE TABLE imoveis (id INTEGER PRIMARY KEY, tipo TEXT NOT NULL, endereco TEXT NOT NULL, bairro TEXT, cidade TEXT, referencia TEXT, cnpj_locatario TEXT REFERENCES empresas(cnpj), alugado_em DATE);",
+    "CREATE TABLE notas_fiscais (id INTEGER PRIMARY KEY, numero TEXT NOT NULL, cnpj_emitente TEXT REFERENCES empresas(cnpj), cnpj_transportadora TEXT REFERENCES empresas(cnpj), data_emissao DATE, valor_total REAL NOT NULL);",
+    "CREATE TABLE itens_nota (id INTEGER PRIMARY KEY AUTOINCREMENT, nota_id INTEGER NOT NULL REFERENCES notas_fiscais(id), produto TEXT NOT NULL, quantidade INTEGER NOT NULL, valor_unitario REAL NOT NULL);"];
+  var nul=function(v){return v==null?'NULL':sq(v)};
+  empresas.forEach(function(e){sql.push('INSERT INTO empresas VALUES ('+[e.cnpj,e.nome,e.cidade,e.aberta,e.cpf].map(sq).join(',')+');')});
+  imoveis.forEach(function(m,k){sql.push('INSERT INTO imoveis VALUES ('+(k+1)+','+[sq(m.tipo),sq(m.end),sq(m.bairro),sq(m.cidade),nul(m.ref),nul(m.cnpj),nul(m.desde)].join(',')+');')});
+  notas.forEach(function(n,k){sql.push('INSERT INTO notas_fiscais VALUES ('+(k+1)+','+[n.num,n.emit,n.transp,n.data].map(sq).join(',')+','+n.total.toFixed(2)+');');
+    n.itens.forEach(function(x){sql.push('INSERT INTO itens_nota (nota_id,produto,quantidade,valor_unitario) VALUES ('+(k+1)+','+sq(x[0])+','+x[1]+','+x[2].toFixed(2)+');')})});
   return sql.join('\n');
 }

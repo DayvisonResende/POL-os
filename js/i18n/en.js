@@ -351,5 +351,10 @@ registrarIdioma('en',{nome:'English',pronto:false,textos:{
  "No trabalho":"At work",
  "Veja também:":"See also:",
  "1 comando novo no Guia SQL: o que faz, exemplos e erros comuns.":"1 new command in the SQL Guide: what it does, examples and common mistakes.",
- "{n} comandos novos no Guia SQL: o que fazem, exemplos e erros comuns.":"{n} new commands in the SQL Guide: what they do, examples and common mistakes."
+ "{n} comandos novos no Guia SQL: o que fazem, exemplos e erros comuns.":"{n} new commands in the SQL Guide: what they do, examples and common mistakes.",
+ "Desenho das tabelas e de como elas se ligam":"Drawing of the tables and how they connect",
+ "Mapa das tabelas":"Table map",
+ "Mapa das tabelas e das ligações entre elas":"Map of the tables and the links between them",
+ "Cada seta sai da coluna que <b>aponta</b> (FK) e chega na tabela de onde vem a informação. É por essas colunas que um JOIN liga uma tabela à outra: <code>ON a.coluna_fk = b.chave</code>.":"Each arrow starts at the column that <b>points</b> (FK) and ends at the table the information comes from. These are the columns a JOIN uses to link one table to another: <code>ON a.fk_column = b.key</code>.",
+ "Agente Especial":"Special Agent"
 }});

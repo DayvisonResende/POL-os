@@ -65,6 +65,7 @@ function editorTrocar(txt){var ta=$('#sqlEd');ta.focus();ta.select();if(txt)edit
 // Notas das colunas: js/conteudo/dicionario.js (COLNOTES).
 function renderDict(){
   var d=$('#dict');if(!d)return;d.innerHTML='<h4>'+L('Dicionário de Dados')+'</h4><p class="dict-dica">'+L('Clique numa tabela para ver as colunas. Clique num nome para inserir no editor.')+'</p>';
+  var mb=h('button',{class:'dict-mapa',title:L('Desenho das tabelas e de como elas se ligam')},'&#9707; '+L('Mapa das tabelas'));mb.onclick=openMapa;d.appendChild(mb);
   // Tabelas fechadas por padrão (com tudo aberto, a lista fica enorme: playtest de 17/10); lembra o que o jogador abriu.
   var abertas=S.dictAbertas||(S.dictAbertas={});
   SCHEMA.tables.forEach(function(t){
@@ -153,7 +154,7 @@ function esconderSugestoes(){sugestaoAtual=null;var b=$('#sugest');if(b){b.hidde
 function mostrarSugestoes(){
   var ta=$('#sqlEd'),b=$('#sugest');if(!ta||!b)return;
   if(!autocompletarLigado()||ta.selectionStart!==ta.selectionEnd){esconderSugestoes();return}
-  var s=sugerirSQL(ta.value.slice(0,ta.selectionStart),SCHEMA);if(!s){esconderSugestoes();return}
+  var s=sugerirSQL(ta.value.slice(0,ta.selectionStart),SCHEMA,ta.value);if(!s){esconderSugestoes();return}
   sugestaoAtual=s;b.innerHTML='<span class="muted">'+escH(L('Tab completa:'))+'</span>';
   s.opcoes.forEach(function(o,i){var bt=h('button',{class:i?'':'prim',tabindex:'-1'},escH(o));bt.onmousedown=function(e){e.preventDefault();aceitarSugestao(o)};b.appendChild(bt)});
   b.hidden=false;

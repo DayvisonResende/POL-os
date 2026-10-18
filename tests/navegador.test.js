@@ -843,3 +843,54 @@ test('Guia SQL · aparece com o que foi aprendido, busca e exemplo no editor', {
     assert.deepStrictEqual(erros, []);
   } finally { await browser.close(); }
 });
+
+// Módulo 4 (parte técnica): tabelas novas só na quinta; mapa, Explique com JOIN, aviso de JOIN sem ON, autocompletar com apelido.
+test('Módulo 4 · tabelas novas, mapa e ferramentas de JOIN', { skip: !CHROME && 'Chrome não encontrado (defina CHROME)', timeout: 90000 }, async () => {
+  const { chromium } = require('playwright-core');
+  const browser = await chromium.launch({ executablePath: CHROME, headless: true });
+  try {
+    const abrirDia = async dia => {
+      const page = await browser.newPage({ viewport: { width: 1366, height: 800 } });
+      const erros = []; page.on('pageerror', e => erros.push(e.message));
+      await page.route('**/*', r => { const u = r.request().url(); if (u.includes('sql-asm.js')) return r.fulfill({ body: fs.readFileSync(ASM), contentType: 'application/javascript' }); return u.startsWith('file:') ? r.continue() : r.abort(); });
+      const st = { chat: { celia: [], beto: [], jairo: [], marina: [] }, unread: {}, lidas: {}, tut: 0, treino: null, treinosFeitos: ['m1', 'm2-filtros', 'm2-intervalos', 'm3-agregacao', 'm3-nulos'],
+        rank: 3, done: true, dia, diaIniciado: dia, diaConcluido: dia - 1, closed: ['1001', '1002', '1003', '1004', '1005'], caseSel: 4, apps: ['db', 'ocorr', 'zap', 'files', 'prova', 'caderno'], beto: 'done' };
+      await page.addInitScript(s => { window.SISP_CONFIG_TESTE = { url: '', chave: '', contato: '' }; window.SISP_IDIOMA_TESTE = 'pt-BR'; localStorage.setItem('sisp-proto-v2', s); }, JSON.stringify(st));
+      await page.goto('file://' + path.join(RAIZ, 'index.html'));
+      await page.waitForFunction(() => !document.querySelector('#lgBtn').disabled);
+      await page.click('#lgBtn');
+      return { page, erros };
+    };
+    // quarta-feira: nada do Módulo 4 aparece
+    let { page, erros } = await abrirDia(1);
+    await page.evaluate(() => openDb('SELECT * FROM empresas;'));
+    await page.click('#runBtn');
+    assert.match(await page.textContent('#dbMsg'), /Agente Especial/, 'tabela bloqueada até a patente/quinta');
+    await page.click('.dict-mapa');
+    assert.doesNotMatch(await page.textContent('.mapa'), /empresas|imoveis|notas_fiscais/);
+    assert.deepStrictEqual(erros, []);
+    await page.close();
+
+    // quinta-feira: tabelas liberadas, mapa com as ligações novas
+    ({ page, erros } = await abrirDia(2));
+    await page.evaluate(() => openDb());
+    await page.click('.dict-mapa');
+    const mapa = await page.textContent('.mapa');
+    for (const t of ['empresas', 'imoveis', 'notas_fiscais', 'itens_nota', 'cnpj_locatario']) assert.match(mapa, new RegExp(t));
+    assert.ok(await page.$$eval('.mapa-liga', l => l.length) >= 9, 'uma seta por ligação');
+    // Explique entende JOIN; JOIN sem ON avisa
+    await page.evaluate(() => { const ta = document.querySelector('#sqlEd'); ta.value = 'SELECT v.placa, p.nome FROM veiculos v JOIN pessoas p ON p.cpf = v.cpf_proprietario;'; S.editor = ta.value; focusWin('db'); });
+    await page.click('#explBtn');
+    assert.match(await page.textContent('#dbExpl'), /juntando cada linha com a linha da tabela pessoas/);
+    await page.evaluate(() => { const ta = document.querySelector('#sqlEd'); ta.value = 'SELECT * FROM veiculos v JOIN pessoas p;'; S.editor = ta.value; });
+    await page.click('#runBtn');
+    assert.match(await page.textContent('#dbMsg'), /não tem <code>ON|não tem ON/);
+    // autocompletar com apelido
+    await page.evaluate(() => { const ta = document.querySelector('#sqlEd'); ta.value = ' FROM imoveis i'; S.editor = ta.value; ta.focus(); ta.setSelectionRange(0, 0); });
+    await page.keyboard.type('SELECT i.cn');
+    assert.match(await page.textContent('#sugest'), /cnpj_locatario/);
+    await page.keyboard.press('Tab');
+    assert.strictEqual(await page.inputValue('#sqlEd'), 'SELECT i.cnpj_locatario FROM imoveis i');
+    assert.deepStrictEqual(erros, []);
+  } finally { await browser.close(); }
+});
