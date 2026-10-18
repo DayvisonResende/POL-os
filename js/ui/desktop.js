@@ -1,9 +1,11 @@
 /* ---------- desktop icons & start menu ---------- */
 // Nome de cada programa. DB-Investigator, PolíciaZap e ACADEPOL são marcas: iguais em todo idioma.
-function nomeApp(id){return {ocorr:L('SISP Ocorrências'),db:'DB-Investigator',zap:'PolíciaZap',files:L('Arquivos'),prova:'ACADEPOL',caderno:L('Caderno')}[id]}
+function nomeApp(id){return {ocorr:L('SISP Ocorrências'),db:'DB-Investigator',zap:'PolíciaZap',files:L('Arquivos'),prova:'ACADEPOL',caderno:L('Caderno'),guia:L('Guia SQL')}[id]}
+// O Guia SQL aparece sozinho quando há algum comando aprendido (vale também para saves antigos).
+function appVisivel(id){return id==='guia'?guiaLiberado():S.apps.indexOf(id)>=0}
 function renderIcons(){
   var el=$('#icons');el.innerHTML='';var unread=Object.keys(S.unread).reduce(function(t,k){return t+(S.unread[k]||0)},0);
-  [['ocorr',nomeApp('ocorr'),openOcorr],['db',nomeApp('db'),function(){openDb()}],['zap',nomeApp('zap'),openZap],['files',nomeApp('files'),openFiles],['caderno',nomeApp('caderno'),function(){openCaderno()}],['prova',nomeApp('prova'),openProva]].filter(function(a){return S.apps.indexOf(a[0])>=0}).forEach(function(a){
+  [['ocorr',nomeApp('ocorr'),openOcorr],['db',nomeApp('db'),function(){openDb()}],['zap',nomeApp('zap'),openZap],['files',nomeApp('files'),openFiles],['caderno',nomeApp('caderno'),function(){openCaderno()}],['guia',nomeApp('guia'),function(){openGuia()}],['prova',nomeApp('prova'),openProva]].filter(function(a){return appVisivel(a[0])}).forEach(function(a){
     var b=h('button',{class:'dicon',id:'ic-'+a[0]},'<span class="ico">'+ICONS[a[0]]+(a[0]==='zap'&&unread?'<span class="badge">'+unread+'</span>':a[0]==='prova'&&provaMod()!=null?'<span class="badge" title="'+escH(L('Prova pendente'))+'">!</span>':'')+'</span><span>'+a[1]+'</span>');
     b.ondblclick=a[2];b.onkeydown=function(e){if(e.key==='Enter')a[2]()};b.onclick=function(){if(window.matchMedia('(pointer:coarse)').matches||window.innerWidth<=760)a[2]()};
     el.appendChild(b)});
@@ -17,8 +19,8 @@ function buildStart(){
   main.appendChild(h('div',{class:'sm-user'},'<span class="av">RD</span><div><b>recruta.dti04</b><small>'+escH(rankT())+'</small></div>'));
   var item=function(pai,rotulo,icone,acao,cls){var b=h('button',{class:'sm-it'+(cls?' '+cls:''),role:'menuitem'},'<span class="sm-ico">'+icone+'</span><span>'+escH(rotulo)+'</span>');b.onclick=function(){toggleStart(false);acao()};pai.appendChild(b);return b};
   main.appendChild(h('div',{class:'sm-sec'},L('Programas')));
-  [[nomeApp('ocorr'),openOcorr,'ocorr'],[nomeApp('db'),function(){openDb()},'db'],[nomeApp('zap'),openZap,'zap'],[nomeApp('files'),openFiles,'files'],[nomeApp('caderno'),function(){openCaderno()},'caderno'],[nomeApp('prova'),openProva,'prova']]
-    .filter(function(a){return S.apps.indexOf(a[2])>=0}).forEach(function(a){item(main,a[0],ICONS[a[2]],a[1],'app')});
+  [[nomeApp('ocorr'),openOcorr,'ocorr'],[nomeApp('db'),function(){openDb()},'db'],[nomeApp('zap'),openZap,'zap'],[nomeApp('files'),openFiles,'files'],[nomeApp('caderno'),function(){openCaderno()},'caderno'],[nomeApp('guia'),function(){openGuia()},'guia'],[nomeApp('prova'),openProva,'prova']]
+    .filter(function(a){return appVisivel(a[2])}).forEach(function(a){item(main,a[0],ICONS[a[2]],a[1],'app')});
   main.appendChild(h('hr'));
   item(main,L('Relatório do turno'),MENU_ICONS.relatorio,report);
   if(teleModo())item(main,L('Diagnóstico de playtest'),MENU_ICONS.diag,openDiag);

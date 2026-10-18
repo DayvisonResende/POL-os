@@ -53,6 +53,8 @@ function tutFinish(){
   spot(null,null);setEditor(null,false);
   var g=$('#guide');if(g){g.remove();$('.dbwrap').classList.remove('tut')}
   histAberto=false;save();if(T.aoConcluir)T.aoConcluir();
+  var novos=VERBETES.filter(function(v){return v.treino===T.id}).length;
+  if(novos)setTimeout(function(){renderIcons();buildStart();toast(L('Guia SQL'),Lp(novos,'1 comando novo no Guia SQL: o que faz, exemplos e erros comuns.','{n} comandos novos no Guia SQL: o que fazem, exemplos e erros comuns.'),'ok',function(){openGuia()})},4500);
   if(T.anotacoes&&S.apps.indexOf('files')>=0)setTimeout(function(){toast('Anotações da Célia',L('O resumo do treinamento ficou em Arquivos › Anotações.'),'warn',function(){filesDir='Anotações';openFiles();renderFiles()})},2200);
 }
 function tutFeedback(kind,html){pararVozes();falar('celia',String(html).split('<div class="gerr">')[0]);   // só a fala da Célia, sem a mensagem de erro (que muda)

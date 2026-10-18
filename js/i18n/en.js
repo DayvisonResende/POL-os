@@ -338,5 +338,18 @@ registrarIdioma('en',{nome:'English',pronto:false,textos:{
  "Copiado":"Copied",
  "Não deu para copiar":"Couldn't copy",
  "Clique para copiar":"Click to copy",
- "O resultado da consulta aparece aqui. Clique num valor do resultado para copiar.":"The query result appears here. Click a value in the result to copy it."
+ "O resultado da consulta aparece aqui. Clique num valor do resultado para copiar.":"The query result appears here. Click a value in the result to copy it.",
+ "Guia SQL":"SQL Guide",
+ "Buscar: média, vazio, ordenar…":"Search: average, empty, sort…",
+ "Buscar no Guia SQL":"Search the SQL Guide",
+ "Nada encontrado. O Guia só tem os comandos que você já aprendeu.":"Nothing found. The Guide only has the commands you have already learned.",
+ "Formato":"Format",
+ "Exemplos":"Examples",
+ "Testar no editor":"Try in the editor",
+ "Copiar":"Copy",
+ "Erros comuns":"Common mistakes",
+ "No trabalho":"At work",
+ "Veja também:":"See also:",
+ "1 comando novo no Guia SQL: o que faz, exemplos e erros comuns.":"1 new command in the SQL Guide: what it does, examples and common mistakes.",
+ "{n} comandos novos no Guia SQL: o que fazem, exemplos e erros comuns.":"{n} new commands in the SQL Guide: what they do, examples and common mistakes."
 }});

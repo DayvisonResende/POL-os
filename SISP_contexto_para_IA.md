@@ -96,6 +96,7 @@ js/
     vozes.js                idFala, textoFalado, PRONUNCIA, registrarVozes (docs/vozes.md)
     registro.js             CASES, PROVAS, registrarCaso, registrarProva, indiceCaso
     servicos.js             serviços do Beto: CONCEITOS, SERVICOS, sorteio, conferência da resposta e domínio
+    guia.js                 Guia SQL: VERBETES, registrarVerbete, verbetesLiberados, buscarVerbetes
     banco/seed.js           buildSeedSQL (dados do jogo)
     banco/fatos.js          F e computeFacts
     sql/lexico.js           KEYWORDS, lev, closest, kwTypo, stripSql, tokSQL, joinToks
@@ -239,6 +240,12 @@ registrarCaso({                     // em js/conteudo/casos/1002.js
 - **Erros de outros bancos** (`DIALETOS` em `js/core/sql/erros.js`): `::`, `TOP`, `ILIKE`, `NOW()`/`GETDATE()`, `ISNULL`, `LEN`, `DATEDIFF`, `CONCAT`, `EXTRACT`.
 - **Conteúdo:** passo "prever" do COALESCE antes do molde; "boas manias" nas anotações do Módulo 3 (AS, uma parte por linha, executar só o trecho selecionado).
 - **Notificações:** somem descendo; "Som de mensagem" opcional (SISP › Configurações › Som, desligado por padrão, gerado com Web Audio).
+
+### 4.6.3 Guia SQL (17/10/2026)
+- App **Guia SQL** no Pol-OS (`js/apps/guia.js`): referência rápida, com busca, de cada comando **já ensinado** (o verbete aparece quando o treinamento indicado em `treino` termina; o ícone aparece sozinho, inclusive em saves antigos). Cada verbete: o que faz, formato, exemplos com **Testar no editor** (fora do treinamento) e **Copiar**, erros comuns, "No trabalho" (diferença para outros bancos) e "Veja também".
+- Conteúdo: `js/conteudo/guia.js` (22 verbetes dos Módulos 1 a 3). **Regra: ensina o "como", nunca o "o quê" dos BOs.** `tests/guia.test.js` reprova texto com valores dos casos e **resultado curto** (até 10 linhas) que mostre resposta (placas, nomes, CPFs dos laranjas). O teste já pegou 4 exemplos que entregavam algo (a Denise é a 1ª pessoa da tabela; o Virtus aparece nas passagens rápidas e entre 19h e 20h; um sobrenome era de laranja).
+- Módulo novo: acrescentar os verbetes do módulo com o `treino` dele; rodar `node --test tests/guia.test.js`.
+- Ainda não ligado: link "ver no Guia" a partir das mensagens de erro e do Explique; selo de domínio dos serviços do Beto no verbete.
 
 ### 4.7 Telemetria remota (Supabase)
 - `js/ui/telemetria-remota.js` manda cada evento de `tele()` para a tabela `eventos` do Supabase, **só** se `js/config.js` tiver `url` e `chave` **e** o jogador aceitou o termo (`js/conteudo/termo.js`, guardado em `localStorage['sisp-consentimento']` com `TERMO_VERSAO`). Sem isso, não faz nada.

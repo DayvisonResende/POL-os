@@ -812,3 +812,34 @@ test('DB-Investigator · tradução e erro aparecem inteiros', { skip: !CHROME &
     assert.deepStrictEqual(erros, []);
   } finally { await browser.close(); }
 });
+
+// Guia SQL: aparece depois do primeiro treinamento, mostra só o que foi ensinado, busca e leva o exemplo ao editor.
+test('Guia SQL · aparece com o que foi aprendido, busca e exemplo no editor', { skip: !CHROME && 'Chrome não encontrado (defina CHROME)', timeout: 60000 }, async () => {
+  const { chromium } = require('playwright-core');
+  const browser = await chromium.launch({ executablePath: CHROME, headless: true });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1366, height: 800 } });
+    const erros = []; page.on('pageerror', e => erros.push(e.message));
+    await page.route('**/*', r => { const u = r.request().url(); if (u.includes('sql-asm.js')) return r.fulfill({ body: fs.readFileSync(ASM), contentType: 'application/javascript' }); return u.startsWith('file:') ? r.continue() : r.abort(); });
+    const terca = { chat: { celia: [], beto: [], jairo: [], marina: [] }, unread: {}, lidas: {}, tut: 0, treino: null, treinosFeitos: ['m1', 'm2-filtros'],
+      rank: 1, done: true, dia: 0, diaIniciado: 0, closed: ['1001'], caseSel: 1, apps: ['db', 'ocorr', 'zap', 'files', 'caderno'], beto: 'none' };
+    await page.addInitScript(s => { window.SISP_CONFIG_TESTE = { url: '', chave: '', contato: '' }; window.SISP_IDIOMA_TESTE = 'pt-BR';
+      if (!sessionStorage.getItem('ok')) { localStorage.setItem('sisp-proto-v2', s); sessionStorage.setItem('ok', '1'); } }, JSON.stringify(terca));
+    await page.goto('file://' + path.join(RAIZ, 'index.html'));
+    await page.waitForFunction(() => !document.querySelector('#lgBtn').disabled);
+    await page.click('#lgBtn');
+    assert.ok(await page.isVisible('#ic-guia'), 'ícone do Guia na área de trabalho');
+    await page.evaluate(() => openGuia());
+    const lista = await page.textContent('.guia-lista');
+    assert.match(lista, /LIKE/); assert.doesNotMatch(lista, /GROUP BY|BETWEEN|HAVING/, 'nada do que ainda não foi ensinado');
+    await page.fill('.guia-busca', 'pedaço');
+    assert.match(await page.textContent('.guia-titulo'), /LIKE/);
+    assert.ok(await page.evaluate(() => document.activeElement.classList.contains('guia-busca')), 'a busca continua com o cursor');
+    const sql = await page.textContent('.guia-ex pre');
+    await page.click('.guia-ex .tb-btn.run');
+    assert.strictEqual(await page.inputValue('#sqlEd'), sql);
+    await page.click('#runBtn');
+    assert.match(await page.textContent('#dbStatus'), /linha/);
+    assert.deepStrictEqual(erros, []);
+  } finally { await browser.close(); }
+});

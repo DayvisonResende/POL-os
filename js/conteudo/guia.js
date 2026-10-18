@@ -1,0 +1,172 @@
+/* Verbetes do Guia SQL (Módulos 1 a 3). Formato e regras: js/core/guia.js.
+   Exemplos SEM nada dos casos: nada de prata, Virtus, Hilux, Castelo, Raposo, Dom Aguirre, Piedade, Itu, Salto,
+   placas FTR/KZX, 22:45, 23:15, 13/10, conta_origem/conta_destino nem nomes do enredo (tests/guia.test.js confere). */
+
+/* ---------- Módulo 1: ler o cadastro ---------- */
+registrarVerbete({id:'select',titulo:'SELECT … FROM',treino:'m1',busca:'consulta ler mostrar tabela colunas asterisco *',
+  resumo:L('Mostra dados de uma tabela. O <code>SELECT</code> diz <b>quais colunas</b>; o <code>FROM</code> diz <b>de qual tabela</b>. O <code>*</code> quer dizer "todas as colunas".'),
+  formato:'SELECT coluna1, coluna2 FROM tabela;',
+  exemplos:[{sql:'SELECT * FROM veiculos;',explica:L('Todas as colunas de todos os veículos.')},
+            {sql:'SELECT placa, modelo FROM veiculos;',explica:L('Só duas colunas, na ordem em que você escreveu.')}],
+  erros:[L('Vírgula depois da última coluna: <code>SELECT placa, modelo, FROM</code> dá erro.'),L('Nome de tabela ou coluna digitado errado. Confira no Dicionário de Dados.')],
+  ver:['distinct','as','limit']});
+registrarVerbete({id:'distinct',titulo:'DISTINCT',treino:'m1',busca:'repetido repetição únicos sem repetir',
+  resumo:L('Tira as linhas repetidas do resultado: cada valor aparece uma vez só.'),
+  formato:'SELECT DISTINCT coluna FROM tabela;',
+  exemplos:[{sql:'SELECT DISTINCT cidade FROM pessoas;',explica:L('Cada cidade uma vez, mesmo que muita gente more nela.')},
+            {sql:'SELECT DISTINCT modelo, cor FROM veiculos;',explica:L('Com duas colunas, some só a combinação repetida (o mesmo modelo na mesma cor).')}],
+  erros:[L('O DISTINCT vem logo depois do SELECT, antes das colunas.')],
+  ver:['select','count']});
+registrarVerbete({id:'as',titulo:'AS (apelido)',treino:'m1',busca:'alias apelido nome da coluna renomear',
+  resumo:L('Dá outro nome a uma coluna <b>no resultado</b>. O banco não muda: só o cabeçalho da tabela que aparece.'),
+  formato:'SELECT coluna AS apelido FROM tabela;',
+  exemplos:[{sql:'SELECT nome AS pessoa, cidade AS mora_em FROM pessoas;',explica:L('Os cabeçalhos saem "pessoa" e "mora_em".')},
+            {sql:'SELECT COUNT(*) AS total FROM veiculos;',explica:L('Muito usado com contas: o resultado se chama "total", e não "COUNT(*)".')}],
+  erros:[L('Apelido com espaço precisa de aspas duplas (<code>AS "minha coluna"</code>). Prefira sem espaço: <code>minha_coluna</code>.')],
+  ver:['select','count']});
+registrarVerbete({id:'limit',titulo:'LIMIT',treino:'m1',busca:'limitar primeiros poucos top',
+  resumo:L('Corta o resultado: mostra só as primeiras linhas. Vai sempre no <b>fim</b> da consulta.'),
+  formato:'SELECT * FROM tabela LIMIT 5;',
+  exemplos:[{sql:'SELECT * FROM leituras_radar LIMIT 5;',explica:L('Só as 5 primeiras passagens de radar. Bom para espiar uma tabela grande.')},
+            {sql:'SELECT placa, modelo, ano FROM veiculos ORDER BY ano DESC LIMIT 3;',explica:L('Com ORDER BY: os 3 carros mais novos.')}],
+  erros:[L('LIMIT antes do WHERE ou do ORDER BY dá erro: ele é sempre o último.')],
+  mercado:L('No SQL Server, o limite vai no começo: <code>SELECT TOP (5) * FROM tabela;</code>'),
+  ver:['orderby']});
+
+/* ---------- Módulo 2: filtros ---------- */
+registrarVerbete({id:'where',titulo:'WHERE',treino:'m2-filtros',busca:'filtro filtrar condição onde',
+  resumo:L('Escolhe <b>quais linhas</b> entram no resultado. Depois do WHERE vem sempre uma comparação completa: <b>coluna</b>, <b>operador</b> e <b>valor</b>.'),
+  formato:"SELECT * FROM tabela WHERE coluna = 'valor';",
+  exemplos:[{sql:"SELECT * FROM veiculos WHERE cor = 'azul';",explica:L('Só os veículos azuis.')},
+            {sql:"SELECT nome, cidade FROM pessoas WHERE cidade = 'Sorocaba';",explica:L('Quem mora em Sorocaba. O WHERE escolhe as linhas; o SELECT, as colunas.')}],
+  erros:[L('Texto sem aspas: <code>cor = azul</code> faz o banco procurar uma <i>coluna</i> chamada azul.'),L('Com <code>=</code>, o valor precisa ser idêntico: <code>\'Azul\'</code> não acha <code>\'azul\'</code>.'),L('<code>WHERE cor</code> sozinho, sem comparação.')],
+  ver:['aspas','and','like','comparacao']});
+registrarVerbete({id:'aspas',titulo:L('Aspas: texto × número'),treino:'m2-filtros',busca:'aspas simples duplas texto número string',
+  resumo:L('Texto vai entre <b>aspas simples</b>: <code>\'azul\'</code>. Número vai <b>sem aspas</b>: <code>2020</code>. Aspas duplas são para nomes de coluna, não para texto.'),
+  formato:"WHERE coluna_de_texto = 'valor'   ·   WHERE coluna_numerica = 10",
+  exemplos:[{sql:"SELECT * FROM veiculos WHERE modelo = 'Gol';",explica:L('Texto: com aspas simples.')},
+            {sql:'SELECT * FROM veiculos WHERE ano = 2019;',explica:L('Número: sem aspas.')}],
+  erros:[L('<code>"azul"</code> com aspas duplas: aqui às vezes funciona por sorte, mas em bancos de empresa dá erro.'),L('Esqueceu de fechar a aspa: o banco acha que o texto continua até o fim.')],
+  ver:['where']});
+registrarVerbete({id:'like',titulo:'LIKE e %',treino:'m2-filtros',busca:'parecido começa termina contém pedaço porcentagem curinga',
+  resumo:L('Procura um <b>pedaço</b> do texto. O <code>%</code> quer dizer "qualquer coisa, de qualquer tamanho". O LIKE entra no lugar do <code>=</code>.'),
+  formato:"WHERE coluna LIKE 'Ro%'   ·   '%Leme'   ·   '%Leme%'",
+  exemplos:[{sql:"SELECT nome FROM pessoas WHERE nome LIKE 'Ro%';",explica:L('Nomes que começam com "Ro".')},
+            {sql:"SELECT nome FROM pessoas WHERE nome LIKE '%Queiroz%';",explica:L('Nomes que têm "Queiroz" em qualquer parte.')},
+            {sql:"SELECT placa FROM veiculos WHERE placa LIKE '%4';",explica:L('Placas que terminam em 4.')}],
+  erros:[L('<code>WHERE nome = LIKE \'Ro%\'</code>: é um ou outro, nunca os dois.'),L('Sem <code>%</code>, o LIKE funciona igual ao <code>=</code>.')],
+  mercado:L('Aqui o LIKE ignora maiúsculas (nas letras sem acento). No PostgreSQL ele diferencia; lá se usa <code>ILIKE</code>.'),
+  ver:['where']});
+registrarVerbete({id:'and',titulo:'AND e OR',treino:'m2-filtros',busca:'e ou duas condições várias combinar',
+  resumo:L('Junta condições. <b>AND</b>: as duas valem <b>na mesma linha</b> (o resultado fica menor). <b>OR</b>: basta uma valer (o resultado fica maior).'),
+  formato:"WHERE condicao1 AND condicao2",
+  exemplos:[{sql:"SELECT * FROM veiculos WHERE cor = 'branco' AND ano >= 2020;",explica:L('Brancos <b>e</b> de 2020 em diante.')},
+            {sql:"SELECT * FROM veiculos WHERE modelo = 'Gol' OR modelo = 'Kwid';",explica:L('Gol <b>ou</b> Kwid.')}],
+  erros:[L('Misturou AND e OR? Use parênteses para deixar claro: <code>WHERE ano > 2020 AND (cor = \'azul\' OR cor = \'branco\')</code>.')],
+  ver:['where','in']});
+
+/* ---------- Módulo 2: intervalos ---------- */
+registrarVerbete({id:'comparacao',titulo:L('Comparação: = != > < >= <='),treino:'m2-intervalos',busca:'maior menor igual diferente operador',
+  resumo:L('Compara valores: <code>=</code> igual, <code>!=</code> diferente, <code>&gt;</code> maior, <code>&lt;</code> menor, <code>&gt;=</code> maior ou igual, <code>&lt;=</code> menor ou igual.'),
+  formato:'WHERE coluna > valor',
+  exemplos:[{sql:'SELECT * FROM veiculos WHERE ano > 2021;',explica:L('Depois de 2021 (2021 não entra).')},
+            {sql:'SELECT * FROM veiculos WHERE ano >= 2021;',explica:L('De 2021 em diante (2021 entra).')},
+            {sql:"SELECT * FROM veiculos WHERE cor != 'preto';",explica:L('Todos menos os pretos.')}],
+  erros:[L('"Mais de 8" é <code>&gt; 8</code>; o <code>&gt;=</code> deixa entrar o próprio 8.'),L('Número entre aspas: às vezes funciona, mas compara como texto.')],
+  ver:['between','where']});
+registrarVerbete({id:'between',titulo:'BETWEEN',treino:'m2-intervalos',busca:'entre intervalo faixa de até',
+  resumo:L('Um intervalo, <b>incluindo as duas pontas</b>. Serve para números e para datas.'),
+  formato:'WHERE coluna BETWEEN inicio AND fim',
+  exemplos:[{sql:'SELECT * FROM veiculos WHERE ano BETWEEN 2015 AND 2017;',explica:L('2015, 2016 e 2017.')},
+            {sql:'SELECT * FROM leituras_radar WHERE velocidade_kmh BETWEEN 60 AND 80;',explica:L('Passagens de 60 a 80 km/h.')}],
+  erros:[L('Ponta maior primeiro (<code>BETWEEN 2017 AND 2015</code>) volta vazio.'),L('O AND do BETWEEN não é o AND que junta condições: os dois podem aparecer na mesma consulta.')],
+  ver:['comparacao','datahora']});
+registrarVerbete({id:'datahora',titulo:L('Data e hora'),treino:'m2-intervalos',busca:'data hora horário dia período data_hora',
+  resumo:L('As datas ficam no formato <code>\'AAAA-MM-DD HH:MM:SS\'</code>, entre aspas. Para um período, use BETWEEN com as <b>duas pontas completas</b>.'),
+  formato:"WHERE data_hora BETWEEN 'AAAA-MM-DD HH:MM:SS' AND 'AAAA-MM-DD HH:MM:SS'",
+  exemplos:[{sql:"SELECT * FROM leituras_radar WHERE data_hora BETWEEN '2026-10-12 20:00:00' AND '2026-10-12 21:00:00';",explica:L('Passagens do dia 12/10, das 20h às 21h.')},
+            {sql:"SELECT * FROM catraca_acessos WHERE data = '2026-10-09';",explica:L('Colunas só de data (sem hora) usam <code>\'AAAA-MM-DD\'</code>.')}],
+  erros:[L('Só a hora (<code>\'19:00\'</code>) volta vazio: a coluna tem data e hora juntas.'),L('Dia/mês/ano (<code>\'12/10/2026\'</code>) não funciona: é sempre ano-mês-dia.')],
+  mercado:L('No trabalho, para pegar um dia inteiro, o costume é <code>data_hora &gt;= \'2026-10-10\' AND data_hora &lt; \'2026-10-11\'</code>: não perde nada que tenha fração de segundo.'),
+  ver:['between']});
+registrarVerbete({id:'in',titulo:'IN',treino:'m2-intervalos',busca:'lista um entre vários vários valores',
+  resumo:L('"Um entre vários": troca vários <code>OR</code> por uma lista entre parênteses.'),
+  formato:"WHERE coluna IN ('valor1', 'valor2')",
+  exemplos:[{sql:"SELECT * FROM veiculos WHERE modelo IN ('Gol', 'Kwid', 'HB20');",explica:L('Qualquer um dos três modelos.')},
+            {sql:'SELECT * FROM veiculos WHERE ano IN (2010, 2020);',explica:L('Números também, sem aspas.')}],
+  erros:[L('Esqueceu os parênteses ou as aspas de cada texto.')],
+  ver:['and','where']});
+registrarVerbete({id:'orderby',titulo:'ORDER BY',treino:'m2-intervalos',busca:'ordenar ordem classificar crescente decrescente asc desc maior menor',
+  resumo:L('Ordena o resultado. <code>ASC</code> do menor para o maior (é o padrão); <code>DESC</code> do maior para o menor. Vai depois do WHERE.'),
+  formato:'ORDER BY coluna DESC',
+  exemplos:[{sql:'SELECT placa, modelo, ano FROM veiculos ORDER BY ano DESC;',explica:L('Do carro mais novo para o mais velho.')},
+            {sql:'SELECT nome, cidade FROM pessoas ORDER BY cidade, nome;',explica:L('Por cidade e, dentro de cada cidade, por nome.')}],
+  erros:[L('<code>ORDER BY DESC</code> sem a coluna: ele precisa saber <i>pelo quê</i> ordenar.')],
+  ver:['limit']});
+
+/* ---------- Módulo 3: agregação ---------- */
+registrarVerbete({id:'count',titulo:'COUNT',treino:'m3-agregacao',busca:'contar quantos quantidade número de linhas',
+  resumo:L('Conta linhas. <code>COUNT(*)</code> conta todas; com WHERE, conta só as que passam no filtro.'),
+  formato:'SELECT COUNT(*) FROM tabela WHERE …;',
+  exemplos:[{sql:'SELECT COUNT(*) FROM veiculos;',explica:L('Quantos veículos há no cadastro.')},
+            {sql:"SELECT COUNT(*) AS azuis FROM veiculos WHERE cor = 'azul';",explica:L('Quantos são azuis.')},
+            {sql:'SELECT COUNT(DISTINCT cidade) FROM pessoas;',explica:L('Quantas cidades <b>diferentes</b>.')}],
+  erros:[L('COUNT dentro do WHERE dá erro: para filtrar pela conta, use HAVING.')],
+  ver:['countcoluna','groupby','having']});
+registrarVerbete({id:'sumavg',titulo:'SUM e AVG',treino:'m3-agregacao',busca:'somar soma total média',
+  resumo:L('<code>SUM</code> soma os valores de uma coluna; <code>AVG</code> tira a média. O WHERE escolhe quais linhas entram na conta.'),
+  formato:'SELECT SUM(coluna), AVG(coluna) FROM tabela WHERE …;',
+  exemplos:[{sql:'SELECT AVG(velocidade_kmh) AS media FROM leituras_radar;',explica:L('Velocidade média de todas as passagens.')},
+            {sql:"SELECT SUM(velocidade_kmh) FROM leituras_radar WHERE local_radar = 'Av. São Paulo';",explica:L('Soma só das passagens desse radar.')}],
+  erros:[L('SUM de uma coluna de texto não faz sentido (dá zero).')],
+  ver:['minmax','groupby']});
+registrarVerbete({id:'minmax',titulo:'MIN e MAX',treino:'m3-agregacao',busca:'menor maior mínimo máximo primeiro último mais antigo mais recente',
+  resumo:L('O menor e o maior valor de uma coluna. Funcionam com números, textos e datas.'),
+  formato:'SELECT MIN(coluna), MAX(coluna) FROM tabela;',
+  exemplos:[{sql:'SELECT MIN(ano), MAX(ano) FROM veiculos;',explica:L('O carro mais velho e o mais novo.')},
+            {sql:'SELECT MIN(data_nascimento), MAX(data_nascimento) FROM pessoas;',explica:L('Com datas: a pessoa mais velha e a mais nova.')}],
+  erros:[L('MIN e MAX dão o <b>valor</b>, não a linha inteira. Para ver a linha, use ORDER BY e LIMIT 1.')],
+  ver:['orderby','sumavg']});
+registrarVerbete({id:'groupby',titulo:'GROUP BY',treino:'m3-agregacao',busca:'agrupar grupo por cada um de cada',
+  resumo:L('Faz uma conta <b>para cada grupo</b>. Cada valor diferente da coluna vira uma linha no resultado.'),
+  formato:'SELECT coluna, COUNT(*) FROM tabela GROUP BY coluna;',
+  exemplos:[{sql:'SELECT cor, COUNT(*) AS total FROM veiculos GROUP BY cor;',explica:L('Quantos veículos de cada cor.')},
+            {sql:'SELECT local_radar, AVG(velocidade_kmh) AS media FROM leituras_radar GROUP BY local_radar;',explica:L('Velocidade média em cada radar.')}],
+  erros:[L('Regra de ouro: no SELECT, cada coluna ou está no GROUP BY, ou está dentro de uma conta (COUNT, SUM…). Senão o banco mostra um valor qualquer.'),L('GROUP BY antes do WHERE dá erro: a ordem é WHERE, depois GROUP BY.')],
+  ver:['having','count','ordem']});
+registrarVerbete({id:'having',titulo:'HAVING',treino:'m3-agregacao',busca:'filtrar grupos depois da conta',
+  resumo:L('Filtra <b>grupos</b>, depois da conta pronta. O WHERE filtra <b>linhas</b>, antes de agrupar.'),
+  formato:'… GROUP BY coluna HAVING COUNT(*) > n;',
+  exemplos:[{sql:'SELECT cor, COUNT(*) FROM veiculos GROUP BY cor HAVING COUNT(*) > 5;',explica:L('Só as cores com mais de 5 veículos.')},
+            {sql:'SELECT modelo, COUNT(*) FROM veiculos WHERE ano >= 2015 GROUP BY modelo HAVING COUNT(*) >= 2;',explica:L('WHERE e HAVING juntos: primeiro filtra os carros de 2015 em diante, depois os modelos com 2 ou mais.')}],
+  erros:[L('HAVING sem GROUP BY.'),L('Conta (COUNT, SUM…) no WHERE: o lugar dela é o HAVING.')],
+  ver:['groupby','where']});
+registrarVerbete({id:'ordem',titulo:L('A ordem das partes'),treino:'m3-agregacao',busca:'ordem cláusulas sequência estrutura organizar',
+  resumo:L('As partes de uma consulta vêm sempre nesta ordem. Pode pular as que não usar, mas nunca trocar de lugar.'),
+  formato:'SELECT … FROM … WHERE … GROUP BY … HAVING … ORDER BY … LIMIT …;',
+  exemplos:[{sql:'SELECT cor, COUNT(*) AS total\nFROM veiculos\nWHERE ano >= 2015\nGROUP BY cor\nHAVING COUNT(*) > 2\nORDER BY total DESC\nLIMIT 3;',explica:L('Todas juntas, uma por linha. O botão <b>Organizar</b> do DB-Investigator arruma assim para você.')}],
+  erros:[L('Parte fora do lugar: o banco dá erro "perto de" a palavra deslocada.')],
+  ver:['groupby','having','orderby','limit']});
+
+/* ---------- Módulo 3: o vazio ---------- */
+registrarVerbete({id:'null',titulo:'NULL, IS NULL',treino:'m3-nulos',busca:'vazio nulo sem valor ninguém sabe is not null',
+  resumo:L('<code>NULL</code> é a célula vazia: "ninguém sabe". Não é zero nem texto em branco. Procura-se com <code>IS NULL</code> (ou <code>IS NOT NULL</code>), <b>nunca</b> com <code>=</code>.'),
+  formato:'WHERE coluna IS NULL   ·   WHERE coluna IS NOT NULL',
+  exemplos:[{sql:'SELECT * FROM transferencias WHERE descricao IS NULL;',explica:L('Transferências sem descrição.')},
+            {sql:'SELECT * FROM transferencias WHERE descricao IS NOT NULL LIMIT 5;',explica:L('As que têm descrição.')}],
+  erros:[L('<code>= NULL</code> nunca é verdade: volta vazio sem avisar.'),L('<code>= \'\'</code> procura texto em branco, que é outra coisa.')],
+  ver:['countcoluna','coalesce']});
+registrarVerbete({id:'countcoluna',titulo:'COUNT(*) × COUNT(coluna)',treino:'m3-nulos',busca:'contar preenchidos vazios diferença',
+  resumo:L('<code>COUNT(*)</code> conta <b>todas</b> as linhas. <code>COUNT(coluna)</code> conta só as que têm a coluna <b>preenchida</b>: pula o NULL.'),
+  formato:'SELECT COUNT(*), COUNT(coluna) FROM tabela;',
+  exemplos:[{sql:'SELECT COUNT(*) AS todas, COUNT(descricao) AS com_descricao FROM transferencias;',explica:L('A diferença entre os dois números é a quantidade de vazios.')}],
+  erros:[L('Relatório com COUNT(coluna) quando queria contar tudo: o número sai menor e ninguém percebe.')],
+  ver:['count','null']});
+registrarVerbete({id:'coalesce',titulo:'COALESCE',treino:'m3-nulos',busca:'trocar vazio substituir nulo padrão isnull ifnull',
+  resumo:L('Troca o vazio por um valor que você escolhe: se a coluna tem valor, mostra o valor; se está vazia, mostra o substituto. Só muda o resultado, não o banco.'),
+  formato:"SELECT COALESCE(coluna, 'substituto') FROM tabela;",
+  exemplos:[{sql:"SELECT valor, COALESCE(descricao, 'sem descrição') AS descricao FROM transferencias LIMIT 10;",explica:L('Onde não há descrição, aparece "sem descrição".')},
+            {sql:"SELECT COALESCE(descricao, 'sem descrição') AS tipo, COUNT(*) FROM transferencias GROUP BY tipo;",explica:L('Com GROUP BY: os vazios viram um grupo com nome.')}],
+  erros:[L('Esqueceu as aspas no substituto de texto.')],
+  mercado:L('Funciona igual em todos os bancos. No SQL Server também existe <code>ISNULL(coluna, valor)</code>, que só funciona lá.'),
+  ver:['null']});
