@@ -92,11 +92,15 @@ async function main() {
     fs.writeFileSync(path.join(pasta, `roteiro-${p}.txt`), doP.map(f => `### ${f.id}.mp3   (${f.contexto})\n${ajustes[f.id] || f.falado}\n`).join('\n'));
   }
   const falta = falas.filter(f => !f.dinamica && !gravados.has(f.id));
+  // Piloto: só a Célia no treinamento do Módulo 1 (o começo do jogo), para ouvir o efeito antes de gravar tudo
+  const piloto = falta.filter(f => f.personagem === 'celia' && /^Treino m1 /.test(f.contexto));
+  fs.writeFileSync(path.join(pasta, 'roteiro-piloto.txt'), piloto.map(f => `### ${f.id}.mp3   (${f.contexto})\n${ajustes[f.id] || f.falado}\n`).join('\n'));
   const porP = PERSONAGENS.map(p => { const l = falta.filter(f => f.personagem === p); return `${p}: ${l.length} falas, ${l.reduce((a, f) => a + (ajustes[f.id] || f.falado).length, 0)} caracteres`; });
   console.log(`Vozes (${idioma}): ${falas.length} falas · ${falas.length - falta.length - falas.filter(f => f.dinamica).length} gravadas · ${falta.length} faltando · ${falas.filter(f => f.dinamica).length} dinâmicas (não dá para gravar)`);
   console.log('Falta gravar, por personagem → ' + porP.join(' · '));
   console.log(`Total a gravar: ${falta.reduce((a, f) => a + (ajustes[f.id] || f.falado).length, 0)} caracteres.`);
   console.log(`Roteiro: audio/${idioma}/roteiro.csv (planilha) e audio/${idioma}/roteiro-<personagem>.txt (para colar no gerador).`);
+  console.log(`Piloto (Célia, treinamento do Módulo 1): ${piloto.length} falas, ${piloto.reduce((a, f) => a + (ajustes[f.id] || f.falado).length, 0)} caracteres → audio/${idioma}/roteiro-piloto.txt`);
   if (sobrando.length) console.log(`Sobrando (texto mudou ou saiu do jogo; regravar ou apagar): ${sobrando.join(', ')}`);
 }
 

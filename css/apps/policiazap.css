@@ -33,3 +33,11 @@
 .ouvir{border:0;background:none;padding:0 2px;font-size:13px;opacity:.55;cursor:pointer;float:right}
 .ouvir:hover{opacity:1}
 .voz-vol{display:flex;gap:10px;align-items:center;font-size:14px}
+/* Cláudio, do TI (canal de bugs) */
+.av.claudio{background:#2f5d73}
+.reply textarea.relato{flex:1 1 100%;min-height:62px;max-height:160px;resize:vertical;padding:7px 9px;border:1px solid var(--edge);background:#fff;font:inherit;font-size:14px}
+.reply .relato-cont{font-size:12px;align-self:center;margin-right:auto}
+.relato-texto{margin:8px 0;padding:8px 12px;border-left:3px solid var(--accent);background:var(--pane);white-space:pre-wrap;overflow-wrap:anywhere;max-height:180px;overflow:auto}
+.relato-ctx{display:grid;grid-template-columns:max-content 1fr;gap:3px 12px;font-size:13px;margin:6px 0 10px}
+.relato-ctx dt{color:var(--ink-3)}
+.relato-ctx dd{margin:0;overflow-wrap:anywhere;font-family:var(--f-code);font-size:12.5px}

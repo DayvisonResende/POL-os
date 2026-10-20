@@ -35,6 +35,24 @@ rm -rf telemetria && npm run telemetria
 
 ---
 
+## Relatos de problemas (Cláudio, do TI)
+
+O que os jogadores contam ao Cláudio chega na tabela `relatos`. **Uma vez só**, antes da primeira publicação com o Cláudio: no Supabase, SQL Editor › New query, cole todo o [`supabase/relatos.sql`](../supabase/relatos.sql) e clique em **Run**. Sem a tabela, o jogo guarda os relatos na fila do navegador e o servidor recusa o envio.
+
+```bash
+npm run bugs                          # mostra os novos e marca como "visto"
+npm run bugs -- --todos               # mostra todos
+npm run bugs -- --resolver A7F3       # chamado corrigido
+npm run bugs -- --descartar A7F3      # não era bug, ou repetido
+npm run bugs -- --nota A7F3 "corrigido na versão 2026-10-20"
+```
+
+Cada relato traz o texto do jogador e o contexto que o jogo juntou: onde ele estava, a última consulta (com o erro), o último erro técnico do jogo, o aparelho e a versão. A lista também fica salva em `telemetria/relatos.md`.
+
+Pedido de exclusão: `delete from public.relatos where jogador = 'CODIGO';` (ou `where chamado = 'A7F3'`).
+
+---
+
 ## Consultas no Supabase (SQL Editor)
 
 Painel do Supabase › **SQL Editor** › New query. Lá você usa a chave secreta automaticamente: lê tudo.

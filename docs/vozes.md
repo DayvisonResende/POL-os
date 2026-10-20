@@ -42,6 +42,15 @@ O jogo só pede os arquivos listados em `js/vozes/<idioma>.js` (o **manifesto**)
 
 4. Abra o jogo, ligue as vozes e confira.
 
+## Piloto: só a Célia no Módulo 1
+
+Antes de gravar as cerca de 340 falas, vale gravar só o começo do jogo e ouvir o efeito.
+
+1. `npm run vozes` gera também `audio/pt-BR/roteiro-piloto.txt`: as falas da Célia no treinamento do Módulo 1 (umas 43 falas, cerca de 5.400 caracteres).
+2. No ElevenLabs, escolha **uma** voz para a Célia (feminina, madura, firme e meio impaciente; ela tem 22 anos de DTI) e gere cada bloco. Salve cada áudio com o nome do bloco (`### celia-xxxxxxxx.mp3`) em `audio/pt-BR/`.
+3. `npm run vozes -- manifesto` e abra o jogo do começo, com **SISP › Configurações › Som › Vozes** ligadas.
+4. Jogue o treinamento do Módulo 1 e responda: a voz ajuda ou atrapalha? O ritmo do treinamento fica mais lento? A voz combina com a Célia? Só depois disso vale gravar o resto.
+
 ## Texto para a voz × texto na tela
 
 A voz não lê SQL do jeito que está escrito. A ferramenta converte os símbolos em palavras: `*` vira "asterisco", `>=` vira "maior ou igual a", `%` vira "porcento" e `___` vira "tracinhos". As regras de cada idioma ficam em `PRONUNCIA`, em `js/core/vozes.js`.

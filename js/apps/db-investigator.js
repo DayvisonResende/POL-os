@@ -19,7 +19,7 @@ function openDb(sql){
 }
 function buildDb(r){
   var b=r.body;if(tutActive())dictOpen=false;
-  b.innerHTML='<div class="toolbar"><button class="tb-btn run" id="runBtn">&#9654; '+L('Executar')+' <span class="kbd">Ctrl+Enter</span></button><button class="tb-btn" id="clrBtn">'+L('Limpar')+'</button><button class="tb-btn" id="explBtn" title="'+escH(L('Traduz a consulta do editor para português'))+'">'+L('Explique esta consulta')+'</button>'+(tutActive()?'':'<button class="tb-btn" id="orgBtn" title="'+escH(L('Arruma a consulta em linhas, uma parte por linha'))+'">'+L('Organizar')+'</button>')+'<span style="flex:1"></span><button class="tb-btn" id="dictBtn" aria-pressed="'+dictOpen+'">'+L('Dicionário de Dados')+'</button></div>'+
+  b.innerHTML='<div class="toolbar"><button class="tb-btn run" id="runBtn">&#9654; '+L('Executar')+' <span class="kbd">Ctrl+Enter</span></button><button class="tb-btn" id="clrBtn">'+L('Limpar')+'</button><button class="tb-btn" id="explBtn" title="'+escH(L('Traduz a consulta do editor para português'))+'">'+L('Explique esta consulta')+'</button>'+(tutActive()?'':'<button class="tb-btn" id="orgBtn" title="'+escH(L('Arruma a consulta em linhas, uma parte por linha'))+'">'+L('Organizar')+'</button>')+'<span style="flex:1"></span>'+(treinoPausado()?'<button class="tb-btn run" id="voltaTreino">&#8617; '+L('Voltar ao treinamento')+'</button>':'')+'<button class="tb-btn" id="dictBtn" aria-pressed="'+dictOpen+'">'+L('Dicionário de Dados')+'</button></div>'+
    '<div class="dbwrap'+(tutActive()?' tut':'')+'">'+(tutActive()?'<div class="guide" id="guide" aria-live="polite"></div>':'')+'<div class="dbmain"><div class="ed"><pre aria-hidden="true" id="sqlHl"></pre><textarea id="sqlEd" spellcheck="false" aria-label="'+escH(L('Editor SQL'))+'" placeholder="'+escH(L('-- escreva sua consulta aqui. Ex.: SELECT * FROM veiculos;'))+'"></textarea></div><div class="sugest" id="sugest" hidden></div><div class="status" id="dbStatus">'+L('Pronto. Perfil: {patente} (somente leitura).',{patente:escH(rankT())})+'</div><div id="dbMsg"></div><div id="dbExpl"></div><div class="grid" id="dbGrid"><div class="empty">'+L('O resultado da consulta aparece aqui. Clique num valor do resultado para copiar.')+'</div></div></div><div class="dict" id="dict"'+(dictOpen?'':' hidden')+'></div></div>';
   var ta=$('#sqlEd',b);ta.value=S.editor||'';syncHl();
   ta.addEventListener('input',function(){S.editor=ta.value;syncHl();save()});
@@ -36,6 +36,7 @@ function buildDb(r){
   $('#clrBtn',b).onclick=function(){if(tutEmMolde()){tutRestaurarMolde();return}editorTrocar('')};
   $('#dictBtn',b).onclick=function(){dictOpen=!dictOpen;$('#dict').hidden=!dictOpen;this.setAttribute('aria-pressed',dictOpen)};
   $('#explBtn',b).onclick=showExplain;
+  var vt=$('#voltaTreino',b);if(vt)vt.onclick=retomarTreino;
   var org=$('#orgBtn',b);if(org)org.onclick=function(){var f=formatarSQL(ta.value);
     if(f==null){$('#dbStatus').textContent=ta.value.trim()?L('Não organizo consultas com comentários (-- ou /* */).'):L('Escreva uma consulta antes de organizar.');return}
     if(f!==ta.value)editorTrocar(f);tele('organizar')};

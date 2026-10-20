@@ -514,3 +514,20 @@ test('playtest 18/10 (iniciante): BETWEEN sem coluna, ORDER BY que "filtra", AND
   assert.strictEqual(T.avisoSQL(Q + " AND velocidade_kmh > 120 AND data_hora BETWEEN '2026-10-12 22:45:00' AND '2026-10-12 23:15:00' ORDER BY data_hora DESC", schema), null);
   assert.deepStrictEqual(Array.from(T.diagnosticarSQL(Q + " AND data_hora BETWEEN '2026-10-12 22:45:00' AND '2026-10-12 23:15:00'", schema)), []);
 });
+
+test('nivelamento "Já sei SQL": respostas-modelo passam, respostas erradas não, nada de tabela bloqueada', () => {
+  const { T } = J;
+  assert.strictEqual(T.NIVELAMENTO.map(m => m.modulo).join(','), '2,3,4');
+  const livres = /\b(veiculos|pessoas|leituras_radar|catraca_acessos)\b/;
+  for (const M of T.NIVELAMENTO) {
+    for (const t of M.treinos) assert.ok(T.TREINOS[t], t);
+    for (const q of M.questoes) {
+      if (!q.check) { assert.ok(q.opts[q.ok], q.id); continue; }
+      assert.ok(q.check(J.run(q.model)), q.id + ': o modelo passa');
+      assert.ok(!q.check(J.run('SELECT * FROM veiculos')), q.id + ': consulta qualquer não passa');
+      assert.match(q.model, livres);
+      assert.doesNotMatch(q.model, /\b(transferencias|contas_bancarias|empresas|imoveis|notas_fiscais|itens_nota)\b/, q.id + ': só tabelas liberadas no começo');
+      assert.ok(J.run(q.model).n > 0, q.id + ': resposta com pelo menos uma linha');
+    }
+  }
+});

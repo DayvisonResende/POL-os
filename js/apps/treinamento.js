@@ -1,7 +1,22 @@
 /* ---------- motor do treinamento guiado (passos em js/conteudo/treinamento/) ---------- */
 function treinoAtual(){return S.treino?TREINOS[S.treino]||null:null}
 function tutPassos(){var t=treinoAtual();return t?t.passos:[]}
-function tutActive(){return S.tut<tutPassos().length}
+function tutActive(){return !S.tutPausado&&S.tut<tutPassos().length}
+/* Pausa (playtest de 18/10: "no treinamento eu fico preso, não dá pra adiantar o trabalho do Beto"). Pausado, o
+   DB-Investigator volta a ser livre; o editor do treinamento fica guardado em S.editorTreino e o livre em
+   S.editorLivre. "Voltar ao treinamento" retoma no mesmo passo, sem a Célia repetir a fala. */
+function treinoPausado(){return !!S.tutPausado&&S.tut<tutPassos().length}
+function reabrirDb(){if(WINS.db){WINS.db.el.remove();delete WINS.db;renderTasks()}openDb()}
+function pausarTreino(){
+  if(!tutActive())return;tele('treino_pausa',{treino:S.treino,passo:S.tut+1});
+  S.editorTreino=S.editor;S.tutPausado=true;S.editor=S.editorLivre||'';spot(null,null);save();reabrirDb();
+  toast(L('Treinamento pausado'),L('O DB-Investigator está livre. Para voltar exatamente de onde parou: botão "Voltar ao treinamento", lá em cima.'),'warn');
+}
+function retomarTreino(){
+  if(!treinoPausado())return;tele('treino_volta',{treino:S.treino,passo:S.tut+1});
+  S.editorLivre=S.editor;S.tutPausado=false;S.editor=S.editorTreino||'';save();reabrirDb();
+  if(S.tutEntrou!==tutChavePasso())tutEnter();
+}
 function tutStep(){return tutPassos()[S.tut]}
 // Identifica o passo iniciado; se o conteúdo do passo mudar numa versão nova, ele é reiniciado ao reabrir o jogo.
 function tutChavePasso(){var st=tutStep();return S.treino+':'+S.tut+':'+(st?st.type+':'+(st.sql||st.template||''):'')}
@@ -10,7 +25,7 @@ function treinoFeito(id){return S.treinosFeitos.indexOf(id)>=0}
    e o treinamento ainda não foi feito, ele começa: no jogo novo, depois de promoção, depois de fechar
    o caso anterior e também em saves antigos que já estavam no meio do caso. */
 function verificarTreinos(){
-  if(tutActive())return false;var i=caseActive();if(i<0)return false;
+  if(tutActive()||treinoPausado())return false;var i=caseActive();if(i<0)return false;
   var id=CASES[i].treino;if(!id||treinoFeito(id)||!TREINOS[id])return false;
   iniciarTreino(id);return true;
 }
@@ -53,6 +68,7 @@ function tutFinish(){
   spot(null,null);setEditor(null,false);
   var g=$('#guide');if(g){g.remove();$('.dbwrap').classList.remove('tut')}
   histAberto=false;save();if(T.aoConcluir)T.aoConcluir();
+  if(T.id==='m1')setTimeout(convidarNivelamento,7000);
   var novos=VERBETES.filter(function(v){return v.treino===T.id}).length;
   if(novos)setTimeout(function(){renderIcons();buildStart();toast(L('Guia SQL'),Lp(novos,'1 comando novo no Guia SQL: o que faz, exemplos e erros comuns.','{n} comandos novos no Guia SQL: o que fazem, exemplos e erros comuns.'),'ok',function(){openGuia()})},4500);
   if(T.anotacoes&&S.apps.indexOf('files')>=0)setTimeout(function(){toast('Anotações da Célia',L('O resumo do treinamento ficou em Arquivos › Anotações.'),'warn',function(){filesDir='Anotações';openFiles();renderFiles()})},2200);
@@ -91,10 +107,10 @@ function ligarHist(g){
 function renderGuide(){
   var g=$('#guide');if(!g)return;var st=tutStep();if(!st)return;
   var i=S.tut,N=tutPassos().length,after=S.tutPhase==='after';
-  var html='<div class="gh"><span class="av">CM</span><div><b>Célia Moura</b><small>'+L('{treino} · passo {i} de {total}',{treino:escH(treinoAtual().titulo),i:i+1,total:N})+'</small></div></div><div class="gprog"><i style="width:'+Math.round((i+(after?1:0))/N*100)+'%"></i></div>'+histHTML();
-  if(after){html+='<div class="gbub after">'+fill(st.after)+'</div><div class="gact"><button class="btn-primary" id="gNext">Continuar</button></div>';g.innerHTML=html;ligarHist(g);$('#gNext').onclick=tutNext;spot('#gNext');return}
+  var html='<div class="gh"><span class="av">CM</span><div><b>Célia Moura</b><small>'+L('{treino} · passo {i} de {total}',{treino:escH(treinoAtual().titulo),i:i+1,total:N})+'</small></div>'+(S.treino!=='m1'?'<button class="gpausa" id="gPausa" title="'+escH(L('Libera o DB-Investigator; depois você volta exatamente deste passo'))+'">&#10074;&#10074; '+L('Pausar')+'</button>':'')+'</div><div class="gprog"><i style="width:'+Math.round((i+(after?1:0))/N*100)+'%"></i></div>'+histHTML();
+  if(after){html+='<div class="gbub after">'+fill(st.after)+'</div><div class="gact"><button class="btn-primary" id="gNext">Continuar</button></div>';g.innerHTML=html;ligarHist(g);ligarPausa(g);$('#gNext').onclick=tutNext;spot('#gNext');return}
   html+='<div class="gbub">'+fill(st.text)+(st.extra||'')+(st.text2||'')+'</div>';
-  g.innerHTML=html;ligarHist(g);
+  g.innerHTML=html;ligarHist(g);ligarPausa(g);
   var ouv=botaoOuvir('celia',fill(st.text||''));if(ouv)g.querySelector('.gbub').appendChild(ouv);var sp=st.spot||null,pl=st.point||null;
   if(st.type==='msg'||st.type==='final'){var a=h('div',{class:'gact'});var b=h('button',{class:'btn-primary',id:'gNext'},escH(st.btn||L('Continuar')));b.onclick=tutNext;a.appendChild(b);g.appendChild(a);sp='#gNext'}
   if(st.type==='predict'){
@@ -131,3 +147,4 @@ function renderGuide(){
   if(sp==='#gNext'||sp==='#sqlEd')pl=null;
   spot(sp,pl);
 }
+function ligarPausa(g){var b=g.querySelector('#gPausa');if(b)b.onclick=pausarTreino}

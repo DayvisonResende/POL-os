@@ -3,7 +3,7 @@
    sem relação com a polícia); (2) a coleta de dados de uso, que é OPCIONAL (LGPD: consentimento livre;
    o jogo funciona igual nas duas escolhas). Não citar o nome do fornecedor do banco de dados.
    Mudou algo importante? Aumente TERMO_VERSAO: todo mundo é perguntado de novo. */
-var TERMO_VERSAO=2, TERMO_DATA='17/10/2026';
+var TERMO_VERSAO=3, TERMO_DATA='19/10/2026';   // v3: relatos de problemas ao Cláudio, do TI (seção 11)
 
 function termoResumoHTML(){return ''+
  '<p>'+L('Antes de começar, o que você precisa saber:')+'</p>'+
@@ -12,6 +12,7 @@ function termoResumoHTML(){return ''+
   '<li>'+L('É uma <b>obra de ficção</b>: a história, os personagens, os casos, os nomes, as placas e os CPFs são inventados.')+'</li>'+
   '<li>'+L('O jogo <b>não tem nenhuma relação com a polícia</b> nem com qualquer órgão público.')+'</li>'+
  '</ul>'+
+ '<p>'+L('<b>Relatar um problema:</b> se você contar um problema ao <b>Cláudio, do TI</b>, o texto que você escrever vai para a equipe do jogo, junto com informações técnicas, e <b>só depois que você confirmar</b>.')+'</p>'+
  '<p>'+L('<b>Dados de uso (opcional):</b> para melhorar o jogo, você pode permitir o envio <b>anônimo</b> de como você joga (onde trava, quanto tempo leva, as consultas que executa). Seu nome, e-mail ou qualquer dado pessoal <b>nunca é enviado</b>. O jogo funciona igual nas duas escolhas, e você muda de ideia quando quiser em <b>SISP › Configurações</b>.')+'</p>'}
 
 function termoCompletoHTML(){var c=TELEMETRIA_REMOTA.contato,contato=c?'<b>'+escH(c)+'</b>':L('o contato informado na página do jogo');return ''+
@@ -61,11 +62,16 @@ function termoCompletoHTML(){var c=TELEMETRIA_REMOTA.contato,contato=c?'<b>'+esc
  '<p><b>'+L('Onde ficam e por quanto tempo:')+'</b> '+L('num banco de dados na nuvem, contratado de um fornecedor de serviços, com acesso restrito ao responsável. Ficam guardados enquanto forem úteis para melhorar o jogo, por no máximo 5 anos, e depois são apagados.')+'</p>'+
  '<p><b>'+L('Seus direitos:')+'</b> '+L('parar o envio a qualquer momento em SISP › Configurações › Privacidade; pedir uma cópia ou a exclusão dos dados já enviados, informando o seu código anônimo (aparece na mesma tela) para {contato}.',{contato:contato})+'</p>'+
 
- '<h5>'+L('11. Menores de idade')+'</h5>'+
+ '<h5>'+L('11. Relatos de problemas (Cláudio, do TI)')+'</h5>'+
+ '<p>'+L('No jogo, o personagem <b>Cláudio, do TI</b> recebe relatos de problemas. Apesar de ele ser fictício, <b>o relato é real</b>: o texto que você escrever é enviado ao responsável pelo jogo (seção 10), para encontrar e corrigir erros.')+'</p>'+
+ '<p>'+L('Junto com o texto vão: onde você estava no jogo, o dia e a patente no jogo, a última consulta SQL que você executou e a mensagem de erro dela, o último erro técnico do jogo, as janelas abertas, as mesmas informações técnicas do aparelho da seção 10, a versão do jogo e o seu código anônimo. Antes de enviar, o jogo mostra tudo isso e só envia se você confirmar.')+'</p>'+
+ '<p>'+L('O relato é enviado mesmo que você tenha recusado a coleta de dados de uso, porque cada envio é uma escolha sua, feita na hora. <b>Não escreva no relato</b> nome, e-mail, telefone, senha ou qualquer dado pessoal seu ou de outra pessoa. Os relatos seguem as mesmas regras de guarda, prazo e direitos da seção 10 (para pedir a exclusão, informe o seu código anônimo ou o número do chamado).')+'</p>'+
+
+ '<h5>'+L('12. Menores de idade')+'</h5>'+
  '<p>'+L('Se você tem menos de 18 anos, leia estes termos com o seu responsável. Menores de 12 anos só devem aceitar a coleta de dados com a autorização do responsável.')+'</p>'+
 
- '<h5>'+L('12. Mudanças nestes termos')+'</h5>'+
+ '<h5>'+L('13. Mudanças nestes termos')+'</h5>'+
  '<p>'+L('Se estes termos mudarem de forma importante, o jogo mostra a nova versão e pergunta de novo antes de continuar.')+'</p>'+
 
- '<h5>'+L('13. Lei aplicável e contato')+'</h5>'+
+ '<h5>'+L('14. Lei aplicável e contato')+'</h5>'+
  '<p>'+L('Estes termos seguem a legislação brasileira. Dúvidas, pedidos ou reclamações: {contato}.',{contato:contato})+'</p>'}

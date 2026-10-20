@@ -48,7 +48,7 @@ document.addEventListener('visibilitychange',function(){
 window.addEventListener('pagehide',function(){if(entrouNoJogo()){tele('saida');enviarFila(true)}});
 // Erros técnicos do próprio jogo: o tipo de problema que só aparece no aparelho dos outros.
 var dentroDoErro=false;
-function registrarErroJs(msg,arq,linha){if(dentroDoErro)return;dentroDoErro=true;try{tele('erro_js',{msg:String(msg).slice(0,200),arquivo:String(arq||'').split('/').slice(-2).join('/'),linha:linha||0})}catch(e){}dentroDoErro=false}
+function registrarErroJs(msg,arq,linha){if(dentroDoErro)return;dentroDoErro=true;try{tele('erro_js',{msg:String(msg).slice(0,200),arquivo:String(arq||'').split('/').slice(-2).join('/'),linha:linha||0});if(typeof oferecerSuporteErro==='function')oferecerSuporteErro()}catch(e){}dentroDoErro=false}
 window.addEventListener('error',function(e){registrarErroJs(e.message,e.filename,e.lineno)});
 window.addEventListener('unhandledrejection',function(e){registrarErroJs('promessa: '+(e.reason&&e.reason.message||e.reason),'',0)});
 

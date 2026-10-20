@@ -18,6 +18,7 @@ function say(who,text,me){
 function openZap(){openWin('zap',{title:nomeApp('zap'),w:560,h:440,x:null,onClose:function(){divisoria={}},build:function(r){renderZap()},refresh:function(){renderZap()}});}
 function renderZap(){
   var r=WINS.zap;if(!r)return;
+  if(chatSel==='claudio')saudacaoClaudio();
   var conv=S.chat[chatSel],lidasAntes=Math.min(S.lidas[chatSel]||0,conv.length);
   var antigo=r.body.querySelector('.msgs'),estavaNoFim=!antigo||antigo.scrollHeight-antigo.scrollTop-antigo.clientHeight<30,rolagem=antigo?antigo.scrollTop:0;
   // só marca como lido o que está de fato na frente do jogador
@@ -55,6 +56,7 @@ function renderZap(){
 }
 function replyBox(){
   var box=h('div',{class:'reply'});
+  if(chatSel==='claudio'){caixaClaudio(box);return box}
   var ped=pedidoAberto(chatSel);
   if(ped){
     var pin=h('input',{placeholder:ped.placeholder||L('sua resposta'),'aria-label':L('Resposta ao pedido')}),pbt=h('button',{class:'tb-btn run'},L('Enviar'));

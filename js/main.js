@@ -10,6 +10,7 @@ function startDesktop(resumed){
   else if(tutActive()){openDb();if(S.tutEntrou!==tutChavePasso())tutEnter()}
   else{openOcorr();if(S.closed.indexOf('1002')>=0&&S.beto==='none')setTimeout(startBeto,15000)}
   verificarPedidos();agendarServico();
+  if(treinoPausado())setTimeout(function(){toast(L('Treinamento pausado'),L('Quando quiser voltar: DB-Investigator › Voltar ao treinamento.'),'warn',function(){openDb()})},1500);
   if(provaMod()&&S.apps.indexOf('prova')<0){S.apps.push('prova');save();renderIcons();buildStart()}
 }
 (function boot(){

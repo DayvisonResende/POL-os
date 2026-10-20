@@ -257,7 +257,7 @@ for (const c of CASOS_SAVE) {
       await page.click('#lgBtn');
       await page.waitForTimeout(300);
       const S = await page.evaluate(() => ({ treino: S.treino, tut: S.tut, feitos: S.treinosFeitos, guia: !!document.querySelector('#guide'), passo: (document.querySelector('.gh small') || {}).textContent, contatos: Object.keys(S.chat).sort().join(',') }));
-      assert.strictEqual(S.contatos, 'beto,celia,jairo,marina', 'save antigo ganha as conversas dos contatos novos');
+      assert.strictEqual(S.contatos, 'beto,celia,claudio,jairo,marina', 'save antigo ganha as conversas dos contatos novos (o Cláudio inclusive)');
       assert.strictEqual(S.treino, c.espera.treino);
       assert.strictEqual(S.tut, c.espera.tut);
       assert.deepStrictEqual(S.feitos, c.espera.feitos);
@@ -1055,6 +1055,149 @@ test('playtest 18/10 · ">=" sem ligadura e empurrão para as dicas depois de 3 
     await page.click('#dbMsg .pedir-dica');
     assert.strictEqual(await page.evaluate(() => S.hintsSeen['1003:0']), 1);
     assert.match(await page.textContent('.ocdetail .steps .step .hint'), /três filtros/);
+    assert.deepStrictEqual(erros, []);
+  } finally { await browser.close(); }
+});
+
+// "Já sei SQL": convite da Célia depois do Módulo 1; passou nos Módulos 2 e 3, errou no 4 → só 2 e 3 dispensados.
+test('nivelamento · dispensa só os módulos em que acertou tudo', { skip: !CHROME && 'Chrome não encontrado (defina CHROME)', timeout: 90000 }, async () => {
+  const { chromium } = require('playwright-core');
+  const browser = await chromium.launch({ executablePath: CHROME, headless: true });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1366, height: 800 } });
+    const erros = []; page.on('pageerror', e => erros.push(e.message));
+    await page.route('**/*', r => { const u = r.request().url(); if (u.includes('sql-asm.js')) return r.fulfill({ body: fs.readFileSync(ASM), contentType: 'application/javascript' }); return u.startsWith('file:') ? r.continue() : r.abort(); });
+    const depoisDoM1 = { chat: { celia: [], beto: [], jairo: [], marina: [] }, unread: {}, lidas: {}, tut: 0, treino: null, treinosFeitos: ['m1'],
+      rank: 0, done: false, dia: 0, diaIniciado: 0, closed: [], caseSel: 0, apps: ['db', 'ocorr', 'zap', 'files', 'caderno'] };
+    await page.addInitScript(s => { window.SISP_CONFIG_TESTE = { url: '', chave: '', contato: '' }; window.SISP_IDIOMA_TESTE = 'pt-BR'; localStorage.setItem('sisp-proto-v2', s); }, JSON.stringify(depoisDoM1));
+    await page.goto('file://' + path.join(RAIZ, 'index.html'));
+    await page.waitForFunction(() => !document.querySelector('#lgBtn').disabled);
+    await page.click('#lgBtn');
+    // convite pelo PolíciaZap, sem janela que bloqueia
+    await page.evaluate(() => convidarNivelamento());
+    assert.match(await page.evaluate(() => S.chat.celia.at(-1).text), /já mexe com SQL/);
+    assert.strictEqual(await page.$('.overlay [role=dialog]'), null, 'o convite não bloqueia a tela');
+    // pelo menu SISP
+    await page.click('#startBtn'); await page.click('#startMenu button:has-text("Nivelamento")');
+    await page.click('.overlay button:has-text("Fazer o nivelamento")');
+    const responder = async (erraId) => {
+      const qs = await page.evaluate(() => NIVELAMENTO[nivelamento().modulo].questoes.map(q => ({ id: q.id, model: q.model, ok: q.ok })));
+      for (const q of qs) {
+        if (q.model) await page.fill('#nv_' + q.id, q.id === erraId ? 'SELECT * FROM veiculos;' : q.model);
+        else await page.check(`input[name="nv_${q.id}"] >> nth=${q.ok}`);
+      }
+      await page.click('.prova .btn-primary:has-text("Conferir")');
+    };
+    await responder(); await responder();          // Módulos 2 e 3: tudo certo
+    await responder('n4a');                        // Módulo 4: errou uma
+    const fim = await page.evaluate(() => ({ estado: S.nivelamento.estado, feitos: S.treinosFeitos.slice(), menu: nivelamentoDisponivel() }));
+    assert.deepStrictEqual(fim, { estado: 'feito', feitos: ['m1', 'm2-filtros', 'm2-intervalos', 'm3-agregacao', 'm3-nulos'], menu: false });
+    assert.match(await page.textContent('.prova'), /Treinamentos dispensados: Módulo 2, 3/);
+    await page.waitForFunction(() => /Dispensado do treinamento/.test(S.chat.celia.at(-1).text));
+    assert.deepStrictEqual(erros, []);
+  } finally { await browser.close(); }
+});
+
+// Pausa do treinamento (playtest de 18/10: "fico preso na Célia, não dá pra adiantar o trabalho do Beto").
+test('treinamento · pausar libera o editor; voltar retoma no mesmo passo com o molde', { skip: !CHROME && 'Chrome não encontrado (defina CHROME)', timeout: 60000 }, async () => {
+  const { browser, page, erros } = await abrir('index.html', 1366);
+  try {
+    await page.click('#lgBtn');
+    const passo = await page.evaluate(() => { S.treinosFeitos = ['m1', 'm2-filtros']; S.closed = ['1001', '1002']; S.rank = 1; iniciarTreino('m2-intervalos');
+      const i = tutPassos().findIndex(p => p.type === 'mold'); S.tut = i; tutEnter(); return i; });
+    const molde = await page.inputValue('#sqlEd');
+    assert.match(molde, /___/);
+    await page.click('#gPausa');
+    assert.strictEqual(await page.evaluate(() => tutActive()), false);
+    assert.strictEqual(await page.$('#guide'), null, 'sem o painel da Célia');
+    assert.strictEqual(await page.inputValue('#sqlEd'), '', 'editor livre e vazio');
+    assert.strictEqual(await page.evaluate(() => document.querySelector('#sqlEd').readOnly), false);
+    // consulta livre: roda sem correção da Célia
+    await page.fill('#sqlEd', 'SELECT COUNT(*) FROM veiculos;'); await page.click('#runBtn');
+    assert.match(await page.textContent('#dbStatus'), /1 linha/);
+    assert.strictEqual(await page.evaluate(() => S.tut), passo, 'o passo não andou');
+    // voltar: mesmo passo, molde de volta, consulta livre guardada para depois
+    const falasAntes = await page.evaluate(() => TELE.ev.filter(e => e.tipo === 'treino_passo').length);
+    await page.click('#voltaTreino');
+    assert.ok(await page.isVisible('#guide'));
+    assert.strictEqual(await page.evaluate(() => S.tut), passo);
+    assert.strictEqual(await page.inputValue('#sqlEd'), molde);
+    assert.strictEqual(await page.evaluate(() => S.editorLivre), 'SELECT COUNT(*) FROM veiculos;');
+    assert.strictEqual(await page.evaluate(() => TELE.ev.filter(e => e.tipo === 'treino_passo').length), falasAntes, 'a Célia não repete o passo');
+    // no Módulo 1, sem botão de pausa (não há nada mais para fazer ainda)
+    await page.evaluate(() => { S.treino = 'm1'; S.tut = 1; renderGuide(); });
+    assert.strictEqual(await page.$('#gPausa'), null);
+    assert.deepStrictEqual(erros, []);
+  } finally { await browser.close(); }
+});
+
+// Cláudio, do TI: o relato só sai depois da revisão, vai mesmo sem o consentimento da telemetria
+// (cada envio é uma escolha do jogador), leva o contexto e nunca o login; sem rede, fica na fila.
+test('suporte · Cláudio recebe o relato de bug e envia para a tabela relatos', { skip: !CHROME && 'Chrome não encontrado (defina CHROME)', timeout: 90000 }, async () => {
+  const URL_SUPA = 'https://teste-sisp.supabase.co';
+  const { browser, page, erros } = await abrir('index.html', 1366, '', { url: URL_SUPA, chave: 'chave-publica-teste', contato: 'equipe@exemplo.com' });
+  const recebidos = [];
+  let rede = true;
+  await page.route(URL_SUPA + '/**', async rota => {
+    if (!rede) return rota.abort();
+    const req = rota.request();
+    recebidos.push({ url: req.url(), corpo: JSON.parse(req.postData() || 'null') });
+    await rota.fulfill({ status: 201, body: '' });
+  });
+  try {
+    await page.click('#lgBtn');
+    assert.match(await page.textContent('.overlay'), /Cláudio, do TI.*só depois que você confirmar/s, 'o resumo do termo avisa');
+    assert.match(await page.textContent('.overlay .termo'), /Relatos de problemas \(Cláudio, do TI\).*o relato é real/s);
+    await page.click('.overlay button:has-text("sem enviar dados")');
+    await page.click('#startBtn');
+    await page.click('#startMenu button:has-text("Falar com o TI")');
+    await page.waitForSelector('textarea.relato');
+    const conversa = await page.textContent('.msgs');
+    assert.match(conversa, /não conserto impressora/);
+    assert.match(conversa, /Fora da história:.*vai de verdade para a equipe que faz o jogo.*Não escreva nome, e-mail, telefone ou senha/s);
+
+    // curto demais: nem abre a revisão
+    await page.fill('textarea.relato', 'bug');
+    await page.click('.reply button:has-text("Revisar e enviar")');
+    assert.ok(!(await page.$('.overlay')), 'texto curto não abre a revisão');
+
+    // revisão mostra o texto e o contexto; voltar não envia
+    const texto = 'Cliquei em Executar e a tela ficou branca no passo 3.';
+    await page.fill('textarea.relato', texto);
+    await page.click('.reply button:has-text("Revisar e enviar")');
+    const revisao = await page.textContent('.overlay');
+    assert.match(revisao, /de verdade.*Cliquei em Executar.*Onde você está.*Treino.*Aparelho.*código anônimo/s);
+    await page.click('.overlay button:has-text("Voltar e editar")');
+    assert.strictEqual(recebidos.length, 0, 'sem confirmar, nada sai');
+    assert.strictEqual(await page.inputValue('textarea.relato'), texto, 'o rascunho continua lá');
+
+    // envia
+    await page.click('.reply button:has-text("Revisar e enviar")');
+    await page.click('.overlay button:has-text("Enviar")');
+    await page.waitForFunction(() => /Chamado #[A-Z0-9]{4} aberto/.test(document.querySelector('.msgs').textContent), null, { timeout: 8000 });
+    const relatos = recebidos.filter(r => /\/rest\/v1\/relatos$/.test(r.url));
+    assert.strictEqual(relatos.length, 1);
+    const r = relatos[0].corpo;
+    assert.strictEqual(Object.keys(r).sort().join(','), 'chamado,contexto,jogador,texto,versao');
+    assert.strictEqual(r.texto, texto);
+    assert.match(r.chamado, /^[A-Z0-9]{4}$/);
+    assert.match(await page.textContent('.msgs'), new RegExp('Chamado #' + r.chamado));
+    for (const k of ['onde', 'dia', 'patente', 'aparelho', 'janelas', 'sessao', 'ultima_consulta']) assert.ok(k in r.contexto, 'contexto sem ' + k);
+    assert.doesNotMatch(JSON.stringify(r), /recruta\.dti04|cafe-frio|equipe@exemplo/, 'nada de login, senha ou contato');
+    assert.ok(!recebidos.some(x => /\/eventos$/.test(x.url)), 'a telemetria continua desligada');
+    assert.strictEqual(await page.inputValue('textarea.relato'), '', 'caixa limpa depois do envio');
+
+    // sem rede: fica na fila e vai depois
+    rede = false;
+    await page.fill('textarea.relato', 'O botão Próximo não responde no celular.');
+    await page.click('.reply button:has-text("Revisar e enviar")');
+    await page.click('.overlay button:has-text("Enviar")');
+    await page.waitForFunction(() => /a rede daqui caiu/.test(document.querySelector('.msgs').textContent), null, { timeout: 8000 });
+    assert.strictEqual(await page.evaluate(() => JSON.parse(localStorage.getItem('sisp-relatos-fila')).length), 1);
+    rede = true;
+    assert.strictEqual(await page.evaluate(() => enviarFilaRelatos()), true);
+    assert.strictEqual(recebidos.filter(x => /\/relatos$/.test(x.url)).length, 2);
+    assert.strictEqual(await page.evaluate(() => JSON.parse(localStorage.getItem('sisp-relatos-fila')).length), 0);
     assert.deepStrictEqual(erros, []);
   } finally { await browser.close(); }
 });

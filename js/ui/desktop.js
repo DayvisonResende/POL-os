@@ -22,7 +22,9 @@ function buildStart(){
   [[nomeApp('ocorr'),openOcorr,'ocorr'],[nomeApp('db'),function(){openDb()},'db'],[nomeApp('zap'),openZap,'zap'],[nomeApp('files'),openFiles,'files'],[nomeApp('caderno'),function(){openCaderno()},'caderno'],[nomeApp('guia'),function(){openGuia()},'guia'],[nomeApp('prova'),openProva,'prova']]
     .filter(function(a){return appVisivel(a[2])}).forEach(function(a){item(main,a[0],ICONS[a[2]],a[1],'app')});
   main.appendChild(h('hr'));
+  if(nivelamentoDisponivel())item(main,L('Nivelamento: já sei SQL'),ICONS.prova,ofertaNivelamento);
   item(main,L('Relatório do turno'),MENU_ICONS.relatorio,report);
+  item(main,L('Falar com o TI (relatar um problema)'),MENU_ICONS.suporte,abrirSuporte);
   if(teleModo())item(main,L('Diagnóstico de playtest'),MENU_ICONS.diag,openDiag);
   // Configurações ▸
   var grupo=h('div',{class:'sm-grupo'}),abre=h('button',{class:'sm-it sm-abre','aria-haspopup':'true','aria-expanded':'false'},'<span class="sm-ico">'+MENU_ICONS.config+'</span><span>'+L('Configurações')+'</span><span class="sm-seta" aria-hidden="true">&#9656;</span>');
