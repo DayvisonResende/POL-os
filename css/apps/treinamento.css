@@ -58,3 +58,14 @@
 .ghi .gbub{font-size:14px;margin:4px 0 6px}
 .gpausa{margin-left:auto;align-self:center;padding:3px 8px;border:1px solid var(--rule);background:#fff;font-size:12px;color:var(--ink-2);cursor:pointer;white-space:nowrap}
 .gpausa:hover{border-color:var(--accent);color:var(--ink)}
+/* Plantão: o crime que abre o jogo (passo 1 do treinamento) */
+.plantao{margin:-2px 0 12px;padding:10px 12px 11px;background:#11181c;color:#d7e3df;border-left:3px solid #c0392b;font-family:var(--f-code);font-size:13px;line-height:1.5}
+.plantao .pl-topo{display:flex;align-items:center;gap:8px;font-size:11.5px;letter-spacing:.06em;color:#f0b8ae;font-weight:600;margin-bottom:6px}
+.plantao .pl-luz{flex:none;width:8px;height:8px;border-radius:50%;background:#e74c3c;animation:plantaoLuz 1.4s ease-in-out infinite}
+.plantao p{margin:0 0 4px}
+.plantao .pl-fim{margin:6px 0 0;color:#fff;font-weight:600}
+@keyframes plantaoLuz{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.plantao .pl-luz{animation:none}}
+/* O botão de avançar fica sempre à vista, preso ao pé do painel: com fala longa (como o plantão do passo 1),
+   ele sumia abaixo da dobra e o jogador não via como continuar. */
+.guide>.gact{position:sticky;bottom:-14px;z-index:2;margin:0 -14px -14px;padding:10px 14px 14px;background:#f8faf9;box-shadow:0 -10px 12px -10px rgba(0,0,0,.25)}

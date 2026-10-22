@@ -428,6 +428,15 @@ test('telemetria remota · termo de uso e envio anônimo', { skip: !CHROME && 'C
     const tudo = JSON.stringify(ev);
     assert.doesNotMatch(tudo, /recruta\.dti04|cafe-frio|equipe@exemplo/, 'nada de login, senha ou contato nos eventos');
 
+    // ao sair, o lote sai da fila na hora (a página pode fechar antes da resposta): nada é reenviado depois
+    const naFila = await page.evaluate(() => { tele('teste_saida'); enviarFila(true); return JSON.parse(localStorage.getItem('sisp-telemetria-fila')).some(e => e.tipo === 'teste_saida'); });
+    assert.strictEqual(naFila, false, 'o envio de saída tira o lote da fila');
+    await page.evaluate(() => { enviarFila(true); enviarFila(); });
+    await page.waitForTimeout(400);
+    assert.strictEqual(recebidos.flatMap(r => r.corpo).filter(e => e.tipo === 'teste_saida').length, 1, 'evento de saída chega uma vez só');
+    const chaves = recebidos.flatMap(r => r.corpo).map(e => e.sessao + e.t + e.tipo + JSON.stringify(e.dados));
+    assert.strictEqual(new Set(chaves).size, chaves.length, 'nenhum evento duplicado');
+
     // 3) desligar em Configurações › Privacidade: para de enviar
     await page.click('#startBtn'); await page.click('#startMenu .sm-abre');
     await page.click('#startMenu .sm-fly button:has-text("Dados de uso")');
@@ -1147,13 +1156,15 @@ test('suporte · Cláudio recebe o relato de bug e envia para a tabela relatos',
   try {
     await page.click('#lgBtn');
     assert.match(await page.textContent('.overlay'), /Cláudio, do TI.*só depois que você confirmar/s, 'o resumo do termo avisa');
-    assert.match(await page.textContent('.overlay .termo'), /Relatos de problemas \(Cláudio, do TI\).*o relato é real/s);
+    assert.match(await page.textContent('.overlay .termo'), /Problemas e sugestões \(Cláudio, do TI\).*o relato é real/s);
     await page.click('.overlay button:has-text("sem enviar dados")');
     await page.click('#startBtn');
     await page.click('#startMenu button:has-text("Falar com o TI")');
     await page.waitForSelector('textarea.relato');
     const conversa = await page.textContent('.msgs');
     assert.match(conversa, /não conserto impressora/);
+    assert.match(conversa, /ideia para melhorar o sistema.*Sugestão/s);
+    assert.strictEqual(await page.getAttribute('.relato-tipo:has-text("Problema")', 'aria-pressed'), 'true', 'começa em Problema');
     assert.match(conversa, /Fora da história:.*vai de verdade para a equipe que faz o jogo.*Não escreva nome, e-mail, telefone ou senha/s);
 
     // curto demais: nem abre a revisão
@@ -1180,6 +1191,7 @@ test('suporte · Cláudio recebe o relato de bug e envia para a tabela relatos',
     const r = relatos[0].corpo;
     assert.strictEqual(Object.keys(r).sort().join(','), 'chamado,contexto,jogador,texto,versao');
     assert.strictEqual(r.texto, texto);
+    assert.strictEqual(r.contexto.tipo, 'bug');
     assert.match(r.chamado, /^[A-Z0-9]{4}$/);
     assert.match(await page.textContent('.msgs'), new RegExp('Chamado #' + r.chamado));
     for (const k of ['onde', 'dia', 'patente', 'aparelho', 'janelas', 'sessao', 'ultima_consulta']) assert.ok(k in r.contexto, 'contexto sem ' + k);
@@ -1198,6 +1210,24 @@ test('suporte · Cláudio recebe o relato de bug e envia para a tabela relatos',
     assert.strictEqual(await page.evaluate(() => enviarFilaRelatos()), true);
     assert.strictEqual(recebidos.filter(x => /\/relatos$/.test(x.url)).length, 2);
     assert.strictEqual(await page.evaluate(() => JSON.parse(localStorage.getItem('sisp-relatos-fila')).length), 0);
+
+    // sugestão: escolhe o tipo, o texto de ajuda muda, e o tipo vai no contexto
+    await page.click('.relato-tipo:has-text("Sugestão")');
+    assert.strictEqual(await page.getAttribute('.relato-tipo:has-text("Sugestão")', 'aria-pressed'), 'true');
+    assert.match(await page.getAttribute('textarea.relato', 'placeholder'), /mudaria ou acrescentaria/);
+    await page.fill('textarea.relato', 'Seria bom ter um atalho para repetir a última consulta.');
+    await page.click('.reply button:has-text("Revisar e enviar")');
+    assert.match(await page.textContent('.overlay'), /Esta sugestão vai de verdade/);
+    await page.click('.overlay button:has-text("Enviar")');
+    await page.waitForFunction(() => /Sugestão #[A-Z0-9]{4} anotada/.test(document.querySelector('.msgs').textContent), null, { timeout: 8000 });
+    const sug = recebidos.filter(x => /\/relatos$/.test(x.url)).at(-1).corpo;
+    assert.strictEqual(sug.contexto.tipo, 'sugestao');
+    assert.strictEqual(await page.getAttribute('.relato-tipo:has-text("Problema")', 'aria-pressed'), 'true', 'depois de enviar, volta para Problema');
+
+    // quem já tinha conversado antes das sugestões recebe o aviso da novidade, uma vez
+    const avisos = await page.evaluate(() => { delete S.claudioSugestoes; chatSel = 'celia'; renderZap(); abrirSuporte(); abrirSuporte();
+      return S.chat.claudio.filter(m => /Novidade: agora eu também anoto/.test(m.text)).length; });
+    assert.strictEqual(avisos, 1);
     assert.deepStrictEqual(erros, []);
   } finally { await browser.close(); }
 });

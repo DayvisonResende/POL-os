@@ -28,8 +28,15 @@ const MARCOS = [
 const contar = (lista, chave) => { const m = {}; lista.forEach(x => { const k = chave(x); if (k != null && k !== '') m[k] = (m[k] || 0) + 1; }); return Object.entries(m).sort((a, b) => b[1] - a[1]); };
 const mediana = v => { if (!v.length) return 0; const s = [...v].sort((a, b) => a - b), m = Math.floor(s.length / 2); return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
 
+// Até a versão 2026-10-21-fila, o envio ao fechar a aba deixava os eventos na fila e eles voltavam a ser enviados
+// a cada fechamento seguinte (29% dos eventos eram cópias, quase todas "saida" e "pausa"). A cópia tem a mesma
+// sessão, o mesmo horário, o mesmo tipo e os mesmos dados: fica só a primeira.
+function semDuplicados(linhas) {
+  const vistos = new Set();
+  return linhas.filter(e => { const k = e.sessao + '|' + e.t + '|' + e.tipo + '|' + JSON.stringify(e.dados || {}); if (vistos.has(k)) return false; vistos.add(k); return true; });
+}
 function analisar(linhas) {
-  const ev = linhas.map(l => ({ ...l, dados: l.dados || {} })).sort((a, b) => a.t - b.t);
+  const ev = semDuplicados(linhas).map(l => ({ ...l, dados: l.dados || {} })).sort((a, b) => a.t - b.t);
   const porSessao = {}, porJogador = {};
   ev.forEach(e => { (porSessao[e.sessao] = porSessao[e.sessao] || []).push(e); (porJogador[e.jogador] = porJogador[e.jogador] || []).push(e); });
 
@@ -127,4 +134,4 @@ ${lista('Serviços do Beto (respostas, desistências e conceitos dominados)', a.
 ${tab(['Lugar', 'Jogadores', 'Min (mediana)', 'Consultas', 'Erros', 'Vazias', 'Tropeços', 'Dicas'], a.lugares.map(l => [l.onde, l.jogadores, l.minutosMediana, l.consultas, l.erros, l.vazias, l.tropecos, l.dicas]))}`;
 }
 
-module.exports = { analisar, relatorioMarkdown, MARCOS };
+module.exports = { analisar, relatorioMarkdown, semDuplicados, MARCOS };

@@ -3,7 +3,7 @@
    Envio em lotes, com fila guardada no navegador: se a internet cair, manda depois. Nunca trava o jogo. */
 var CONSENT_KEY='sisp-consentimento',JOGADOR_KEY='sisp-jogador',FILA_KEY='sisp-telemetria-fila',FILA_MAX=1000,LOTE=40;
 function gerarId(){try{if(window.crypto&&crypto.randomUUID)return crypto.randomUUID()}catch(e){}return 'j'+Date.now().toString(36)+Math.random().toString(36).slice(2,14)}
-var SESSAO_ID=gerarId(),enviandoFila=false;
+var SESSAO_ID=gerarId(),enviandoFila=false,emVoo=0;
 var filaRemota=(function(){try{var f=JSON.parse(localStorage.getItem(FILA_KEY)||'[]');return Array.isArray(f)?f:[]}catch(e){return []}})();
 function salvarFila(){try{localStorage.setItem(FILA_KEY,JSON.stringify(filaRemota))}catch(e){}}
 function remotaConfigurada(){return !!(TELEMETRIA_REMOTA&&TELEMETRIA_REMOTA.url&&TELEMETRIA_REMOTA.chave)}
@@ -27,16 +27,23 @@ function enfileirarRemota(e){
   if(filaRemota.length>=LOTE)enviarFila();
 }
 function enviarFila(saindo){
-  if(enviandoFila||!filaRemota.length||!remotaLigada()||typeof fetch!=='function')return;
-  var lote=filaRemota.slice(0,LOTE),c=TELEMETRIA_REMOTA;enviandoFila=true;
+  if((enviandoFila&&!saindo)||!filaRemota.length||!remotaLigada()||typeof fetch!=='function')return;
+  // envio normal ainda sem resposta: o lote dele (o começo da fila) fica de fora do envio de saída
+  var ini=enviandoFila?emVoo:0,lote=filaRemota.slice(ini,ini+LOTE),c=TELEMETRIA_REMOTA;
+  if(!lote.length)return;
+  // Saindo (aba escondida ou fechando): a página pode fechar antes da resposta. Tira o lote da fila já,
+  // senão ele volta a ser enviado a cada fechamento seguinte (eram 29% de cópias). Se essa rede falhar, perde só esse lote.
+  if(saindo){filaRemota.splice(ini,lote.length);salvarFila()}
+  else{enviandoFila=true;emVoo=lote.length}
   fetch(c.url.replace(/\/$/,'')+'/rest/v1/eventos',{method:'POST',keepalive:!!saindo,
     headers:{'apikey':c.chave,'Authorization':'Bearer '+c.chave,'Content-Type':'application/json','Prefer':'return=minimal'},
     body:JSON.stringify(lote)})
   .then(function(r){
     // 2xx: enviado. 4xx: o servidor recusou o lote (dado inválido); descarta para a fila não travar. 5xx: tenta de novo depois.
+    if(saindo)return;
     if(r.ok||(r.status>=400&&r.status<500)){filaRemota.splice(0,lote.length);salvarFila()}
-    enviandoFila=false;if(r.ok&&!saindo&&filaRemota.length>=LOTE)enviarFila();
-  },function(){enviandoFila=false});
+    enviandoFila=false;if(r.ok&&filaRemota.length>=LOTE)enviarFila();
+  },function(){if(!saindo)enviandoFila=false});
 }
 setInterval(function(){enviarFila()},15000);
 // pausa, volta e saída só de quem entrou no jogo: recarregar a tela de login não é uma sessão (era 70% do barulho)

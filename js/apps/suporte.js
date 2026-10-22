@@ -1,19 +1,20 @@
-/* Cláudio, do TI: o canal de bugs (contato "claudio" do PolíciaZap e SISP › Falar com o TI).
-   O jogador descreve o problema; o jogo junta o contexto técnico (onde estava, última consulta, último erro,
+/* Cláudio, do TI: o canal de problemas e sugestões (contato "claudio" do PolíciaZap e SISP › Falar com o TI).
+   O jogador escolhe Problema ou Sugestão (vai em contexto.tipo: a tabela não muda) e descreve; o jogo junta o contexto técnico (onde estava, última consulta, último erro,
    aparelho), mostra tudo e só envia depois do "Enviar". Vai para a tabela "relatos" do Supabase
    (supabase/relatos.sql), que só aceita inserção. Não depende do consentimento da telemetria: cada envio é
    uma ação do jogador, com aviso na hora (termo, seção 11). Sem internet: fica na fila e vai depois. */
 var RELATOS_FILA_KEY='sisp-relatos-fila',RELATOS_DIA_KEY='sisp-relatos-dia',RELATOS_LIMITE_DIA=5,RELATO_MIN=10,RELATO_MAX=1000;
-var rascunhoRelato='',enviandoRelatos=false,avisouErroJs=false;
+var rascunhoRelato='',tipoRelato='bug',enviandoRelatos=false,avisouErroJs=false;
 var filaRelatos=(function(){try{var f=JSON.parse(localStorage.getItem(RELATOS_FILA_KEY)||'[]');return Array.isArray(f)?f:[]}catch(e){return []}})();
 function salvarFilaRelatos(){try{localStorage.setItem(RELATOS_FILA_KEY,JSON.stringify(filaRelatos))}catch(e){}}
 
 // O que vai junto com o texto: só coisas do jogo e do aparelho em categorias amplas (nada de login ou senha).
 function contextoRelato(){
+  // último erro técnico: só o desta sessão (um erro de dias atrás, já corrigido, só confunde)
   var ev=TELE.ev,ultima=null,erroJs=null;
   for(var i=ev.length-1;i>=0&&(!ultima||!erroJs);i--){
     if(!ultima&&ev[i].tipo==='consulta')ultima={sql:String(ev[i].sql||'').slice(0,400),resultado:ev[i].res,erro:ev[i].erro?String(ev[i].erro).slice(0,200):null,onde:ev[i].onde};
-    if(!erroJs&&ev[i].tipo==='erro_js')erroJs={msg:ev[i].msg,arquivo:ev[i].arquivo,linha:ev[i].linha,quando:new Date(ev[i].t).toISOString()};
+    if(!erroJs&&ev[i].tipo==='erro_js'&&ev[i].s===TELE.sessoes)erroJs={msg:ev[i].msg,arquivo:ev[i].arquivo,linha:ev[i].linha,quando:new Date(ev[i].t).toISOString()};
   }
   var ci=caseActive();
   return {onde:teleOnde(),dia:S.dia,patente:rankT(),bo:ci<0?null:CASES[ci].id,treino:S.treino?{modulo:S.treino,passo:S.tut+1,pausado:!!S.tutPausado}:null,
@@ -47,37 +48,49 @@ function enviarFilaRelatos(){
 setInterval(function(){if(filaRelatos.length)enviarFilaRelatos()},60000);
 
 /* ---------- Conversa ---------- */
-function abrirSuporte(){chatSel='claudio';openZap();renderZap()}
+function abrirSuporte(tipo){if(tipo==='bug'||tipo==='sugestao')tipoRelato=tipo;chatSel='claudio';openZap();renderZap()}
 // Primeira vez na conversa: o Cláudio se apresenta (sem toast nem som: o jogador já está olhando).
+// Quem conversou antes de existirem as sugestões recebe o aviso da novidade uma vez.
 function saudacaoClaudio(){
-  if(S.chat.claudio.length)return;
   var hora=horaJogo();
+  if(S.chat.claudio.length){
+    if(!S.claudioSugestoes){S.claudioSugestoes=true;S.chat.claudio.push({me:false,text:L('Novidade: agora eu também anoto <b>sugestão</b>. Teve ideia para melhorar o sistema? Escolhe <b>Sugestão</b> aqui embaixo. A chefia diz que lê tudo; eu garanto que chega.'),hora:hora});S.lidas.claudio=S.chat.claudio.length;save()}
+    return;
+  }
+  S.claudioSugestoes=true;
   S.chat.claudio.push({me:false,text:L('Cláudio, do TI. Antes que você pergunte: não, eu não conserto impressora de casa.'),hora:hora});
   S.chat.claudio.push({me:false,text:L('Achou algo esquisito no sistema? Tela travada, botão que não faz nada, resposta certa que o sistema diz que está errada, texto que não dá para entender? Me conta aqui embaixo o que aconteceu e o que você esperava que acontecesse.'),hora:hora});
+  S.chat.claudio.push({me:false,text:L('E se tiver ideia para melhorar o sistema, também serve: escolhe <b>Sugestão</b> antes de escrever.'),hora:hora});
   S.chat.claudio.push({me:'sys',sys:true,text:L('Fora da história: o que você escrever aqui vai de verdade para a equipe que faz o jogo, junto com informações técnicas (onde você estava, a última consulta, o tipo de aparelho). Não escreva nome, e-mail, telefone ou senha. Dúvida de SQL é com a Célia e o Guia SQL.')});
   S.lidas.claudio=S.chat.claudio.length;save();
 }
 function caixaClaudio(box){
-  var ta=h('textarea',{class:'relato',rows:'3',maxlength:String(RELATO_MAX),placeholder:L('O que aconteceu? O que você esperava que acontecesse?'),'aria-label':L('Descreva o problema')});
+  var sug=tipoRelato==='sugestao',tipos=h('div',{class:'relato-tipos',role:'group','aria-label':L('Tipo do chamado')});
+  [['bug',L('Problema')],['sugestao',L('Sugestão')]].forEach(function(t){
+    var b=h('button',{class:'relato-tipo','aria-pressed':String(tipoRelato===t[0])},escH(t[1]));
+    b.onclick=function(){tipoRelato=t[0];renderZap()};tipos.appendChild(b)});
+  box.appendChild(tipos);
+  var ta=h('textarea',{class:'relato',rows:'3',maxlength:String(RELATO_MAX),placeholder:sug?L('O que você mudaria ou acrescentaria no jogo? Por quê?'):L('O que aconteceu? O que você esperava que acontecesse?'),'aria-label':sug?L('Descreva a sugestão'):L('Descreva o problema')});
   ta.value=rascunhoRelato;
   var cont=h('span',{class:'relato-cont muted'}),bt=h('button',{class:'tb-btn run'},L('Revisar e enviar'));
   var atualizar=function(){rascunhoRelato=ta.value;cont.textContent=ta.value.length+'/'+RELATO_MAX};
   ta.addEventListener('input',atualizar);atualizar();
   ta.addEventListener('focus',function(){caixaClaudio.foco=true});ta.addEventListener('blur',function(){caixaClaudio.foco=false});
   if(caixaClaudio.foco)setTimeout(function(){ta.focus();ta.selectionStart=ta.selectionEnd=ta.value.length},0);
-  bt.onclick=function(){revisarRelato(ta.value.trim())};
+  bt.onclick=function(){revisarRelato(ta.value.trim(),tipoRelato)};
   box.appendChild(ta);box.appendChild(cont);box.appendChild(bt);
   return true;
 }
 function claudioDiz(texto,atraso){setTimeout(function(){say('claudio',texto)},atraso==null?1200:atraso)}
-function revisarRelato(texto){
-  if(texto.length<RELATO_MIN)return toast(PEOPLE.claudio.nome,L('Me conta um pouco mais: o que você fez, o que apareceu na tela e o que esperava.'),'warn');
+function revisarRelato(texto,tipo){
+  var sug=tipo==='sugestao';
+  if(texto.length<RELATO_MIN)return toast(PEOPLE.claudio.nome,sug?L('Me conta um pouco mais: o que você mudaria e por quê.'):L('Me conta um pouco mais: o que você fez, o que apareceu na tela e o que esperava.'),'warn');
   if(relatosHoje()>=RELATOS_LIMITE_DIA)return toast(PEOPLE.claudio.nome,L('Hoje já são {n} chamados seus. Anota o resto e me manda amanhã, combinado?',{n:RELATOS_LIMITE_DIA}),'warn');
-  var ctx=contextoRelato();
+  var ctx=contextoRelato();ctx.tipo=sug?'sugestao':'bug';
   confirmar(L('Enviar para a equipe do jogo'),
-    '<p>'+L('Isto vai <b>de verdade</b> para quem faz o Pol-OS, para corrigir o problema. Confira antes de enviar:')+'</p>'+
+    '<p>'+(sug?L('Esta <b>sugestão</b> vai <b>de verdade</b> para quem faz o Pol-OS. Confira antes de enviar:'):L('Isto vai <b>de verdade</b> para quem faz o Pol-OS, para corrigir o problema. Confira antes de enviar:'))+'</p>'+
     '<blockquote class="relato-texto">'+escH(texto)+'</blockquote>'+
-    '<p class="muted">'+L('Vai junto, para ajudar a achar o problema:')+'</p>'+contextoRelatoHTML(ctx)+
+    '<p class="muted">'+(sug?L('Vai junto, para a equipe entender de onde veio a ideia:'):L('Vai junto, para ajudar a achar o problema:'))+'</p>'+contextoRelatoHTML(ctx)+
     '<p class="muted">'+L('Não vai junto: seu login, senha ou qualquer dado de fora do jogo. Seu código anônimo:')+' <code>'+escH(jogadorId())+'</code></p>',
     [[L('Enviar'),function(){enviarRelato(texto,ctx)},'btn-primary'],[L('Voltar e editar'),null,'tb-btn']]);
 }
@@ -85,17 +98,19 @@ function enviarRelato(texto,ctx){
   var cod=codigoChamado();
   filaRelatos.push({chamado:cod,jogador:jogadorId(),versao:VERSAO_JOGO,texto:texto.slice(0,RELATO_MAX),contexto:ctx});
   if(filaRelatos.length>20)filaRelatos.splice(0,filaRelatos.length-20);
-  salvarFilaRelatos();contarRelatoHoje();rascunhoRelato='';
+  var sug=ctx.tipo==='sugestao';
+  salvarFilaRelatos();contarRelatoHoje();rascunhoRelato='';tipoRelato='bug';
   say('claudio',escH(texto),true);
-  tele('relato_bug',{chamado:cod});
+  tele('relato_bug',{chamado:cod,tipo:ctx.tipo});
   if(!remotaConfigurada()){claudioDiz(L('Anotei o chamado #{c}, mas o sistema de chamados está fora do ar nesta versão do jogo. Se puder, conta para quem te passou o jogo.',{c:cod}));return}
   enviarFilaRelatos().then(function(ok){
-    claudioDiz(ok?L('Chamado #{c} aberto. Já está na fila da equipe, valeu por avisar! Lembrou de mais alguma coisa? Manda outro.',{c:cod})
+    claudioDiz(ok?(sug?L('Sugestão #{c} anotada e encaminhada para a equipe. Se virar realidade, pode dizer que foi ideia sua.',{c:cod})
+                     :L('Chamado #{c} aberto. Já está na fila da equipe, valeu por avisar! Lembrou de mais alguma coisa? Manda outro.',{c:cod}))
               :L('Opa, a rede daqui caiu. Guardei o chamado #{c} e mando sozinho assim que voltar.',{c:cod}));
   });
 }
 // Erro técnico do próprio jogo: uma vez por sessão, o Cláudio se oferece (é o tipo de bug que mais precisamos saber).
 function oferecerSuporteErro(){
   if(avisouErroJs||!S||!TELE.sessoes)return;avisouErroJs=true;
-  setTimeout(function(){toast(PEOPLE.claudio.nome,L('Vi um erro aqui no sistema. Se alguma coisa parou de funcionar, me conta o que você estava fazendo.'),'warn',abrirSuporte)},800);
+  setTimeout(function(){toast(PEOPLE.claudio.nome,L('Vi um erro aqui no sistema. Se alguma coisa parou de funcionar, me conta o que você estava fazendo.'),'warn',function(){abrirSuporte('bug')})},800);
 }

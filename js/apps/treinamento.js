@@ -96,7 +96,7 @@ function rotuloPasso(st){if(st.tema)return st.tema;var t=semTags(fill(st.text||'
 function histHTML(){
   if(S.tut<1)return '';
   var itens=tutPassos().slice(0,S.tut).map(function(st,k){
-    return '<details class="ghi" data-k="'+(k+1)+'"><summary><span class="gn">'+(k+1)+'</span>'+escH(rotuloPasso(st))+'</summary><div class="gbub">'+fill(st.text||'')+(st.extra||'')+(st.text2||'')+'</div>'+(st.after?'<div class="gbub after">'+fill(st.after)+'</div>':'')+'</details>'}).join('');
+    return '<details class="ghi" data-k="'+(k+1)+'"><summary><span class="gn">'+(k+1)+'</span>'+escH(rotuloPasso(st))+'</summary><div class="gbub">'+(st.antes||'')+fill(st.text||'')+(st.extra||'')+(st.text2||'')+'</div>'+(st.after?'<div class="gbub after">'+fill(st.after)+'</div>':'')+'</details>'}).join('');
   return '<details class="ghist"'+(histAberto?' open':'')+'><summary>'+L('Rever falas anteriores ({n})',{n:S.tut})+'</summary><div class="ghl">'+itens+'</div></details>';
 }
 function ligarHist(g){
@@ -109,7 +109,7 @@ function renderGuide(){
   var i=S.tut,N=tutPassos().length,after=S.tutPhase==='after';
   var html='<div class="gh"><span class="av">CM</span><div><b>Célia Moura</b><small>'+L('{treino} · passo {i} de {total}',{treino:escH(treinoAtual().titulo),i:i+1,total:N})+'</small></div>'+(S.treino!=='m1'?'<button class="gpausa" id="gPausa" title="'+escH(L('Libera o DB-Investigator; depois você volta exatamente deste passo'))+'">&#10074;&#10074; '+L('Pausar')+'</button>':'')+'</div><div class="gprog"><i style="width:'+Math.round((i+(after?1:0))/N*100)+'%"></i></div>'+histHTML();
   if(after){html+='<div class="gbub after">'+fill(st.after)+'</div><div class="gact"><button class="btn-primary" id="gNext">Continuar</button></div>';g.innerHTML=html;ligarHist(g);ligarPausa(g);$('#gNext').onclick=tutNext;spot('#gNext');return}
-  html+='<div class="gbub">'+fill(st.text)+(st.extra||'')+(st.text2||'')+'</div>';
+  html+='<div class="gbub">'+(st.antes||'')+fill(st.text)+(st.extra||'')+(st.text2||'')+'</div>';
   g.innerHTML=html;ligarHist(g);ligarPausa(g);
   var ouv=botaoOuvir('celia',fill(st.text||''));if(ouv)g.querySelector('.gbub').appendChild(ouv);var sp=st.spot||null,pl=st.point||null;
   if(st.type==='msg'||st.type==='final'){var a=h('div',{class:'gact'});var b=h('button',{class:'btn-primary',id:'gNext'},escH(st.btn||L('Continuar')));b.onclick=tutNext;a.appendChild(b);g.appendChild(a);sp='#gNext'}

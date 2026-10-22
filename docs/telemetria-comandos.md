@@ -35,13 +35,15 @@ rm -rf telemetria && npm run telemetria
 
 ---
 
-## Relatos de problemas (Cláudio, do TI)
+## Problemas e sugestões (Cláudio, do TI)
 
-O que os jogadores contam ao Cláudio chega na tabela `relatos`. **Uma vez só**, antes da primeira publicação com o Cláudio: no Supabase, SQL Editor › New query, cole todo o [`supabase/relatos.sql`](../supabase/relatos.sql) e clique em **Run**. Sem a tabela, o jogo guarda os relatos na fila do navegador e o servidor recusa o envio.
+O que os jogadores contam ao Cláudio (problema ou sugestão, marcado em `contexto.tipo`) chega na tabela `relatos`. **Uma vez só**, antes da primeira publicação com o Cláudio: no Supabase, SQL Editor › New query, cole todo o [`supabase/relatos.sql`](../supabase/relatos.sql) e clique em **Run**. Sem a tabela, o jogo guarda os relatos na fila do navegador e o servidor recusa o envio.
 
 ```bash
 npm run bugs                          # mostra os novos e marca como "visto"
 npm run bugs -- --todos               # mostra todos
+npm run bugs -- --sugestoes           # só as sugestões
+npm run bugs -- --problemas           # só os problemas
 npm run bugs -- --resolver A7F3       # chamado corrigido
 npm run bugs -- --descartar A7F3      # não era bug, ou repetido
 npm run bugs -- --nota A7F3 "corrigido na versão 2026-10-20"

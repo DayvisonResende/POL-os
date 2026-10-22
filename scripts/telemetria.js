@@ -4,7 +4,7 @@
    Passo a passo: docs/telemetria-supabase.md */
 const fs = require('fs');
 const path = require('path');
-const { analisar, relatorioMarkdown } = require('./telemetria-analise');
+const { analisar, relatorioMarkdown, semDuplicados } = require('./telemetria-analise');
 
 const RAIZ = path.join(__dirname, '..');
 const PASTA = process.env.SISP_TELEMETRIA_PASTA || path.join(RAIZ, 'telemetria');   // a variável serve para os testes
@@ -33,7 +33,8 @@ async function main() {
     if (lote.length < 1000) break;
   }
 
-  const todos = fs.existsSync(arqEventos) ? fs.readFileSync(arqEventos, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l)) : [];
+  const brutos = fs.existsSync(arqEventos) ? fs.readFileSync(arqEventos, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l)) : [];
+  const todos = semDuplicados(brutos);   // eventos.jsonl continua bruto; daqui em diante, sem as cópias
 
   // um arquivo por sessão, no mesmo formato do "Baixar JSON" do painel de diagnóstico do jogo
   const porSessao = {};
@@ -55,6 +56,7 @@ async function main() {
   a.ignorados = { eventos: todos.length - usados.length, jogadores: new Set(todos.filter(e => ignorar.some(p => e.jogador.startsWith(p))).map(e => e.jogador)).size };
   fs.writeFileSync(path.join(PASTA, 'relatorio.md'), relatorioMarkdown(a));
   console.log(`${novos} evento(s) novo(s). Total: ${todos.length} eventos, ${a.sessoes} sessão(ões), ${a.jogadores} jogador(es).`);
+  if (brutos.length > todos.length) console.log(`Cópias repetidas ignoradas: ${brutos.length - todos.length} (bug de envio corrigido na versão 2026-10-21-fila).`);
   console.log(`Fora do relatório: ${a.ignorados.eventos} evento(s) (${a.ignorados.jogadores} jogador(es) de TELEMETRIA_IGNORAR e sessões que não passaram do login).`);
   console.log('Relatório: telemetria/relatorio.md · Sessões: telemetria/sessoes/');
 }

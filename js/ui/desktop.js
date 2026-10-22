@@ -24,7 +24,7 @@ function buildStart(){
   main.appendChild(h('hr'));
   if(nivelamentoDisponivel())item(main,L('Nivelamento: já sei SQL'),ICONS.prova,ofertaNivelamento);
   item(main,L('Relatório do turno'),MENU_ICONS.relatorio,report);
-  item(main,L('Falar com o TI (relatar um problema)'),MENU_ICONS.suporte,abrirSuporte);
+  item(main,L('Falar com o TI (problemas e sugestões)'),MENU_ICONS.suporte,function(){abrirSuporte()});
   if(teleModo())item(main,L('Diagnóstico de playtest'),MENU_ICONS.diag,openDiag);
   // Configurações ▸
   var grupo=h('div',{class:'sm-grupo'}),abre=h('button',{class:'sm-it sm-abre','aria-haspopup':'true','aria-expanded':'false'},'<span class="sm-ico">'+MENU_ICONS.config+'</span><span>'+L('Configurações')+'</span><span class="sm-seta" aria-hidden="true">&#9656;</span>');

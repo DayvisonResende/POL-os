@@ -85,3 +85,14 @@ test('npm run telemetria: baixa do Supabase, separa por sessão e gera o relató
     assert.match(fs.readFileSync(path.join(pasta, 'relatorio.md'), 'utf8'), /\*\*1\*\* jogador/);
   } finally { servidor.close(); fs.rmSync(pasta, { recursive: true, force: true }); }
 });
+
+test('telemetria: cópias repetidas do mesmo evento (bug de envio ao fechar a aba) não contam', () => {
+  const { semDuplicados } = require('../scripts/telemetria-analise');
+  const base = linhas();
+  const copias = base.concat(base.filter(e => e.tipo === 'saida' || e.tipo === 'pausa'), base.filter(e => e.tipo === 'saida'));
+  assert.strictEqual(semDuplicados(copias).length, base.length);
+  assert.strictEqual(JSON.stringify(analisar(copias)), JSON.stringify(analisar(base)), 'o relatório sai igual, com ou sem as cópias');
+  // mesmo horário e tipo, mas dados diferentes: são eventos diferentes
+  const a = { sessao: 's1', jogador: 'j1', t: 1, tipo: 'consulta', dados: { sql: 'A' } }, b = { ...a, dados: { sql: 'B' } };
+  assert.strictEqual(semDuplicados([a, b, { ...a }]).length, 2);
+});
