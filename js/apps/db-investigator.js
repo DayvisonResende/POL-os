@@ -121,7 +121,21 @@ function runQuery(){
   notas.push(avisoSQL(sql,SCHEMA),checkSteps(ult));
   notas.filter(Boolean).forEach(function(n){tele('dica_auto',{texto:semTags(n).slice(0,140)})});
   msg.innerHTML=notas.filter(Boolean).map(function(n){return '<div class="hint0">'+n+'</div>'}).join('');guiaNasMensagens(msg);ligarPedirDica(msg);
+  if(achadosNovos.length)mostrarAchados(achadosNovos,ult);
   tutOnRun(toR(ult));
+}
+// O momento do "achei!": acende as células com os valores decisivos (e a linha delas) e diz, numa frase, o que aquilo significa.
+function mostrarAchados(lista,res){
+  var grid=$('#dbGrid'),msg=$('#dbMsg'),linhas=grid.querySelectorAll('tbody tr'),primeira=null;
+  lista.forEach(function(a){
+    var alvos=[];try{alvos=a.achado.valores()}catch(e){}
+    res.values.slice(0,linhas.length).forEach(function(row,i){
+      row.forEach(function(v,j){if(!alvos.some(function(x){return valorBate(v,x)}))return;
+        var tr=linhas[i];tr.classList.add('achado-linha');tr.children[j+1].classList.add('achado');if(!primeira)primeira=tr})});
+    msg.insertAdjacentHTML('afterbegin','<div class="achado-msg" role="status"><span class="achado-selo">'+L('Achado')+'</span>'+a.achado.frase+'</div>');
+    tele('achado',{caso:a.caso,tarefa:a.tarefa});
+  });
+  if(primeira&&primeira.scrollIntoView)primeira.scrollIntoView({block:'nearest'});
 }
 var ultimoResultado=null;   // para o 📌 (fixar linha no Caderno)
 function renderGrid(res){

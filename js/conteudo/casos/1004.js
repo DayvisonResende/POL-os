@@ -28,6 +28,7 @@ registrarCaso({id:'1004',titulo:L('Siga o dinheiro'),modulo:3,natureza:L('Lavage
        L('Acrescente no fim: <code>HAVING COUNT(*) &gt;= 5</code>.'),
        L("<code>SELECT conta_destino, COUNT(*) FROM transferencias WHERE data_hora BETWEEN '2026-10-13 00:00:00' AND '2026-10-13 23:59:59' AND valor BETWEEN 9000 AND 9999.99 GROUP BY conta_destino HAVING COUNT(*) &gt;= 5;</code>")],
     ok:function(R){return R.n===1&&has(R,F.contaDenise)},
+    achado:{valores:function(){return [F.contaDenise]},frase:L('Uma conta só recebeu cinco ou mais depósitos logo abaixo do limite de aviso. Isso tem nome: <b>fracionamento</b>, para o banco não avisar ninguém.')},
     quase:function(R){if(bateGrupos(R,F.gruposFaixa13,'conta_destino','n'))return L('agrupou certinho. Agora o filtro dos grupos: <code>HAVING COUNT(*) &gt;= 5</code>.')},
     aoConcluir:function(){say('celia',L('Achou a conta. Fixa essa linha no Caderno, no 📌, que você vai precisar desse número mais de uma vez hoje.'))}},
    {t:L('Descubra <b>de quem</b> é essa conta: o nome do titular.'),
@@ -42,6 +43,7 @@ registrarCaso({id:'1004',titulo:L('Siga o dinheiro'),modulo:3,natureza:L('Lavage
        L("<code>SELECT * FROM veiculos WHERE cpf_proprietario = '…';</code>"),
        L("Use o CPF da Denise: <code>SELECT * FROM veiculos WHERE cpf_proprietario = 'o CPF dela';</code>")],
     ok:function(R){return has(R,'FTR7A93')},
+    achado:{valores:function(){return ['FTR7A93']},frase:L('O nome bateu: a dona da conta é a dona do Virtus prata do furto no shopping, <b>FTR7A93</b>. Coincidência demais, recruta.')},
     aoConcluir:function(){
      say('celia',L('O Virtus prata. O do shopping. Terça, 19:20, ela furta um notebook. Terça, 22:45, roubam a carga. No mesmo dia.'));
      setTimeout(function(){say('jairo',L('Recruta, liguei agora pra vítima do furto do shopping. Sabe onde ela trabalha? Transportadora Central. É coordenadora de logística. O notebook tinha a escala dos caminhões da semana: rota, horário, placa.'))},4500);

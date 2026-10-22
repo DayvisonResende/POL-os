@@ -17,6 +17,12 @@ function mesmasLinhas(R,linhas){
 }
 function falta(R,col){return R.cols.indexOf(col)<0}
 // Algum número do resultado vale x (com tolerância para centavos e médias)?
+// Uma célula do resultado é este valor? (número com tolerância de centavo; texto sem diferença de maiúsculas). Usada nos achados.
+function valorBate(v,alvo){
+  if(v===null||alvo==null)return false;
+  if(typeof v==='number'&&typeof alvo==='number')return Math.abs(v-alvo)<=0.01;
+  return String(v).toLowerCase()===String(alvo).toLowerCase();
+}
 function temNumero(R,x,tol){if(x==null)return false;tol=tol==null?0.005:tol;return R.rows.some(function(r){return r.some(function(v){return typeof v==='number'&&Math.abs(v-x)<=tol})})}
 // O resultado de um GROUP BY bate com o esperado? Procura, com qualquer nome de coluna, uma coluna com as
 // chaves dos grupos e outra com os valores (contagem, soma, média…). linhas: [{chave:…, valor:…}] via linhasDe().

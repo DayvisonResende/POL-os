@@ -34,6 +34,7 @@ registrarCaso({id:'1005',titulo:L('Os laranjas'),modulo:3,natureza:L('Lavagem de
        L("<code>SELECT cpf_titular FROM contas_bancarias WHERE id IN (…);</code> e depois <code>SELECT * FROM pessoas WHERE cpf IN ('…', '…');</code>"),
        L('Use os ids das contas da tarefa 1 no primeiro IN e os CPFs que aparecerem no segundo. Repare na data de nascimento e na cidade de cada um.')],
     ok:function(R){return hasAll(R,F.laranjas)},
+    achado:{valores:function(){return F.laranjas},frase:L('Essas são as pessoas por trás das contas que abasteceram a Denise. Falta descobrir se elas sabiam disso.')},
     quase:function(R){if(hasAll(R,F.cpfsLaranja))return L('esses são os CPFs dos titulares. Os nomes estão na tabela <code>pessoas</code>.')},
     aoConcluir:function(){say('celia',L('Olha as datas de nascimento, recruta. Todo mundo com mais de 70 anos. Todo mundo de Piedade ou de Itu.'))}},
    {t:L('Quando essas contas foram abertas? Mostre a data de abertura <b>mais antiga</b> e a <b>mais recente</b>.'),

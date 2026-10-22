@@ -67,13 +67,17 @@ function closeCase(i,msg){
 }
 function unlockToast(){toast(L('Novo chamado'),L('Um novo BO foi atribuído a você no SISP Ocorrências.'),'warn',openOcorr)}
 
+// Achados: tarefas que são uma descoberta da história têm `achado:{valores:function(){…},frase:'…'}`.
+// Ao concluir uma delas, o DB-Investigator destaca os valores decisivos no resultado (ver mostrarAchados).
+// Poucos de propósito: destaque só pesa se for raro (livro "Storytelling com Dados", cap. 4).
+var achadosNovos=[];
 function checkSteps(res){
-  var R=toR(res),i=S.caseSel;
+  var R=toR(res),i=S.caseSel;achadosNovos=[];
   // checa o caso ativo (o primeiro não encerrado)
   var idx=caseActive();
   if(idx<0)return;var c=CASES[idx],stp=S.steps[c.id]||(S.steps[c.id]=[]);
   var feitas=0,quase=null;
-  c.steps.forEach(function(s,k){if(stp.indexOf(k)<0){var ok=false;try{ok=s.ok(R)}catch(e){}if(ok){feitas++;stp.push(k);tele('tarefa',{caso:c.id,tarefa:k+1});if(s.aoConcluir)setTimeout(s.aoConcluir,1200);if(!tutActive())toast('Tarefa concluída',s.t.replace(/<[^>]+>/g,''),'ok')}
+  c.steps.forEach(function(s,k){if(stp.indexOf(k)<0){var ok=false;try{ok=s.ok(R)}catch(e){}if(ok){feitas++;stp.push(k);tele('tarefa',{caso:c.id,tarefa:k+1});if(s.achado&&res)achadosNovos.push({caso:c.id,tarefa:k+1,achado:s.achado});if(s.aoConcluir)setTimeout(s.aoConcluir,1200);if(!tutActive())toast('Tarefa concluída',s.t.replace(/<[^>]+>/g,''),'ok')}
     else if(!quase&&s.quase){try{var q=s.quase(R);if(q)quase={k:k,msg:q}}catch(e){}}}});
   // Empurrão para as dicas: 3 consultas seguidas sem avançar e a dica da tarefa ainda fechada (playtest de 18/10:
   // o iniciante passou 50 min no BO 1003 e foi ao ChatGPT sem nunca abrir as dicas, que tinham a resposta).

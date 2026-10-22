@@ -44,6 +44,7 @@ registrarCaso({id:'1006',titulo:L('O segundo radar'),modulo:4,natureza:L('Roubo 
        L("O formato é <code>SELECT r.data_hora, i.endereco FROM leituras_radar r JOIN veiculos v ON … JOIN pessoas p ON … JOIN empresas e ON … JOIN imoveis i ON … WHERE r.local_radar LIKE '%Km 92%';</code>"),
        L("<code>SELECT r.data_hora, i.endereco FROM leituras_radar r JOIN veiculos v ON v.placa = r.placa JOIN pessoas p ON p.cpf = v.cpf_proprietario JOIN empresas e ON e.cpf_responsavel = p.cpf JOIN imoveis i ON i.cnpj_locatario = e.cnpj WHERE r.local_radar LIKE '%Km 92%' AND v.modelo = 'Hilux';</code>")],
     ok:function(R){return R.n<=3&&has(R,F.passagemKm92)&&has(R,F.galpao)},
+    achado:{valores:function(){return [F.passagemKm92,F.galpao]},frase:L('Do radar ao galpão, numa consulta só: a Hilux passou no Km 92 e o galpão fica logo ali. Isso aí vira <b>mandado de busca</b>.')},
     quase:function(R){if(has(R,F.galpao)&&!has(R,F.passagemKm92))return L('o galpão está aí. Mostre também o horário da passagem (<code>r.data_hora</code>): é isso que prova o caminho inteiro.');
       if(has(R,F.galpao)&&R.n>3)return L('o caminho está certo, mas veio mais gente. Filtre o radar do Km 92 e o modelo Hilux.')},
     aoConcluir:function(){say('celia',L('Lembra quanto tempo você levou na terça, com três consultas e um monte de copiar e colar? Olha agora: cinco tabelas, uma consulta. Pede o mandado.'))}}

@@ -531,3 +531,36 @@ test('nivelamento "Já sei SQL": respostas-modelo passam, respostas erradas não
     }
   }
 });
+
+// O momento do "achei!": a consulta de referência de cada tarefa de descoberta (a última dica) passa e acende
+// pelo menos um valor do achado; e os achados ficam raros (uma ou duas descobertas por BO).
+test('achados: a consulta de referência acende o valor decisivo, e são poucos', () => {
+  const { T } = J;
+  const desfazer = s => s.replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+  const C3 = consultasModulo3(T.F);
+  const REF = {
+    '1003:2': "SELECT placa, modelo, cor FROM veiculos WHERE placa IN ('KZX9B21', 'JKL4A12', 'RTA8K02')",
+    '1003:3': "SELECT nome FROM pessoas WHERE cpf = (SELECT cpf_proprietario FROM veiculos WHERE placa = 'KZX9B21')",
+    '1004:6': C3['1004'][5], '1005:5': C3['1005'][4],
+  };
+  let total = 0;
+  for (const c of T.CASES) {
+    const comAchado = c.steps.filter(s => s.achado);
+    assert.ok(comAchado.length <= 2, `${c.id}: achado demais perde o peso`);
+    c.steps.forEach((s, k) => {
+      if (!s.achado) return;
+      total++;
+      // a última dica, quando ela traz a consulta inteira; senão (dica com lacuna de propósito), a referência daqui
+      const ultima = s.h[s.h.length - 1], m = (ultima.match(/<code>([\s\S]*?)<\/code>/g) || []).map(desfazer).filter(x => /^\s*SELECT\b/i.test(x) && !/…|o CPF dela/.test(x));
+      const sql = REF[c.id + ':' + (k + 1)] || m[0];
+      assert.ok(sql, `${c.id} tarefa ${k + 1}: sem consulta de referência`);
+      const R = J.run(sql);
+      assert.ok(s.ok(R), `${c.id} tarefa ${k + 1}: a consulta da dica conclui a tarefa: ${sql}`);
+      const alvos = Array.from(s.achado.valores());
+      assert.ok(alvos.length && alvos.every(v => v != null), `${c.id} tarefa ${k + 1}: valores do achado`);
+      assert.ok(R.rows.some(r => r.some(v => alvos.some(a => T.valorBate(v, a)))), `${c.id} tarefa ${k + 1}: nada acende`);
+      assert.ok(s.achado.frase && !/\{\w+\}/.test(s.achado.frase), `${c.id} tarefa ${k + 1}: frase`);
+    });
+  }
+  assert.strictEqual(total, 8);
+});

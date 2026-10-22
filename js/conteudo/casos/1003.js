@@ -11,10 +11,12 @@ registrarCaso({id:'1003',titulo:'Assalto à Transportadora Central',modulo:2,nat
    {t:'O radar não sabe o modelo. Descubra no cadastro de <code>veiculos</code> qual dessas placas é uma caminhonete preta.',
     h:['IN compara com uma lista: <code>WHERE placa IN (\'AAA1A11\', \'BBB2B22\')</code>.','<code>SELECT placa, modelo, cor, cpf_proprietario FROM veiculos WHERE placa IN (…as três placas…);</code>'],
     ok:function(R){return R.n<=3&&has(R,'KZX9B21','hilux')},
+    achado:{valores:function(){return ['KZX9B21','Hilux']},frase:'O radar viu, o cadastro confirma: a caminhonete preta do assalto é a Hilux <b>KZX9B21</b>.'},
     quase:function(R){if(mesmasLinhas(R,F.l1003veic)&&falta(R,'modelo'))return 'achou as placas no cadastro. Agora mostre a coluna <code>modelo</code> para saber qual delas é caminhonete.'}},
    {t:'Descubra o nome do proprietário na tabela <code>pessoas</code>.',
     h:['A coluna cpf_proprietario de veiculos aponta para a coluna cpf de pessoas. É assim que as tabelas se conectam.','<code>SELECT nome, cidade FROM pessoas WHERE cpf = \'…cpf que você achou…\';</code>'],
     ok:function(R){return R.n<=2&&has(R,'Valdemar Silveira')},
+    achado:{valores:function(){return ['Valdemar Silveira']},frase:'A Hilux do assalto tem dono no papel: <b>Valdemar Silveira</b>. Agora é com o mandado.'},
     quase:function(R){if(mesmasLinhas(R,F.l1003dono)&&falta(R,'nome'))return 'achou a pessoa pelo CPF. Agora mostre a coluna <code>nome</code>, que vai no mandado.'}}
   ],
   final:{tipo:'mandado',titulo:'Mandado de prisão preventiva',campos:[{id:'placa',label:'Placa do veículo'},{id:'nome',label:'Nome do proprietário'}],

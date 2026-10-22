@@ -21,6 +21,7 @@ registrarCaso({id:'1007',titulo:L('O tamanho do prejuízo'),modulo:4,natureza:L(
        L('Dois caminhos: <code>SUM(n.valor_total)</code> <b>sem</b> o JOIN com os itens, ou <code>SUM(i.quantidade * i.valor_unitario)</code> com ele.'),
        L("<code>SELECT SUM(n.valor_total) FROM notas_fiscais n JOIN empresas e ON e.cnpj = n.cnpj_transportadora WHERE e.razao_social LIKE '%Central%' AND n.data_emissao = '2026-10-12';</code>")],
     ok:function(R){return R.n===1&&temNumero(R,F.valorCarga,0.01)},
+    achado:{valores:function(){return [F.valorCarga]},frase:L('Esse é o tamanho do prejuízo: o valor das notas da carga roubada.')},
     quase:function(R){if(R.n===1&&temNumero(R,F.somaInflada,0.01))return L('esse número não existe, recruta. O BO 1004 dizia R$ 380 mil, e você me trouxe quase dois milhões. Conta quantas linhas o JOIN com os itens gerou: a nota se repetiu uma vez por item.')},
     aoConcluir:function(){say('celia',L('R$ 380 mil. Bate com a avaliação da seguradora. Número inflado em relatório pra delegado é processo anulado no tribunal; guarda isso pro resto da vida.'))}},
    {t:L('Quantas <b>unidades de cada produto</b> foram roubadas?'),
