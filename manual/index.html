@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manual do Recruta · SQL em uma página · Pol-OS</title>
+<meta name="description" content="Folha-resumo de SQL do Pol-OS: SELECT, WHERE, GROUP BY, JOIN e os tropeços mais comuns, com exemplos. Jogo grátis para aprender SQL resolvendo crimes.">
+<meta property="og:title" content="Manual do Recruta · SQL em uma página">
+<meta property="og:description" content="A folha-resumo de SQL do Pol-OS, o jogo grátis em que você aprende SQL resolvendo crimes.">
+<meta property="og:image" content="https://polos.useconectai.com.br/manual/manual-do-recruta.png">
+<meta property="og:url" content="https://polos.useconectai.com.br/manual/">
+<meta property="og:type" content="website">
+<link rel="icon" href="../img/logo.webp">
+<style>
+/* Folha-resumo do Pol-OS. Cabe numa folha A4 (Imprimir › Salvar como PDF) e se lê no celular.
+   Os exemplos rodam no banco do jogo e não entregam resposta de caso (tests/manual.test.js confere). */
+:root{--tinta:#14232a;--suave:#56676d;--linha:#d5dcd9;--fundo:#f4f6f5;--papel:#fff;--titulo:#1d3a45;--ouro:#c98a00;--ouro-claro:#fff4d6;--codigo:#0f1a1e;--codigo-tinta:#d8e6e1;--chave:#ffc857;--texto:#9be3b8;--numero:#ffa07a;color-scheme:light}
+*{box-sizing:border-box}
+html{font-variant-ligatures:none}
+body{margin:0;background:var(--fundo);color:var(--tinta);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+code,pre{font-family:ui-monospace,"Cascadia Mono",Consolas,"Liberation Mono",monospace}
+.folha{max-width:1040px;margin:16px auto;background:var(--papel);padding:22px 26px 18px;box-shadow:0 2px 14px rgba(0,0,0,.08)}
+header{display:flex;align-items:center;gap:14px;border-bottom:3px solid var(--titulo);padding-bottom:10px;margin-bottom:12px}
+header img{width:58px;height:58px;object-fit:contain;flex:none}
+header h1{margin:0;font-size:25px;letter-spacing:.01em;color:var(--titulo)}
+header p{margin:2px 0 0;color:var(--suave);font-size:13.5px}
+header .selo{margin-left:auto;text-align:right;font-size:12px;color:var(--suave);line-height:1.3}
+header .selo b{display:block;color:var(--titulo);font-size:13px}
+.ordem{background:var(--codigo);color:var(--codigo-tinta);padding:9px 12px;margin:0 0 12px;font-size:13.5px;line-height:1.6;border-left:4px solid var(--ouro)}
+.ordem b{color:#fff;font-family:system-ui,sans-serif;font-size:12px;letter-spacing:.06em;text-transform:uppercase;margin-right:8px}
+.ordem i{color:#8fa6a0;font-style:normal}
+.k{color:var(--chave);font-weight:700}.s{color:var(--texto)}.n{color:var(--numero)}
+.colunas{columns:2;column-gap:22px}
+section{break-inside:avoid;margin:0 0 11px}
+h2{margin:0 0 5px;font-size:13px;letter-spacing:.07em;text-transform:uppercase;color:var(--titulo);display:flex;align-items:center;gap:8px}
+h2 span{background:var(--titulo);color:#fff;font-size:11px;padding:1px 6px;letter-spacing:.04em}
+.cmd{display:grid;grid-template-columns:118px 1fr;gap:1px 10px;padding:4px 0;border-top:1px solid var(--linha)}
+.cmd:first-of-type{border-top:0}
+.cmd>b{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;color:var(--titulo)}
+.cmd>p{margin:0;font-size:12.8px}
+.cmd>code{grid-column:1/-1;display:block;background:var(--codigo);color:var(--codigo-tinta);padding:4px 8px;font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere}
+.tropecos{break-inside:avoid;background:var(--ouro-claro);border-left:4px solid var(--ouro);padding:8px 12px;margin:0 0 11px}
+.tropecos h2{color:#7a5300}
+.tropecos ul{margin:0;padding-left:18px;font-size:12.8px}
+.tropecos li{margin:2px 0}
+.tropecos code{background:#fff;padding:0 4px;font-size:12px}
+footer{display:flex;justify-content:space-between;align-items:center;gap:12px;border-top:1px solid var(--linha);padding-top:8px;margin-top:4px;font-size:12px;color:var(--suave)}
+footer b{color:var(--titulo);font-size:13px}
+.acoes{max-width:1040px;margin:12px auto 0;padding:0 16px;display:flex;gap:8px;flex-wrap:wrap}
+.acoes a,.acoes button{font:inherit;font-size:14px;padding:8px 14px;border:1px solid var(--titulo);background:var(--papel);color:var(--titulo);text-decoration:none;cursor:pointer}
+.acoes .principal{background:var(--titulo);color:#fff}
+@media (max-width:760px){
+  .folha{margin:0;padding:16px;box-shadow:none}
+  header{flex-wrap:wrap}header .selo{margin-left:0;text-align:left}
+  header h1{font-size:21px}
+  .colunas{columns:1}
+  .cmd{grid-template-columns:1fr}
+  .acoes{padding:0 16px}
+}
+@page{size:A4;margin:7mm}
+@media print{
+  body{background:#fff;font-size:11px;line-height:1.3}
+  .acoes{display:none}
+  .folha{margin:0;padding:0;box-shadow:none;max-width:none}
+  header{padding-bottom:6px;margin-bottom:7px;gap:10px}
+  header img{width:38px;height:38px}header h1{font-size:18px}header p{font-size:11px}header .selo{font-size:10px}
+  .colunas{column-gap:16px}
+  h2{font-size:11px;margin-bottom:2px}
+  .cmd{grid-template-columns:86px 1fr;gap:1px 8px;padding:1.5px 0}
+  .cmd>b{font-size:10.5px}.cmd>p{font-size:10.3px;line-height:1.28}.cmd>code{font-size:9.6px;padding:2px 5px;line-height:1.3}
+  .ordem{font-size:10.5px;padding:5px 9px;margin-bottom:7px;line-height:1.45}
+  section,.tropecos{margin-bottom:6px}
+  .tropecos{padding:5px 10px}.tropecos ul{font-size:10.3px}.tropecos li{margin:1px 0}.tropecos code{font-size:9.6px}
+  footer{font-size:10px;padding-top:5px}footer b{font-size:11px}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<div class="acoes">
+  <a class="principal" href="../">Jogar o Pol-OS</a>
+  <button type="button" onclick="window.print()">Imprimir ou salvar em PDF</button>
+  <a href="manual-do-recruta.pdf" download>Baixar o PDF</a>
+</div>
+<main class="folha">
+<header>
+  <img src="../img/logo.webp" alt="Logo do Pol-OS">
+  <div>
+    <h1>Manual do Recruta · SQL em uma página</h1>
+    <p>Tudo o que o treinamento ensina, do primeiro <code>SELECT</code> ao <code>LEFT JOIN</code>, com um exemplo de cada.</p>
+  </div>
+  <div class="selo"><b>Pol-OS</b>aprenda SQL resolvendo crimes<br>jogo grátis no navegador</div>
+</header>
+
+<p class="ordem"><b>A ordem das partes</b><span class="k">SELECT</span> colunas <span class="k">FROM</span> tabela <span class="k">WHERE</span> filtro <span class="k">GROUP BY</span> grupo <span class="k">HAVING</span> filtro do grupo <span class="k">ORDER BY</span> coluna <span class="k">LIMIT</span> n<span class="k">;</span> <i>· só SELECT e FROM são obrigatórios; o resto, quando precisar, nesta ordem.</i></p>
+
+<div class="colunas">
+<section>
+  <h2><span>Módulo 1</span> Ler uma tabela</h2>
+  <div class="cmd"><b>SELECT … FROM</b><p>Mostra colunas de uma tabela. O <code>*</code> traz todas.</p><code class="ex">SELECT placa, modelo FROM veiculos;</code></div>
+  <div class="cmd"><b>DISTINCT</b><p>Tira as linhas repetidas do resultado.</p><code class="ex">SELECT DISTINCT cidade FROM pessoas;</code></div>
+  <div class="cmd"><b>AS</b><p>Apelido para a coluna no resultado. O banco não muda.</p><code class="ex">SELECT modelo AS veiculo FROM veiculos;</code></div>
+  <div class="cmd"><b>LIMIT</b><p>Corta o resultado. Vai sempre no fim.</p><code class="ex">SELECT * FROM veiculos LIMIT 5;</code></div>
+</section>
+
+<section>
+  <h2><span>Módulo 2</span> Filtrar</h2>
+  <div class="cmd"><b>WHERE</b><p>Só as linhas que passam na condição. Texto vai entre aspas simples.</p><code class="ex">SELECT placa, modelo FROM veiculos WHERE cor = 'branco';</code></div>
+  <div class="cmd"><b>AND / OR</b><p>AND: as duas condições. OR: qualquer uma delas.</p><code class="ex">SELECT placa FROM veiculos WHERE cor = 'azul' AND ano >= 2015;</code></div>
+  <div class="cmd"><b>= != &gt; &lt; &gt;= &lt;=</b><p>Igual, diferente, maior, menor, maior ou igual, menor ou igual.</p><code class="ex">SELECT placa, velocidade_kmh FROM leituras_radar WHERE local_radar = 'Av. Dom Aguirre' AND velocidade_kmh &gt; 60;</code></div>
+  <div class="cmd"><b>LIKE e %</b><p>Texto parecido. O <code>%</code> vale "qualquer coisa".</p><code class="ex">SELECT nome FROM pessoas WHERE nome LIKE 'Mar%';</code></div>
+  <div class="cmd"><b>BETWEEN</b><p>Entre dois valores, incluindo as duas pontas.</p><code class="ex">SELECT placa, ano FROM veiculos WHERE ano BETWEEN 2018 AND 2020;</code></div>
+  <div class="cmd"><b>Data e hora</b><p>No formato <code>AAAA-MM-DD HH:MM:SS</code>. Para um dia inteiro, use as duas pontas.</p><code class="ex">SELECT placa, data_hora FROM leituras_radar WHERE data_hora BETWEEN '2026-10-13 00:00:00' AND '2026-10-13 23:59:59';</code></div>
+  <div class="cmd"><b>IN</b><p>Um valor de uma lista.</p><code class="ex">SELECT nome, cidade FROM pessoas WHERE cidade IN ('Itu', 'Salto');</code></div>
+  <div class="cmd"><b>ORDER BY</b><p>Ordena. <code>ASC</code> do menor ao maior, <code>DESC</code> do maior ao menor.</p><code class="ex">SELECT placa, ano FROM veiculos ORDER BY ano DESC;</code></div>
+</section>
+
+<section>
+  <h2><span>Módulo 3</span> Contar e somar</h2>
+  <div class="cmd"><b>COUNT</b><p>Quantas linhas. <code>COUNT(coluna)</code> não conta as vazias.</p><code class="ex">SELECT COUNT(*) FROM veiculos WHERE cor = 'preto';</code></div>
+  <div class="cmd"><b>SUM e AVG</b><p>Soma e média de uma coluna de números.</p><code class="ex">SELECT AVG(velocidade_kmh) FROM leituras_radar WHERE local_radar = 'Av. Dom Aguirre';</code></div>
+  <div class="cmd"><b>MIN e MAX</b><p>O menor e o maior (também com datas).</p><code class="ex">SELECT MIN(ano), MAX(ano) FROM veiculos;</code></div>
+  <div class="cmd"><b>GROUP BY</b><p>Uma conta para cada grupo: "de cada", "por".</p><code class="ex">SELECT ano, COUNT(*) FROM veiculos GROUP BY ano;</code></div>
+  <div class="cmd"><b>HAVING</b><p>Filtra os grupos, depois da conta. O WHERE filtra as linhas, antes.</p><code class="ex">SELECT ano, COUNT(*) FROM veiculos GROUP BY ano HAVING COUNT(*) &gt;= 3;</code></div>
+  <div class="cmd"><b>IS NULL</b><p>Vazio (NULL) não é igual a nada: use <code>IS NULL</code> ou <code>IS NOT NULL</code>.</p><code class="ex">SELECT id, valor FROM transferencias WHERE descricao IS NULL;</code></div>
+  <div class="cmd"><b>COALESCE</b><p>Troca o vazio por um valor, só na hora de mostrar.</p><code class="ex">SELECT id, COALESCE(descricao, 'sem descrição') FROM transferencias;</code></div>
+</section>
+
+<section>
+  <h2><span>Módulo 4</span> Juntar tabelas</h2>
+  <div class="cmd"><b>JOIN … ON</b><p>Junta duas tabelas pela coluna que elas têm em comum.</p><code class="ex">SELECT v.placa, p.nome FROM veiculos v JOIN pessoas p ON p.cpf = v.cpf_proprietario WHERE p.cidade = 'Salto';</code></div>
+  <div class="cmd"><b>Apelido de tabela</b><p><code>veiculos v</code>: depois, <code>v.placa</code> diz de qual tabela é a coluna.</p></div>
+  <div class="cmd"><b>LEFT JOIN</b><p>Mantém todas as linhas da tabela da esquerda, mesmo sem par (o lado sem par vem NULL).</p><code class="ex">SELECT p.nome, v.placa FROM pessoas p LEFT JOIN veiculos v ON v.cpf_proprietario = p.cpf;</code></div>
+  <div class="cmd"><b>Quem não tem</b><p>LEFT JOIN + IS NULL: as pessoas sem nenhum veículo.</p><code class="ex">SELECT p.nome FROM pessoas p LEFT JOIN veiculos v ON v.cpf_proprietario = p.cpf WHERE v.placa IS NULL;</code></div>
+</section>
+
+<div class="tropecos">
+  <h2>Os tropeços mais comuns</h2>
+  <ul>
+    <li><b>Texto sem aspas:</b> <code>cor = branco</code> procura uma coluna chamada branco. O certo: <code>cor = 'branco'</code>.</li>
+    <li><b>Vírgula sobrando antes do FROM:</b> <code>SELECT placa, modelo, FROM</code>. A última coluna não leva vírgula.</li>
+    <li><b><code>= NULL</code> não funciona:</b> volta vazio sem avisar. Use <code>IS NULL</code>.</li>
+    <li><b>WHERE depois do GROUP BY:</b> para filtrar o resultado da conta, é <code>HAVING</code>.</li>
+    <li><b>Soma que infla no JOIN:</b> se um lado tem várias linhas para cada linha do outro, o valor se repete na soma.</li>
+    <li><b>Na dúvida:</b> no jogo, o botão <b>Explique esta consulta</b> traduz a consulta para o português, pedaço por pedaço.</li>
+  </ul>
+</div>
+</div>
+
+<footer>
+  <span><b>Pol-OS</b> · jogo grátis para aprender SQL resolvendo crimes · polos.useconectai.com.br</span>
+  <span>Obra de ficção: dados, nomes e placas são inventados.</span>
+</footer>
+</main>
+</body>
+</html>

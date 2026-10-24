@@ -7,6 +7,7 @@
     "empacotar": "node scripts/empacotar.js",
     "telemetria": "node scripts/telemetria.js",
     "bugs": "node scripts/bugs.js",
+    "manual": "node scripts/manual.js",
     "i18n": "node scripts/i18n.js",
     "vozes": "node scripts/vozes.js"
   },

@@ -22,6 +22,9 @@ function renderGuia(){
   esq.appendChild(busca);
   if(!lista.length)esq.appendChild(h('div',{class:'muted guia-vazio'},L('Nada encontrado. O Guia só tem os comandos que você já aprendeu.')));
   lista.forEach(function(x){var b=h('button',{class:x.id===guiaSel?'sel':''},escH(x.titulo));b.onclick=function(){guiaSel=x.id;renderGuia();tele('guia',{acao:'ver',verbete:x.id})};esq.appendChild(b)});
+  // Manual do Recruta: a folha-resumo para imprimir (manual/). A versão de arquivo único (dist/) não leva a pasta: vai pelo site.
+  var man=h('a',{class:'guia-manual',href:/sisp\.html$/.test(location.pathname)?'https://polos.useconectai.com.br/manual/':'manual/index.html',target:'_blank',rel:'noopener'},'&#128196; '+L('Manual do Recruta: SQL em uma página (para imprimir)'));
+  man.onclick=function(){tele('guia',{acao:'manual'})};esq.appendChild(man);
   if(v){
     dir.innerHTML='<div class="guia-titulo">'+escH(v.titulo)+'</div><p class="guia-resumo">'+v.resumo+'</p>'+
       '<div class="guia-sec">'+L('Formato')+'</div><pre class="guia-formato">'+escH(v.formato)+'</pre>'+

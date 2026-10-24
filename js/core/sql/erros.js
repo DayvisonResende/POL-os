@@ -13,6 +13,49 @@ var DIALETOS=[
  [/\bEXTRACT\s*\(/i,'O <code>EXTRACT()</code> é do <b>PostgreSQL</b>. Aqui, para pegar o ano de uma data, use <code>strftime(\'%Y\', coluna)</code>.']
 ];
 function dialetoSQL(sql){var semTexto=String(sql).replace(/'(?:[^']|'')*'/g,"''");for(var i=0;i<DIALETOS.length;i++)if(DIALETOS[i][0].test(semTexto))return DIALETOS[i][1];return null}
+/* Onde está o erro, para sublinhar no editor (ideia do Database Detective: o erro aponta o lugar).
+   Devolve {ini,fim} (posições no texto da consulta) ou null. O SQLite não diz a posição: procuramos a palavra
+   que ele cita, fora de textos entre aspas e comentários. Se ela aparece mais de uma vez (dois WHERE), testar(trecho)
+   devolve a mensagem do banco para a consulta cortada logo depois de cada ocorrência: a culpada é a primeira em que
+   o banco já reclama dela (antes dela, ele só diria que a consulta está incompleta). */
+function tokensSQL(sql){
+  var re=/(--[^\n]*)|('(?:[^']|'')*'?)|([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)?)|(\d+(?:\.\d+)?)|(\S)/g,m,out=[];
+  while((m=re.exec(sql)))out.push({t:m[0],ini:m.index,fim:m.index+m[0].length,com:!!m[1],txt:!!m[2]});
+  return out;
+}
+function localErroSQL(msg,sql,testar,schema){
+  var m,tk=tokensSQL(sql).filter(function(t){return !t.com}),achar=function(alvo,cond){
+    alvo=String(alvo).toLowerCase();
+    for(var i=0;i<tk.length;i++){var t=tk[i];if(t.txt)continue;
+      if(t.t.toLowerCase()===alvo&&(!cond||cond(i)))return {ini:t.ini,fim:t.fim};
+      // "v.placa2" citado como "placa2", ou o contrário
+      if(t.t.indexOf('.')>0&&t.t.toLowerCase().split('.').pop()===alvo&&(!cond||cond(i)))return {ini:t.ini,fim:t.fim}}
+    return null};
+  msg=String(msg);
+  var parenAberto=function(){var pilha=[];tk.forEach(function(t){if(t.txt)return;if(t.t==='(')pilha.push(t);else if(t.t===')')pilha.pop()});return pilha.length?pilha[pilha.length-1]:null};
+  // o banco tropeça no ; do fim, mas o problema é o parêntese que ficou aberto
+  if(/near ";": syntax error/.test(msg)){var pa=parenAberto();if(pa)return {ini:pa.ini,fim:pa.fim}}
+  // palavra-chave digitada errada (FORM, WERE…): é dela que a mensagem fala (translateError usa o mesmo kwTypo),
+  // mesmo quando o banco só tropeça na palavra seguinte ("modelo FORM veiculos": FORM vira apelido de coluna)
+  if(/syntax error/.test(msg)&&schema&&typeof kwTypo==='function'){var ty=kwTypo(sql,schema),a=ty&&achar(ty[0]);if(a)return a}
+  if((m=msg.match(/near "([^"]+)": syntax error/))&&testar){
+    var alvo=m[1].toLowerCase(),cands=tk.filter(function(t){return !t.txt&&t.t.toLowerCase()===alvo});
+    if(cands.length>1)for(var c=0;c<cands.length;c++){var r=null;try{r=testar(sql.slice(0,cands[c].fim))}catch(e){r=String(e.message||e)}
+      if(r&&r.indexOf('near "'+m[1]+'"')>=0)return {ini:cands[c].ini,fim:cands[c].fim}}
+  }
+  if(m&&/syntax error/.test(msg))return achar(m[1])||(function(){
+    // símbolo colado em outro ("SELECT*"): procura o texto cru, fora de aspas
+    var i=-1,alvo=m[1];tk.some(function(t){if(!t.txt&&t.t.indexOf(alvo)>=0){i=t.ini+t.t.indexOf(alvo);return true}});return i<0?null:{ini:i,fim:i+alvo.length}})();
+  if((m=msg.match(/no such (?:column|table): (\S+)/))||(m=msg.match(/ambiguous column name: (\S+)/)))return achar(m[1])||achar(m[1].split('.').pop());
+  if((m=msg.match(/no such function: (\S+)/)))return achar(m[1],function(i){return tk[i+1]&&tk[i+1].t==='('});
+  if(/incomplete input|unrecognized token/.test(msg)){
+    // aspas que não fecharam; senão, o último parêntese aberto sem par; senão, a última palavra
+    var aberta=tk.filter(function(t){return t.txt&&(t.t.length<2||t.t.slice(-1)!=="'")})[0];if(aberta)return {ini:aberta.ini,fim:aberta.fim};
+    var p=parenAberto();if(p)return {ini:p.ini,fim:p.fim};
+    var u=tk.filter(function(t){return t.t!==';'}).pop();return u?{ini:u.ini,fim:u.fim}:null;
+  }
+  return null;
+}
 function translateError(msg,sql,schema){
   var m,tables=schema.tables,cols=schema.cols,dl=dialetoSQL(sql);
   if(dl)return dl;

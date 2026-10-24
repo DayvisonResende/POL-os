@@ -1,6 +1,13 @@
 /* ---------- DB-Investigator ---------- */
 var KW_RE=new RegExp('\\b('+KEYWORDS.concat(['UPDATE','DELETE','INSERT','INTO','SET','DROP','TABLE','VALUES','CREATE','ALTER','LIKE']).join('|')+')\\b','gi');
+// Pinta o SQL do editor. Com marcaErro (ver runQuery), o trecho onde o banco se perdeu ganha um sublinhado ondulado.
+var marcaErro=null;
 function highlight(src){
+  if(marcaErro&&marcaErro.valor===src&&marcaErro.fim<=src.length)
+    return pintarSQL(src.slice(0,marcaErro.ini))+'<mark class="erro-ed">'+pintarSQL(src.slice(marcaErro.ini,marcaErro.fim))+'</mark>'+pintarSQL(src.slice(marcaErro.fim))+'\n';
+  return pintarSQL(src)+'\n';
+}
+function pintarSQL(src){
   var out='',re=/(--[^\n]*)|('(?:[^']|'')*'?)|(\b\d+(?:\.\d+)?\b)|([A-Za-z_][A-Za-z0-9_]*)|([\s\S])/g,m;
   while((m=re.exec(src))){
     if(m[1])out+='<span class="c">'+escH(m[1])+'</span>';
@@ -9,7 +16,7 @@ function highlight(src){
     else if(m[4])out+=KEYWORDS.indexOf(m[4].toUpperCase())>=0||/^(UPDATE|DELETE|INSERT|INTO|SET|DROP|TABLE|VALUES|CREATE|ALTER)$/i.test(m[4])?'<span class="k">'+m[4]+'</span>':escH(m[4]);
     else out+=escH(m[5]);
   }
-  return out+'\n';
+  return out;
 }
 var dictOpen=window.innerWidth>760;
 function openDb(sql){
@@ -55,7 +62,8 @@ function showExplain(){
   if(ids.length){var gl=h('div',{class:'exn guia-links'},'<span>'+L('No Guia:')+'</span>');ids.slice(0,8).forEach(function(id){var b=h('button',{type:'button'},escH(verbete(id).titulo));b.onclick=function(){tele('guia',{acao:'atalho',verbete:id});openGuia(id);renderGuia()};gl.appendChild(b)});box.querySelector('.explain').appendChild(gl)}
   tutOnExplain();
 }
-function syncHl(){var ta=$('#sqlEd');if(!ta)return;$('#sqlHl').innerHTML=highlight(ta.value);$('#sqlHl').scrollTop=ta.scrollTop}
+function syncHl(){var ta=$('#sqlEd');if(!ta)return;if(marcaErro&&marcaErro.valor!==ta.value)marcaErro=null;   // mexeu na consulta: o sublinhado sai
+  $('#sqlHl').innerHTML=highlight(ta.value);$('#sqlHl').scrollTop=ta.scrollTop}
 // Escreve no editor como se fosse digitado: assim o Ctrl+Z continua funcionando (trocar ta.value por código
 // apaga o histórico de desfazer do navegador; playtest de 17/10). Sem execCommand, cai no jeito antigo.
 function editorDigitar(ta,txt){
@@ -98,12 +106,15 @@ function runQuery(){
   var bloq=tabelaBloqueada(sql);
   if(bloq){msg.innerHTML='<div class="err">'+msgTabelaBloqueada(bloq)+'</div>';st.textContent=L('Acesso a tabela restrita bloqueado.');tele('consulta',{sql:sql.slice(0,400),res:'restrita',tabela:bloq.nome});return}
   if(!tutBeforeRun())return;
-  S.queries++;var t0=performance.now(),todos;
+  S.queries++;var t0=performance.now(),todos;if(marcaErro){marcaErro=null;syncHl()}
   var hora=new Date().toLocaleTimeString(idiomaAtual());
   var status=function(t){st.textContent=t+' · '+L('executada às {hora}',{hora:hora})+(trecho?' · '+L('só o trecho selecionado'):'');st.classList.remove('flash');void st.offsetWidth;st.classList.add('flash')};
   try{todos=executarSQL(db,sql)}catch(e){
     S.errors++;tele('consulta',{sql:sql.slice(0,400),res:'erro',erro:String(e.message||e)});save();var tr=translateError(String(e.message||e),sql,SCHEMA);
-    msg.innerHTML='<div class="err">'+tr+'<span class="raw">SQLite: '+escH(e.message||e)+'</span></div>';guiaNasMensagens(msg);ligarPedirDica(msg);
+    // onde está o erro: sublinha no editor (posição no trecho executado + onde ele começa no editor)
+    var loc=localErroSQL(String(e.message||e),sql,function(q){try{db.prepare(q).free();return null}catch(x){return String(x.message||x)}},SCHEMA),base=ta.value.indexOf(sql,trecho?ta.selectionStart:0);
+    marcaErro=loc&&base>=0?{ini:base+loc.ini,fim:base+loc.fim,valor:ta.value}:null;syncHl();
+    msg.innerHTML='<div class="err">'+tr+(marcaErro?'<span class="onde-erro">'+L('Sublinhei em vermelho, no editor, onde o banco se perdeu.')+'</span>':'')+'<span class="raw">SQLite: '+escH(e.message||e)+'</span></div>';guiaNasMensagens(msg);ligarPedirDica(msg);
     grid.innerHTML='<div class="empty">'+L('A consulta não rodou, então não há resultado. Corrija o erro acima e execute de novo.')+'</div>';
     status(L('Erro na consulta'));tutOnError(tr);return}
   var ms=(performance.now()-t0).toFixed(1),ult=todos[todos.length-1],vazio=!ult||!ult.values.length;save();

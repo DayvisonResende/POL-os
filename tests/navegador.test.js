@@ -1231,3 +1231,20 @@ test('suporte · Cláudio recebe o relato de bug e envia para a tabela relatos',
     assert.deepStrictEqual(erros, []);
   } finally { await browser.close(); }
 });
+
+// Celular (playtest de 22/10): nos passos em que a Célia só fala, o editor sai e a fala inteira cabe na tela;
+// quando o passo pede consulta, o editor volta. No computador, o editor fica sempre.
+test('celular · a Célia ganha a tela nos passos de fala', { skip: !CHROME && 'Chrome não encontrado (defina CHROME)', timeout: 60000 }, async () => {
+  for (const [largura, celular] of [[411, true], [1366, false]]) {
+    const { browser, page, erros } = await abrir('index.html', largura);
+    try {
+      await page.click('#lgBtn');
+      assert.strictEqual(await page.isVisible('#sqlEd'), !celular, `passo 1 (fala), ${largura}px: editor`);
+      const b = await page.$eval('#gNext', e => { const r = e.getBoundingClientRect(); return r.bottom <= innerHeight && document.elementFromPoint(r.x + 5, r.y + 5) === e; });
+      assert.ok(b, `${largura}px: o botão de avançar está à vista e clicável`);
+      await page.click('#gNext'); await page.click('#gNext');
+      assert.ok(await page.isVisible('#sqlEd') && await page.isVisible('#runBtn'), `passo 3 (executar), ${largura}px: editor e botão de volta`);
+      assert.deepStrictEqual(erros, []);
+    } finally { await browser.close(); }
+  }
+});

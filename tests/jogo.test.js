@@ -564,3 +564,30 @@ test('achados: a consulta de referência acende o valor decisivo, e são poucos'
   }
   assert.strictEqual(total, 8);
 });
+
+// Onde está o erro (ideia do Database Detective): o editor sublinha a palavra em que o banco se perdeu,
+// e é a mesma de que a mensagem traduzida fala.
+test('erro de SQL: o sublinhado cai na palavra certa', () => {
+  const { T } = J;
+  const schema = T.SCHEMA || { tables: ['veiculos', 'pessoas', 'leituras_radar'], cols: ['placa', 'modelo', 'cor', 'ano', 'nome', 'cpf'] };
+  const testar = q => { try { J.db.prepare(q).free(); return null; } catch (e) { return String(e.message || e); } };
+  const casos = [
+    ["SELECT placa, modelo FORM veiculos WHERE cor = 'prata';", 'FORM'],
+    ["SELECT placa, modelo FROM veiculos WHERE cor = 'prata' AND WHERE ano > 2020;", 'WHERE', 'o segundo WHERE'],
+    ['SELECT placa, model FROM veiculos;', 'model'],
+    ['SELECT v.placa2 FROM veiculos v;', 'v.placa2'],
+    ["SELECT * FROM veiculo WHERE cor = 'veiculo';", 'veiculo', 'a tabela, não o texto entre aspas'],
+    ["SELECT * FROM veiculos WHERE cor = 'prata;", "'prata;", 'aspas que não fecharam'],
+    ['SELECT * FROM veiculos WHERE (ano > 2020;', '('],
+    ['SELECT LEN(placa) FROM veiculos;', 'LEN'],
+  ];
+  for (const [sql, esperado, nota] of casos) {
+    let msg = null; try { T.executarSQL(J.db, sql); } catch (e) { msg = String(e.message || e); }
+    assert.ok(msg, `${sql}: deveria dar erro`);
+    const loc = T.localErroSQL(msg, sql, testar, schema);
+    assert.ok(loc, `${sql}: sem posição (${msg})`);
+    assert.strictEqual(sql.slice(loc.ini, loc.fim), esperado, `${sql} (${nota || msg})`);
+    if (esperado === 'WHERE') assert.ok(loc.ini > sql.indexOf('AND'), 'o segundo WHERE, não o primeiro');
+  }
+  assert.strictEqual(T.localErroSQL('qualquer outra coisa', 'SELECT 1'), null);
+});

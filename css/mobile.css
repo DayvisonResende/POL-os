@@ -18,6 +18,9 @@
   .dbwrap{position:relative}
   .dbwrap.tut{flex-direction:column}
   .guide{width:auto;max-height:50%;border-right:0;border-bottom:1px solid var(--rule)}
+  /* passo em que a Célia só fala: ela ganha a tela; o editor volta quando o passo pede consulta */
+  .db-so-fala>.toolbar,.db-so-fala .dbwrap.tut>.dbmain{display:none}
+  .db-so-fala .dbwrap.tut>.guide{flex:1;max-height:none;border-bottom:0}
   .explain td.cd{width:45%}
 }
 @media (max-width:460px){

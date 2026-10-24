@@ -431,5 +431,7 @@ registrarIdioma('en',{nome:'English',pronto:false,textos:{
  "Me conta um pouco mais: o que você mudaria e por quê.":"Tell me a bit more: what you would change and why.",
  "Esta <b>sugestão</b> vai <b>de verdade</b> para quem faz o Pol-OS. Confira antes de enviar:":"This <b>suggestion</b> <b>really</b> goes to the people who make Pol-OS. Check it before sending:",
  "Vai junto, para a equipe entender de onde veio a ideia:":"Sent along, so the team understands where the idea came from:",
- "Sugestão #{c} anotada e encaminhada para a equipe. Se virar realidade, pode dizer que foi ideia sua.":"Suggestion #{c} logged and passed on to the team. If it becomes real, you can say it was your idea."
+ "Sugestão #{c} anotada e encaminhada para a equipe. Se virar realidade, pode dizer que foi ideia sua.":"Suggestion #{c} logged and passed on to the team. If it becomes real, you can say it was your idea.",
+ "Sublinhei em vermelho, no editor, onde o banco se perdeu.":"I underlined in red, in the editor, where the database got lost.",
+ "Manual do Recruta: SQL em uma página (para imprimir)":"Recruit's Handbook: SQL on one page (printable)"
 }});

@@ -66,7 +66,7 @@ function tutComplete(){var st=tutStep();if(st.after){pararVozes();falar('celia',
 function tutFinish(){
   var T=treinoAtual();S.treinosFeitos.push(T.id);S.treino=null;S.tut=0;tele('treino_fim',{treino:T.id});
   spot(null,null);setEditor(null,false);
-  var g=$('#guide');if(g){g.remove();$('.dbwrap').classList.remove('tut')}
+  var g=$('#guide');if(g){g.remove();$('.dbwrap').classList.remove('tut');$('.dbwrap').parentNode.classList.remove('db-so-fala')}
   histAberto=false;save();if(T.aoConcluir)T.aoConcluir();
   if(T.id==='m1')setTimeout(convidarNivelamento,7000);
   var novos=VERBETES.filter(function(v){return v.treino===T.id}).length;
@@ -107,6 +107,9 @@ function ligarHist(g){
 function renderGuide(){
   var g=$('#guide');if(!g)return;var st=tutStep();if(!st)return;
   var i=S.tut,N=tutPassos().length,after=S.tutPhase==='after';
+  // Passo em que a Célia só fala: no celular, o editor e a barra saem e ela ganha a tela (css/mobile.css).
+  // No playtest de 22/10, no celular, a fala ficava espremida numa caixinha acima de um editor vazio.
+  var corpo=g.closest('.dbwrap')&&g.closest('.dbwrap').parentNode;if(corpo)corpo.classList.toggle('db-so-fala',!after&&(st.type==='msg'||st.type==='final'));
   var html='<div class="gh"><span class="av">CM</span><div><b>Célia Moura</b><small>'+L('{treino} · passo {i} de {total}',{treino:escH(treinoAtual().titulo),i:i+1,total:N})+'</small></div>'+(S.treino!=='m1'?'<button class="gpausa" id="gPausa" title="'+escH(L('Libera o DB-Investigator; depois você volta exatamente deste passo'))+'">&#10074;&#10074; '+L('Pausar')+'</button>':'')+'</div><div class="gprog"><i style="width:'+Math.round((i+(after?1:0))/N*100)+'%"></i></div>'+histHTML();
   if(after){html+='<div class="gbub after">'+fill(st.after)+'</div><div class="gact"><button class="btn-primary" id="gNext">Continuar</button></div>';g.innerHTML=html;ligarHist(g);ligarPausa(g);$('#gNext').onclick=tutNext;spot('#gNext');return}
   html+='<div class="gbub">'+(st.antes||'')+fill(st.text)+(st.extra||'')+(st.text2||'')+'</div>';
